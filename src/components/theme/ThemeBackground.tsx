@@ -1,163 +1,161 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import LottieView from 'lottie-react-native';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { LandscapeLayer, type SvgLayerConfig } from './LandscapeLayers';
 
-// ── Types ───────────────────────────────────────────────────────────
-
-interface LottieLayer {
-  uri: string;
-  opacity: number;
-  speed?: number;
-}
+// ── Types ────────────────────────────────────────────────────────────
 
 interface ThemeScene {
   sky: [string, string, string];
-  lottie: LottieLayer[];
+  layers: SvgLayerConfig[];
 }
 
-// ── Lottie CDN URLs (LottieFiles free license) ─────────────────────
-// Each theme has a scenic/atmospheric animation with real objects & compositions
-
-const CDN = 'https://assets-v2.lottiefiles.com/a';
+// ── Scene definitions ────────────────────────────────────────────────
 
 const SCENES: Record<string, ThemeScene> = {
+  // Mountains preset
   csgo: {
-    // Cityscape — dark city scene with buildings
     sky: ['#0a0a14', '#1a1a2a', '#1A1A1A'],
-    lottie: [
-      { uri: `${CDN}/c3f5da80-1167-11ee-bfec-f703c703d1b1/IyoA3jiROE.json`, opacity: 0.3 },
-    ],
-  },
-  got: {
-    // Castle — medieval castle scene
-    sky: ['#1a0505', '#2a1020', '#121010'],
-    lottie: [
-      { uri: `${CDN}/ca259e8e-c73f-11ee-81e7-a7b683506104/3NwNJ5uf2h.json`, opacity: 0.25 },
-    ],
-  },
-  twilight: {
-    // Halloween night — dark scene with moon, bats, landscape
-    sky: ['#0D0020', '#1a0830', '#0D0D12'],
-    lottie: [
-      { uri: `${CDN}/cd7d177a-1172-11ee-80c7-b798f4df4131/cYVyj9gBbZ.json`, opacity: 0.25 },
-    ],
-  },
-  anime: {
-    // Cyberpunk neon scene
-    sky: ['#2a1040', '#1a0828', '#140818'],
-    lottie: [
-      { uri: `${CDN}/6d938dda-118b-11ee-8a32-ab04cf779dd0/pwT4CYbXlY.json`, opacity: 0.25 },
-    ],
-  },
-  sakura: {
-    // Cherry blossom petals — sakura scene
-    sky: ['#FFE8F0', '#FFF0F5', '#FFF5F9'],
-    lottie: [
-      { uri: `${CDN}/fbb3f914-1173-11ee-b1e9-97c6ad380613/i7nkX6A6PB.json`, opacity: 0.35 },
-    ],
-  },
-  gagarin: {
-    // Space planets astronaut — solar system scene
-    sky: ['#000010', '#0A0A30', '#0A0A1E'],
-    lottie: [
-      { uri: `${CDN}/d87895e4-1188-11ee-87cc-17dc72bbbe1c/d5bEMAmIAS.json`, opacity: 0.35 },
-    ],
-  },
-  marvel: {
-    // Thunderstorm — dramatic storm scene
-    sky: ['#08081a', '#151530', '#0C0C1A'],
-    lottie: [
-      { uri: `${CDN}/35a6b804-5405-11ee-a5b4-6b770abb185b/oarNziiAM1.json`, opacity: 0.25 },
-    ],
-  },
-  onepiece: {
-    // Boat in ocean — sailing ship on waves
-    sky: ['#FF8040', '#4080C0', '#0E1428'],
-    lottie: [
-      { uri: `${CDN}/19bf9c50-1166-11ee-9585-27cac48a918b/lMqTv6PeCU.json`, opacity: 0.25, speed: 0.7 },
-    ],
-  },
-  frozen: {
-    // Winter snow — snowy winter landscape
-    sky: ['#C0E0FF', '#E0F0FF', '#E8F4FC'],
-    lottie: [
-      { uri: `${CDN}/b812a11e-1183-11ee-a65e-df170e015e38/rlJcgkJBix.json`, opacity: 0.4 },
-    ],
-  },
-  minions: {
-    // Happy sun — sunny cartoon scene
-    sky: ['#FFE8A0', '#FFF0C0', '#FFF8E0'],
-    lottie: [
-      { uri: `${CDN}/950c5b0e-1153-11ee-b217-231a657478da/bG6t3JEH8n.json`, opacity: 0.3 },
-    ],
-  },
-  clash: {
-    // Day to night cycle — landscape scene
-    sky: ['#080820', '#101838', '#0E1638'],
-    lottie: [
-      { uri: `${CDN}/a87cd646-1167-11ee-a77b-b319fb1b8dc9/nqw0qH6xK3.json`, opacity: 0.25 },
-    ],
-  },
-  pokemon: {
-    // Forest — green forest scene with trees
-    sky: ['#90D0FF', '#C0E8FF', '#FFF5F5'],
-    lottie: [
-      { uri: `${CDN}/919958c4-1152-11ee-be40-734f3ebb8fa8/qQxAo03jjB.json`, opacity: 0.3 },
+    layers: [
+      { type: 'mountains', color: '#0d0d1a', opacity: 0.4, height: 0.35 },
+      { type: 'hills',     color: '#0a0a12', opacity: 0.6, height: 0.25 },
+      { type: 'pines',     color: '#060608', opacity: 0.8, height: 0.15 },
     ],
   },
   minecraft: {
-    // Mountain with sun — mountain landscape
     sky: ['#80C0FF', '#A0D8A0', '#F0F5E8'],
-    lottie: [
-      { uri: `${CDN}/d5646f86-1151-11ee-b296-47294060bc12/9pgqiG7Ue8.json`, opacity: 0.3 },
+    layers: [
+      { type: 'mountains', color: '#6A9E5E', opacity: 0.35, height: 0.35 },
+      { type: 'hills',     color: '#4E8B3A', opacity: 0.5,  height: 0.25 },
+      { type: 'pines',     color: '#2D6B1E', opacity: 0.7,  height: 0.18 },
     ],
   },
-  brawl: {
-    // Desert sunset — desert scene
-    sky: ['#1a0828', '#281040', '#1A0E28'],
-    lottie: [
-      { uri: `${CDN}/67bd0de6-1168-11ee-8df8-0f1132cc796a/ZlkQYlMykh.json`, opacity: 0.25 },
+  pokemon: {
+    sky: ['#90D0FF', '#C0E8FF', '#FFF5F5'],
+    layers: [
+      { type: 'mountains', color: '#8EC08A', opacity: 0.3, height: 0.35 },
+      { type: 'hills',     color: '#6DAA68', opacity: 0.45, height: 0.25 },
+      { type: 'pines',     color: '#4A8A45', opacity: 0.6, height: 0.15 },
+    ],
+  },
+  clash: {
+    sky: ['#080820', '#101838', '#0E1638'],
+    layers: [
+      { type: 'mountains', color: '#0E1230', opacity: 0.4, height: 0.35 },
+      { type: 'hills',     color: '#0A0E25', opacity: 0.55, height: 0.25 },
+      { type: 'pines',     color: '#06081A', opacity: 0.75, height: 0.15 },
+    ],
+  },
+
+  // Forest preset
+  got: {
+    sky: ['#1a0505', '#2a1020', '#121010'],
+    layers: [
+      { type: 'mountains', color: '#1A0A0A', opacity: 0.35, height: 0.35 },
+      { type: 'forest',    color: '#120808', opacity: 0.55, height: 0.25 },
+      { type: 'bushes',    color: '#0A0505', opacity: 0.75, height: 0.15 },
+    ],
+  },
+  twilight: {
+    sky: ['#0D0020', '#1a0830', '#0D0D12'],
+    layers: [
+      { type: 'mountains', color: '#0D0018', opacity: 0.35, height: 0.35 },
+      { type: 'forest',    color: '#0A0012', opacity: 0.55, height: 0.25 },
+      { type: 'bushes',    color: '#06000A', opacity: 0.75, height: 0.15 },
     ],
   },
   hogwarts: {
-    // Clear night moon — night sky with moon and stars
     sky: ['#080818', '#101030', '#120A0A'],
-    lottie: [
-      { uri: `${CDN}/e9a1c380-1170-11ee-970a-43c443669001/AKPVbTeB6E.json`, opacity: 0.3 },
+    layers: [
+      { type: 'mountains', color: '#0A0A20', opacity: 0.35, height: 0.35 },
+      { type: 'forest',    color: '#080815', opacity: 0.55, height: 0.25 },
+      { type: 'bushes',    color: '#05050E', opacity: 0.75, height: 0.15 },
+    ],
+  },
+
+  // Ocean preset
+  onepiece: {
+    sky: ['#FFA850', '#60B8E8', '#90D0F0'],
+    layers: [
+      { type: 'clouds',    color: '#FFFFFF', opacity: 0.3,  height: 0.3 },
+      { type: 'waves',     color: '#4098D0', opacity: 0.35, height: 0.25 },
+      { type: 'wavesNear', color: '#2878B0', opacity: 0.5,  height: 0.15 },
+    ],
+  },
+  frozen: {
+    sky: ['#C0E0FF', '#E0F0FF', '#E8F4FC'],
+    layers: [
+      { type: 'clouds',    color: '#FFFFFF', opacity: 0.3, height: 0.3 },
+      { type: 'waves',     color: '#A0C8E8', opacity: 0.4, height: 0.25 },
+      { type: 'wavesNear', color: '#80B0D8', opacity: 0.55, height: 0.15 },
+    ],
+  },
+
+  // City preset
+  anime: {
+    sky: ['#FF9070', '#E8A0D0', '#C8E0F8'],
+    layers: [
+      { type: 'skyscrapers',   color: '#D880B8', opacity: 0.25, height: 0.4 },
+      { type: 'buildings',     color: '#C070A0', opacity: 0.35, height: 0.3 },
+      { type: 'buildingsNear', color: '#A06088', opacity: 0.5,  height: 0.2 },
+    ],
+  },
+  marvel: {
+    sky: ['#4088E0', '#60A0F0', '#D0E4FF'],
+    layers: [
+      { type: 'skyscrapers',   color: '#3868B8', opacity: 0.3,  height: 0.4 },
+      { type: 'buildings',     color: '#2850A0', opacity: 0.45, height: 0.3 },
+      { type: 'buildingsNear', color: '#1A3878', opacity: 0.6,  height: 0.2 },
+    ],
+  },
+
+  // Desert preset
+  brawl: {
+    sky: ['#1a0828', '#281040', '#1A0E28'],
+    layers: [
+      { type: 'dunes',    color: '#200E30', opacity: 0.35, height: 0.35 },
+      { type: 'dunesMid', color: '#180A25', opacity: 0.55, height: 0.25 },
+      { type: 'cacti',    color: '#10061A', opacity: 0.75, height: 0.2 },
+    ],
+  },
+  minions: {
+    sky: ['#FFE8A0', '#FFF0C0', '#FFF8E0'],
+    layers: [
+      { type: 'dunes',    color: '#E8C870', opacity: 0.3,  height: 0.35 },
+      { type: 'dunesMid', color: '#D8B858', opacity: 0.45, height: 0.25 },
+      { type: 'cacti',    color: '#C8A848', opacity: 0.6,  height: 0.2 },
+    ],
+  },
+
+  // Space preset
+  gagarin: {
+    sky: ['#000010', '#0A0A30', '#0A0A1E'],
+    layers: [
+      { type: 'stars',   color: '#FFFFFF', opacity: 0.5,  height: 0.8 },
+      { type: 'planets', color: '#3040A0', opacity: 0.4,  height: 0.6 },
+      { type: 'surface', color: '#0A0A20', opacity: 0.7,  height: 0.25 },
     ],
   },
   amongus: {
-    // Astronaut in space — floating astronaut scene
     sky: ['#000008', '#080820', '#0A0A18'],
-    lottie: [
-      { uri: `${CDN}/896cac22-1162-11ee-9323-dbc9509ac931/kGrRFKlaSP.json`, opacity: 0.25 },
+    layers: [
+      { type: 'stars',   color: '#FFFFFF', opacity: 0.45, height: 0.8 },
+      { type: 'planets', color: '#203080', opacity: 0.35, height: 0.6 },
+      { type: 'surface', color: '#08081A', opacity: 0.7,  height: 0.25 },
+    ],
+  },
+  sakura: {
+    sky: ['#FFE8F0', '#FFF0F5', '#FFF5F9'],
+    layers: [
+      { type: 'sakuraHills', color: '#F0C0D0', opacity: 0.3,  height: 0.4 },
+      { type: 'hills',       color: '#E8A8C0', opacity: 0.45, height: 0.28 },
+      { type: 'bushes',      color: '#D890A8', opacity: 0.6,  height: 0.15 },
     ],
   },
 };
 
-// ── Lottie Layer Component ──────────────────────────────────────────
-
-const LottieLayer = memo(function LottieLayer({ uri, opacity, speed }: LottieLayer) {
-  const onError = useCallback(() => {
-    // Silently ignore load errors — gradient still shows
-  }, []);
-
-  return (
-    <LottieView
-      source={{ uri }}
-      autoPlay
-      loop
-      speed={speed ?? 1}
-      resizeMode="cover"
-      onAnimationFailure={onError}
-      style={[StyleSheet.absoluteFillObject, { opacity }]}
-    />
-  );
-});
-
-// ── Main Component ──────────────────────────────────────────────────
+// ── Main Component ───────────────────────────────────────────────────
 
 function ThemeBackgroundInner() {
   const theme = useAppTheme();
@@ -172,8 +170,8 @@ function ThemeBackgroundInner() {
         locations={[0, 0.5, 1]}
         style={StyleSheet.absoluteFillObject}
       />
-      {scene.lottie.map((layer, i) => (
-        <LottieLayer key={`${theme.id}-${i}`} {...layer} />
+      {scene.layers.map((layer, i) => (
+        <LandscapeLayer key={`${theme.id}-${i}`} config={layer} />
       ))}
     </View>
   );
