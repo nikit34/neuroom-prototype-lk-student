@@ -1,11 +1,10 @@
-import React, { useCallback, memo, useState, useRef } from 'react';
+import React, { useCallback, memo } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme, useCurrentCharacter } from '@/src/hooks/useAppTheme';
@@ -14,20 +13,8 @@ import { useThemeStore } from '@/src/stores/themeStore';
 import { seniorThemes, juniorThemes } from '@/src/theme/themes';
 import Mascot from '@/src/components/mascot/Mascot';
 import Card from '@/src/components/ui/Card';
-import { AppTheme, AchievementRarity } from '@/src/types';
+import { AppTheme } from '@/src/types';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
-import DevModePanel from '@/src/components/dev/DevModePanel';
-import BadgeCelebration from '@/src/components/dev/BadgeCelebration';
-import { mockAchievements } from '@/src/data/mockData';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-const SAMPLE_BADGES: Record<AchievementRarity, { icon: string; title: string; description: string; rarity: AchievementRarity }> = {
-  common: { icon: '🎯', title: 'Первый шаг', description: 'Сдайте первое домашнее задание', rarity: 'common' },
-  rare: { icon: '⭐', title: 'Капитан команды', description: 'Станьте лидером в командном квесте', rarity: 'rare' },
-  epic: { icon: '🔬', title: 'Учёный', description: 'Сдайте все лабораторные за четверть', rarity: 'epic' },
-  legendary: { icon: '👑', title: 'Легенда школы', description: 'Серия 100 дней подряд', rarity: 'legendary' },
-};
 
 export default function ProfileScreen() {
   const theme = useAppTheme();
@@ -35,52 +22,6 @@ export default function ProfileScreen() {
   const student = useStudentStore((s) => s.student);
   const themeId = useThemeStore((s) => s.themeId);
   const setThemeId = useThemeStore((s) => s.setTheme);
-
-  const [devMode, setDevMode] = useState(false);
-  const [celebrationBadge, setCelebrationBadge] = useState<{
-    icon: string; title: string; description: string; rarity: AchievementRarity;
-  } | null>(null);
-  const badgeQueueRef = useRef<typeof SAMPLE_BADGES[AchievementRarity][]>([]);
-
-  const handleDevToggle = useCallback(() => {
-    setDevMode((prev) => !prev);
-  }, []);
-
-  const handleAwardBadge = useCallback((rarity: AchievementRarity) => {
-    setCelebrationBadge(SAMPLE_BADGES[rarity]);
-  }, []);
-
-  const handleAwardRandomBadge = useCallback(() => {
-    const achWithEmoji = mockAchievements.filter((a) => a.icon);
-    const randomAch = achWithEmoji[Math.floor(Math.random() * achWithEmoji.length)];
-    setCelebrationBadge({
-      icon: randomAch.icon,
-      title: randomAch.title,
-      description: randomAch.description,
-      rarity: randomAch.rarity,
-    });
-  }, []);
-
-  const handleAwardBadgeSeries = useCallback(() => {
-    const series = [
-      SAMPLE_BADGES.common,
-      SAMPLE_BADGES.rare,
-      SAMPLE_BADGES.epic,
-    ];
-    badgeQueueRef.current = series.slice(1);
-    setCelebrationBadge(series[0]);
-  }, []);
-
-  const handleDismissCelebration = useCallback(() => {
-    setCelebrationBadge(null);
-    // Show next in queue after short delay
-    setTimeout(() => {
-      if (badgeQueueRef.current.length > 0) {
-        const next = badgeQueueRef.current.shift()!;
-        setCelebrationBadge(next);
-      }
-    }, 300);
-  }, []);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
@@ -92,21 +33,6 @@ export default function ProfileScreen() {
       >
         <View style={styles.headerRow}>
           <Text style={[styles.header, { color: theme.colors.text }]}>Профиль</Text>
-          <TouchableOpacity
-            onPress={handleDevToggle}
-            style={[
-              styles.devToggle,
-              {
-                backgroundColor: devMode ? theme.colors.accent + '20' : theme.colors.surface,
-                borderColor: devMode ? theme.colors.accent : theme.colors.border,
-              },
-            ]}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.devToggleText, { color: devMode ? theme.colors.accent : theme.colors.textSecondary }]}>
-              {devMode ? '🔧 DEV' : '🔧'}
-            </Text>
-          </TouchableOpacity>
         </View>
 
         {/* Student Info */}
@@ -157,17 +83,6 @@ export default function ProfileScreen() {
           <Mascot health={student.mascotHealth} />
         </Card>
 
-        {/* Dev Mode Panel */}
-        {devMode && (
-          <View style={styles.devSection}>
-            <DevModePanel
-              onAwardBadge={handleAwardBadge}
-              onAwardRandomBadge={handleAwardRandomBadge}
-              onAwardBadgeSeries={handleAwardBadgeSeries}
-            />
-          </View>
-        )}
-
         {/* Theme Selection */}
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           Выбор темы
@@ -202,13 +117,6 @@ export default function ProfileScreen() {
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {/* Badge Celebration Overlay */}
-      {celebrationBadge && (
-        <BadgeCelebration
-          badge={celebrationBadge}
-          onDismiss={handleDismissCelebration}
-        />
-      )}
     </SafeAreaView>
   );
 }
@@ -267,19 +175,6 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 26,
     fontWeight: '700',
-  },
-  devToggle: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
-    borderWidth: 1,
-  },
-  devToggleText: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  devSection: {
-    marginTop: 16,
   },
   infoCard: {
     alignItems: 'center',

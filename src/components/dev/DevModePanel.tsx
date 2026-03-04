@@ -134,13 +134,6 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
-      <View style={styles.headerRow}>
-        <Text style={[styles.devTitle, { color: theme.colors.accent }]}>
-          DEV MODE
-        </Text>
-        <View style={[styles.devDot, { backgroundColor: '#EF4444' }]} />
-      </View>
-
       {/* Health Slider */}
       <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
         ЗДОРОВЬЕ МАСКОТА

@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
+import DevModeOverlay from '@/src/components/dev/DevModeOverlay';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -56,13 +57,14 @@ function RootLayoutNav() {
           headerTintColor: theme.colors.text,
           headerTitleStyle: { fontWeight: '600' },
           contentStyle: { backgroundColor: theme.colors.background },
+          headerBackTitle: '',
         }}
       >
         <Stack.Screen
           name="onboarding"
           options={{ headerShown: false, animation: 'fade' }}
         />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false, title: '' }} />
         <Stack.Screen
           name="homework/[id]"
           options={{ title: 'Детали задания' }}
@@ -96,6 +98,7 @@ function RootLayoutNav() {
           options={{ title: 'Испытание' }}
         />
       </Stack>
+      <DevModeOverlay />
     </GestureHandlerRootView>
   );
 }
