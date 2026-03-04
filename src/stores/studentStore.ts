@@ -5,6 +5,7 @@ import { mockStudent } from '../data/mockData';
 interface StudentState {
   student: Student;
   updateMascotHealth: (delta: number) => void;
+  setMascotHealth: (health: number) => void;
   incrementStreak: () => void;
   addPoints: (points: number) => void;
   setGender: (gender: 'male' | 'female') => void;
@@ -18,6 +19,14 @@ export const useStudentStore = create<StudentState>((set) => ({
       student: {
         ...state.student,
         mascotHealth: Math.max(0, Math.min(100, state.student.mascotHealth + delta)),
+      },
+    })),
+
+  setMascotHealth: (health) =>
+    set((state) => ({
+      student: {
+        ...state.student,
+        mascotHealth: Math.max(0, Math.min(100, health)),
       },
     })),
 

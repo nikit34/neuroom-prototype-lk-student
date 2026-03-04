@@ -48,6 +48,16 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="arena"
+        options={{
+          title: 'Арена',
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.6 }}>⚔️</Text>
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="progress"
         options={{
           title: 'Прогресс',

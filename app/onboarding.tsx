@@ -17,7 +17,6 @@ import { useThemeStore } from '@/src/stores/themeStore';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
 import { themes, seniorThemes, juniorThemes } from '@/src/theme/themes';
 import { AppTheme, ThemeCharacter } from '@/src/types';
-import MascotViewer3DMini from '@/src/components/mascot/MascotViewer3DMini';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const TOTAL_STEPS = 4;
@@ -244,7 +243,7 @@ export default function OnboardingScreen() {
                       onPress={() => setCharacterId(char.id)}
                       activeOpacity={0.7}
                     >
-                      <MascotViewer3DMini config3d={char.config3d} size={60} />
+                      <Text style={styles.characterEmoji}>{char.emoji}</Text>
                       <Text
                         style={[
                           styles.characterName,

@@ -5,6 +5,10 @@ import {
   Achievement,
   Classmate,
   DuelChallenge,
+  DuelQuestion,
+  Duel,
+  Quest,
+  Challenge,
 } from '../types';
 
 const DAY = 86400000;
@@ -540,7 +544,7 @@ export const mockClassmates: Classmate[] = [
   { id: 'cl-15', firstName: 'Ева', lastName: 'Андреева', totalPoints: 550, avatarEmoji: '🦔' },
 ];
 
-// ─── Дуэли ────────────────────────────────────────────────────────
+// ─── Дуэли (старые, для обратной совместимости) ──────────────────
 export const mockDuels: DuelChallenge[] = [
   {
     id: 'duel-1',
@@ -561,5 +565,291 @@ export const mockDuels: DuelChallenge[] = [
     subject: 'История',
     status: 'won',
     score: { student: 5, opponent: 3 },
+  },
+];
+
+// ─── Вопросы для дуэлей ─────────────────────────────────────────
+export const mockDuelQuestions: DuelQuestion[] = [
+  // Математика (5)
+  { id: 'q-m1', subject: 'Математика', text: 'Чему равен корень из 144?', options: ['11', '12', '13', '14'], correctIndex: 1 },
+  { id: 'q-m2', subject: 'Математика', text: 'Решите: 3x + 7 = 22. Чему равен x?', options: ['3', '4', '5', '6'], correctIndex: 2 },
+  { id: 'q-m3', subject: 'Математика', text: 'Сколько градусов в сумме углов треугольника?', options: ['90', '120', '180', '360'], correctIndex: 2 },
+  { id: 'q-m4', subject: 'Математика', text: 'Чему равно 2^8?', options: ['128', '256', '512', '64'], correctIndex: 1 },
+  { id: 'q-m5', subject: 'Математика', text: 'Какое число является простым?', options: ['15', '21', '23', '27'], correctIndex: 2 },
+  // Физика (5)
+  { id: 'q-p1', subject: 'Физика', text: 'Единица измерения силы в СИ?', options: ['Джоуль', 'Ватт', 'Ньютон', 'Паскаль'], correctIndex: 2 },
+  { id: 'q-p2', subject: 'Физика', text: 'Чему равно ускорение свободного падения?', options: ['8.9 м/с²', '9.8 м/с²', '10.8 м/с²', '11.2 м/с²'], correctIndex: 1 },
+  { id: 'q-p3', subject: 'Физика', text: 'Какой закон Ньютона описывает инерцию?', options: ['Первый', 'Второй', 'Третий', 'Четвёртый'], correctIndex: 0 },
+  { id: 'q-p4', subject: 'Физика', text: 'Скорость света приблизительно равна?', options: ['300 км/с', '3000 км/с', '300 000 км/с', '3 000 000 км/с'], correctIndex: 2 },
+  { id: 'q-p5', subject: 'Физика', text: 'Какая частица имеет отрицательный заряд?', options: ['Протон', 'Нейтрон', 'Электрон', 'Фотон'], correctIndex: 2 },
+  // История (5)
+  { id: 'q-h1', subject: 'История', text: 'В каком году была Куликовская битва?', options: ['1240', '1380', '1480', '1612'], correctIndex: 1 },
+  { id: 'q-h2', subject: 'История', text: 'Кто основал Санкт-Петербург?', options: ['Иван Грозный', 'Пётр I', 'Екатерина II', 'Александр I'], correctIndex: 1 },
+  { id: 'q-h3', subject: 'История', text: 'В каком году отменили крепостное право?', options: ['1825', '1848', '1861', '1905'], correctIndex: 2 },
+  { id: 'q-h4', subject: 'История', text: 'Какое событие произошло в 1812 году?', options: ['Восстание декабристов', 'Отечественная война', 'Реформы Петра', 'Крымская война'], correctIndex: 1 },
+  { id: 'q-h5', subject: 'История', text: 'Первый русский царь?', options: ['Рюрик', 'Владимир', 'Иван IV', 'Борис Годунов'], correctIndex: 2 },
+];
+
+// ─── Расширенные дуэли (Арена) ──────────────────────────────────
+const mathQs = mockDuelQuestions.filter(q => q.subject === 'Математика');
+const physQs = mockDuelQuestions.filter(q => q.subject === 'Физика');
+const histQs = mockDuelQuestions.filter(q => q.subject === 'История');
+
+export const mockArenaDuels: Duel[] = [
+  {
+    id: 'arena-duel-1',
+    type: 'classmate',
+    subject: 'Математика',
+    status: 'active',
+    result: null,
+    challenger: { id: 'student-1', name: 'Алексей Петров', avatarEmoji: '🐺', score: 2, answers: [1, 2, null, null, null] },
+    opponent: { id: 'cl-1', name: 'Мария Иванова', avatarEmoji: '🦊', score: 1, answers: [1, 0, null, null, null] },
+    questions: mathQs,
+    currentQuestionIndex: 2,
+    xpReward: 50,
+    createdAt: new Date(now - HOUR * 2),
+    isIncoming: false,
+  },
+  {
+    id: 'arena-duel-2',
+    type: 'classmate',
+    subject: 'Физика',
+    status: 'finished',
+    result: 'won',
+    challenger: { id: 'student-1', name: 'Алексей Петров', avatarEmoji: '🐺', score: 4, answers: [2, 1, 0, 2, 2] },
+    opponent: { id: 'cl-2', name: 'Дмитрий Сидоров', avatarEmoji: '🐻', score: 2, answers: [2, 0, 1, 2, 0] },
+    questions: physQs,
+    currentQuestionIndex: 5,
+    xpReward: 50,
+    createdAt: new Date(now - DAY * 1),
+    isIncoming: false,
+  },
+  {
+    id: 'arena-duel-3',
+    type: 'cross_class',
+    subject: 'История',
+    status: 'finished',
+    result: 'lost',
+    challenger: { id: 'student-1', name: 'Алексей Петров', avatarEmoji: '🐺', score: 2, answers: [1, 1, 0, 0, 2] },
+    opponent: { id: 'ext-1', name: 'Елена Волкова (8Б)', avatarEmoji: '🦋', score: 4, answers: [1, 1, 2, 1, 2] },
+    questions: histQs,
+    currentQuestionIndex: 5,
+    xpReward: 75,
+    createdAt: new Date(now - DAY * 3),
+    isIncoming: false,
+  },
+  {
+    id: 'arena-duel-4',
+    type: 'cross_class',
+    subject: 'Математика',
+    status: 'active',
+    result: null,
+    challenger: { id: 'student-1', name: 'Алексей Петров', avatarEmoji: '🐺', score: 1, answers: [1, null, null, null, null] },
+    opponent: { id: 'ext-2', name: 'Максим Орлов (8В)', avatarEmoji: '🦅', score: 0, answers: [0, null, null, null, null] },
+    questions: mathQs,
+    currentQuestionIndex: 1,
+    xpReward: 75,
+    createdAt: new Date(now - HOUR * 5),
+    isIncoming: false,
+  },
+  {
+    id: 'arena-duel-5',
+    type: 'team',
+    subject: 'Физика',
+    status: 'finished',
+    result: 'won',
+    challenger: { id: 'student-1', name: 'Алексей Петров', avatarEmoji: '🐺', score: 3, answers: [2, 1, 0, 2, 1] },
+    opponent: { id: 'cl-4', name: 'Иван Попов', avatarEmoji: '🦁', score: 2, answers: [2, 0, 0, 2, 0] },
+    teams: [
+      { id: 'team-1', name: 'Молнии', members: [
+        { id: 'student-1', name: 'Алексей Петров', avatarEmoji: '🐺', score: 3, answers: [] },
+        { id: 'cl-3', name: 'Анна Кузнецова', avatarEmoji: '🦋', score: 4, answers: [] },
+      ], totalScore: 7 },
+      { id: 'team-2', name: 'Кометы', members: [
+        { id: 'cl-4', name: 'Иван Попов', avatarEmoji: '🦁', score: 2, answers: [] },
+        { id: 'cl-5', name: 'Екатерина Новикова', avatarEmoji: '🐱', score: 3, answers: [] },
+      ], totalScore: 5 },
+    ],
+    questions: physQs,
+    currentQuestionIndex: 5,
+    xpReward: 100,
+    createdAt: new Date(now - DAY * 2),
+    isIncoming: false,
+  },
+  {
+    id: 'arena-duel-6',
+    type: 'classmate',
+    subject: 'История',
+    status: 'pending',
+    result: null,
+    challenger: { id: 'cl-6', name: 'Артём Федоров', avatarEmoji: '🐻', score: 0, answers: [] },
+    opponent: { id: 'student-1', name: 'Алексей Петров', avatarEmoji: '🐺', score: 0, answers: [] },
+    questions: histQs,
+    currentQuestionIndex: 0,
+    xpReward: 50,
+    createdAt: new Date(now - HOUR * 1),
+    isIncoming: true,
+  },
+];
+
+// ─── Квесты ─────────────────────────────────────────────────────
+export const mockQuests: Quest[] = [
+  {
+    id: 'quest-1',
+    title: 'Математический марафон',
+    description: 'Решите серию задач возрастающей сложности вместе с командой',
+    subject: 'Математика',
+    status: 'active',
+    steps: [
+      { id: 'qs-1-1', title: 'Решить 5 уравнений', description: 'Линейные уравнения', isCompleted: true },
+      { id: 'qs-1-2', title: 'Решить 3 неравенства', description: 'Квадратные неравенства', isCompleted: true },
+      { id: 'qs-1-3', title: 'Доказать теорему', description: 'Теорема Виета', isCompleted: false },
+      { id: 'qs-1-4', title: 'Финальная задача', description: 'Олимпиадный уровень', isCompleted: false },
+    ],
+    teamMembers: [
+      { id: 'student-1', name: 'Алексей Петров', avatarEmoji: '🐺', contribution: 45 },
+      { id: 'cl-1', name: 'Мария Иванова', avatarEmoji: '🦊', contribution: 35 },
+      { id: 'cl-3', name: 'Анна Кузнецова', avatarEmoji: '🦋', contribution: 20 },
+    ],
+    xpReward: 200,
+    deadline: new Date(now + DAY * 5),
+    createdAt: new Date(now - DAY * 3),
+  },
+  {
+    id: 'quest-2',
+    title: 'Исторический детектив',
+    description: 'Исследуйте эпоху Петра I, разгадывая загадки прошлого',
+    subject: 'История',
+    status: 'active',
+    steps: [
+      { id: 'qs-2-1', title: 'Найти 3 источника', description: 'Первичные исторические документы', isCompleted: true },
+      { id: 'qs-2-2', title: 'Составить хронологию', description: 'Ключевые события эпохи', isCompleted: false },
+      { id: 'qs-2-3', title: 'Написать эссе', description: 'Анализ реформ', isCompleted: false },
+    ],
+    teamMembers: [
+      { id: 'student-1', name: 'Алексей Петров', avatarEmoji: '🐺', contribution: 50 },
+      { id: 'cl-2', name: 'Дмитрий Сидоров', avatarEmoji: '🐻', contribution: 50 },
+    ],
+    xpReward: 150,
+    deadline: new Date(now + DAY * 7),
+    createdAt: new Date(now - DAY * 2),
+  },
+  {
+    id: 'quest-3',
+    title: 'Физическая лаборатория',
+    description: 'Проведите серию виртуальных экспериментов по механике',
+    subject: 'Физика',
+    status: 'available',
+    steps: [
+      { id: 'qs-3-1', title: 'Измерить ускорение', description: 'Эксперимент с наклонной плоскостью', isCompleted: false },
+      { id: 'qs-3-2', title: 'Проверить закон', description: 'Закон сохранения энергии', isCompleted: false },
+      { id: 'qs-3-3', title: 'Отчёт', description: 'Оформить результаты', isCompleted: false },
+    ],
+    teamMembers: [],
+    xpReward: 180,
+    deadline: new Date(now + DAY * 10),
+    createdAt: new Date(now - DAY * 1),
+  },
+  {
+    id: 'quest-4',
+    title: 'Алгебраический квест',
+    description: 'Пройдите все этапы и станьте мастером алгебры',
+    subject: 'Математика',
+    status: 'completed',
+    steps: [
+      { id: 'qs-4-1', title: 'Формулы сокращённого умножения', description: 'Выучить и применить', isCompleted: true },
+      { id: 'qs-4-2', title: 'Разложение на множители', description: '10 примеров', isCompleted: true },
+      { id: 'qs-4-3', title: 'Контрольная работа', description: 'Набрать 80%+', isCompleted: true },
+    ],
+    teamMembers: [
+      { id: 'student-1', name: 'Алексей Петров', avatarEmoji: '🐺', contribution: 40 },
+      { id: 'cl-1', name: 'Мария Иванова', avatarEmoji: '🦊', contribution: 30 },
+      { id: 'cl-5', name: 'Екатерина Новикова', avatarEmoji: '🐱', contribution: 30 },
+    ],
+    xpReward: 200,
+    deadline: new Date(now - DAY * 2),
+    createdAt: new Date(now - DAY * 14),
+  },
+];
+
+// ─── Челленджи ──────────────────────────────────────────────────
+export const mockChallenges: Challenge[] = [
+  {
+    id: 'ch-1',
+    title: 'Серия побед',
+    description: 'Выиграйте 5 дуэлей подряд',
+    subject: 'Все предметы',
+    difficulty: 'hard',
+    status: 'active',
+    progress: 3,
+    target: 5,
+    reward: { xp: 300, badge: { icon: '🏆', title: 'Непобедимый' } },
+    deadline: new Date(now + DAY * 7),
+    createdAt: new Date(now - DAY * 3),
+  },
+  {
+    id: 'ch-2',
+    title: 'Математический спринт',
+    description: 'Решите 20 задач по математике за 24 часа',
+    subject: 'Математика',
+    difficulty: 'medium',
+    status: 'available',
+    progress: 0,
+    target: 20,
+    reward: { xp: 150, badge: { icon: '⚡', title: 'Спринтер' } },
+    deadline: new Date(now + DAY * 3),
+    createdAt: new Date(now - DAY * 1),
+  },
+  {
+    id: 'ch-3',
+    title: 'Физик-экспериментатор',
+    description: 'Завершите 3 лабораторные работы',
+    subject: 'Физика',
+    difficulty: 'easy',
+    status: 'available',
+    progress: 0,
+    target: 3,
+    reward: { xp: 100 },
+    deadline: new Date(now + DAY * 14),
+    createdAt: new Date(now),
+  },
+  {
+    id: 'ch-4',
+    title: 'Историк года',
+    description: 'Наберите 50 баллов по истории за неделю',
+    subject: 'История',
+    difficulty: 'medium',
+    status: 'available',
+    progress: 0,
+    target: 50,
+    reward: { xp: 200, badge: { icon: '📜', title: 'Историк года' } },
+    deadline: new Date(now + DAY * 7),
+    createdAt: new Date(now - HOUR * 12),
+  },
+  {
+    id: 'ch-5',
+    title: 'Первые шаги в арене',
+    description: 'Примите участие в 3 дуэлях',
+    subject: 'Все предметы',
+    difficulty: 'easy',
+    status: 'completed',
+    progress: 3,
+    target: 3,
+    reward: { xp: 75 },
+    deadline: new Date(now - DAY * 1),
+    createdAt: new Date(now - DAY * 10),
+  },
+  {
+    id: 'ch-6',
+    title: 'Мастер квестов',
+    description: 'Завершите 5 квестов за месяц',
+    subject: 'Все предметы',
+    difficulty: 'hard',
+    status: 'expired',
+    progress: 2,
+    target: 5,
+    reward: { xp: 400, badge: { icon: '🗺️', title: 'Искатель приключений' } },
+    deadline: new Date(now - DAY * 2),
+    createdAt: new Date(now - DAY * 30),
   },
 ];

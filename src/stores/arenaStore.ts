@@ -1,0 +1,198 @@
+import { create } from 'zustand';
+import { Duel, DuelStatus, Quest, QuestStatus, Challenge, ChallengeStatus } from '../types';
+import { mockArenaDuels, mockQuests, mockChallenges } from '../data/mockData';
+
+type ArenaSection = 'duels' | 'quests' | 'challenges';
+type DuelFilter = 'all' | 'pending' | 'active' | 'finished';
+type QuestFilter = 'all' | 'active' | 'available' | 'completed';
+type ChallengeFilter = 'all' | 'active' | 'available' | 'completed' | 'expired';
+
+interface ArenaState {
+  section: ArenaSection;
+  setSection: (s: ArenaSection) => void;
+
+  // Duels
+  duels: Duel[];
+  duelFilter: DuelFilter;
+  setDuelFilter: (f: DuelFilter) => void;
+  getFilteredDuels: () => Duel[];
+  acceptDuel: (id: string) => void;
+  declineDuel: (id: string) => void;
+  answerDuelQuestion: (duelId: string, answerIndex: number) => void;
+  getDuelStats: () => { wins: number; losses: number; draws: number; active: number };
+
+  // Quests
+  quests: Quest[];
+  questFilter: QuestFilter;
+  setQuestFilter: (f: QuestFilter) => void;
+  getFilteredQuests: () => Quest[];
+  joinQuest: (id: string) => void;
+  completeQuestStep: (questId: string, stepId: string) => void;
+
+  // Challenges
+  challenges: Challenge[];
+  challengeFilter: ChallengeFilter;
+  setChallengeFilter: (f: ChallengeFilter) => void;
+  getFilteredChallenges: () => Challenge[];
+  startChallenge: (id: string) => void;
+  updateChallengeProgress: (id: string, amount: number) => void;
+}
+
+export const useArenaStore = create<ArenaState>((set, get) => ({
+  section: 'duels',
+  setSection: (s) => set({ section: s }),
+
+  // ─── Duels ──────────────────────────────────────────────────────
+  duels: [...mockArenaDuels],
+  duelFilter: 'all',
+  setDuelFilter: (f) => set({ duelFilter: f }),
+
+  getFilteredDuels: () => {
+    const { duels, duelFilter } = get();
+    if (duelFilter === 'all') return duels;
+    return duels.filter((d) => d.status === duelFilter);
+  },
+
+  acceptDuel: (id) =>
+    set((state) => ({
+      duels: state.duels.map((d) =>
+        d.id === id ? { ...d, status: 'active' as DuelStatus } : d,
+      ),
+    })),
+
+  declineDuel: (id) =>
+    set((state) => ({
+      duels: state.duels.filter((d) => d.id !== id),
+    })),
+
+  answerDuelQuestion: (duelId, answerIndex) =>
+    set((state) => ({
+      duels: state.duels.map((d) => {
+        if (d.id !== duelId || d.status !== 'active') return d;
+
+        const q = d.questions[d.currentQuestionIndex];
+        if (!q) return d;
+
+        const isCorrect = answerIndex === q.correctIndex;
+        const newChallengerAnswers = [...d.challenger.answers];
+        newChallengerAnswers[d.currentQuestionIndex] = answerIndex;
+
+        // Simulate opponent answer
+        const opponentCorrect = Math.random() > 0.45;
+        const opponentAnswer = opponentCorrect
+          ? q.correctIndex
+          : (q.correctIndex + 1 + Math.floor(Math.random() * 3)) % 4;
+        const newOpponentAnswers = [...d.opponent.answers];
+        newOpponentAnswers[d.currentQuestionIndex] = opponentAnswer;
+
+        const newIndex = d.currentQuestionIndex + 1;
+        const isFinished = newIndex >= d.questions.length;
+
+        const challengerScore = d.challenger.score + (isCorrect ? 1 : 0);
+        const opponentScore = d.opponent.score + (opponentCorrect ? 1 : 0);
+
+        let result: typeof d.result = d.result;
+        let status: DuelStatus = d.status;
+        if (isFinished) {
+          status = 'finished';
+          if (challengerScore > opponentScore) result = 'won';
+          else if (challengerScore < opponentScore) result = 'lost';
+          else result = 'draw';
+        }
+
+        return {
+          ...d,
+          status: status as DuelStatus,
+          result,
+          currentQuestionIndex: newIndex,
+          challenger: { ...d.challenger, score: challengerScore, answers: newChallengerAnswers },
+          opponent: { ...d.opponent, score: opponentScore, answers: newOpponentAnswers },
+        };
+      }),
+    })),
+
+  getDuelStats: () => {
+    const { duels } = get();
+    return {
+      wins: duels.filter((d) => d.result === 'won').length,
+      losses: duels.filter((d) => d.result === 'lost').length,
+      draws: duels.filter((d) => d.result === 'draw').length,
+      active: duels.filter((d) => d.status === 'active' || d.status === 'pending').length,
+    };
+  },
+
+  // ─── Quests ─────────────────────────────────────────────────────
+  quests: [...mockQuests],
+  questFilter: 'all',
+  setQuestFilter: (f) => set({ questFilter: f }),
+
+  getFilteredQuests: () => {
+    const { quests, questFilter } = get();
+    if (questFilter === 'all') return quests;
+    return quests.filter((q) => q.status === questFilter);
+  },
+
+  joinQuest: (id) =>
+    set((state) => ({
+      quests: state.quests.map((q) =>
+        q.id === id
+          ? {
+              ...q,
+              status: 'active' as QuestStatus,
+              teamMembers: [
+                ...q.teamMembers,
+                { id: 'student-1', name: 'Алексей Петров', avatarEmoji: '🐺', contribution: 0 },
+              ],
+            }
+          : q,
+      ),
+    })),
+
+  completeQuestStep: (questId, stepId) =>
+    set((state) => ({
+      quests: state.quests.map((q) => {
+        if (q.id !== questId) return q;
+        const newSteps = q.steps.map((s) =>
+          s.id === stepId ? { ...s, isCompleted: true } : s,
+        );
+        const allDone = newSteps.every((s) => s.isCompleted);
+        return {
+          ...q,
+          steps: newSteps,
+          status: allDone ? ('completed' as QuestStatus) : q.status,
+        };
+      }),
+    })),
+
+  // ─── Challenges ─────────────────────────────────────────────────
+  challenges: [...mockChallenges],
+  challengeFilter: 'all',
+  setChallengeFilter: (f) => set({ challengeFilter: f }),
+
+  getFilteredChallenges: () => {
+    const { challenges, challengeFilter } = get();
+    if (challengeFilter === 'all') return challenges;
+    return challenges.filter((c) => c.status === challengeFilter);
+  },
+
+  startChallenge: (id) =>
+    set((state) => ({
+      challenges: state.challenges.map((c) =>
+        c.id === id ? { ...c, status: 'active' as ChallengeStatus } : c,
+      ),
+    })),
+
+  updateChallengeProgress: (id, amount) =>
+    set((state) => ({
+      challenges: state.challenges.map((c) => {
+        if (c.id !== id) return c;
+        const newProgress = Math.min(c.progress + amount, c.target);
+        const isCompleted = newProgress >= c.target;
+        return {
+          ...c,
+          progress: newProgress,
+          status: isCompleted ? ('completed' as ChallengeStatus) : c.status,
+        };
+      }),
+    })),
+}));

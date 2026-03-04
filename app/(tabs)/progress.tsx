@@ -12,24 +12,20 @@ import { useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAchievementStore } from '@/src/stores/achievementStore';
 import { useStudentStore } from '@/src/stores/studentStore';
-import { mockClassmates, mockDuels } from '@/src/data/mockData';
+import { useArenaStore } from '@/src/stores/arenaStore';
+import { mockClassmates } from '@/src/data/mockData';
 import AchievementBadge from '@/src/components/achievements/AchievementBadge';
 import LeaderboardRow from '@/src/components/achievements/LeaderboardRow';
 import Card from '@/src/components/ui/Card';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
-
-const DUEL_STATUS_LABEL: Record<string, string> = {
-  pending: '⏳ Ожидание',
-  active: '⚔️ В процессе',
-  won: '🏆 Победа',
-  lost: '😞 Поражение',
-};
 
 export default function ProgressScreen() {
   const theme = useAppTheme();
   const router = useRouter();
   const achievements = useAchievementStore((s) => s.achievements);
   const student = useStudentStore((s) => s.student);
+  const getDuelStats = useArenaStore((s) => s.getDuelStats);
+  const arenaStats = getDuelStats();
 
   const sortedClassmates = [...mockClassmates].sort(
     (a, b) => b.totalPoints - a.totalPoints,
@@ -85,28 +81,18 @@ export default function ProgressScreen() {
           ))}
         </Card>
 
-        {/* Duels */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Дуэли</Text>
-        {mockDuels.map((duel) => (
-          <Card key={duel.id} style={styles.duelCard}>
-            <View style={styles.duelHeader}>
-              <Text style={[styles.duelOpponent, { color: theme.colors.text }]}>
-                {duel.opponentName}
-              </Text>
-              <Text style={[styles.duelStatus, { color: theme.colors.textSecondary }]}>
-                {DUEL_STATUS_LABEL[duel.status] || duel.status}
-              </Text>
-            </View>
-            <Text style={[styles.duelSubject, { color: theme.colors.textSecondary }]}>
-              {duel.subject}
+        {/* Arena link */}
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Арена</Text>
+        <Card style={styles.arenaCard} onPress={() => router.push('/(tabs)/arena')}>
+          <Text style={styles.arenaEmoji}>⚔️</Text>
+          <View style={styles.arenaContent}>
+            <Text style={[styles.arenaTitle, { color: theme.colors.text }]}>Арена</Text>
+            <Text style={[styles.arenaStats, { color: theme.colors.textSecondary }]}>
+              {arenaStats.wins} побед · {arenaStats.losses} поражений · {arenaStats.active} активных
             </Text>
-            {duel.score && (
-              <Text style={[styles.duelScore, { color: theme.colors.accent }]}>
-                Счёт: {duel.score.student} — {duel.score.opponent}
-              </Text>
-            )}
-          </Card>
-        ))}
+          </View>
+          <Text style={[styles.arenaArrow, { color: theme.colors.textSecondary }]}>›</Text>
+        </Card>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -147,30 +133,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     paddingVertical: 4,
   },
-  duelCard: {
+  arenaCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 10,
   },
-  duelHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
+  arenaEmoji: {
+    fontSize: 32,
+    marginRight: 12,
   },
-  duelOpponent: {
-    fontSize: 15,
-    fontWeight: '600',
+  arenaContent: {
+    flex: 1,
   },
-  duelStatus: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  duelSubject: {
-    fontSize: 13,
-    marginBottom: 4,
-  },
-  duelScore: {
-    fontSize: 14,
+  arenaTitle: {
+    fontSize: 16,
     fontWeight: '700',
+    marginBottom: 2,
+  },
+  arenaStats: {
+    fontSize: 13,
+  },
+  arenaArrow: {
+    fontSize: 24,
+    fontWeight: '300',
   },
   bottomSpacer: {
     height: 100,

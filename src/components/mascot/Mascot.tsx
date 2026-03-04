@@ -1,39 +1,64 @@
-import React, { memo } from 'react';
+import React, { memo, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useAppTheme } from '@/src/hooks/useAppTheme';
-import { useCustomizedCharacter } from '@/src/hooks/useCustomizedCharacter';
+import LottiePlayer, { LottiePlayerRef } from './LottiePlayer';
+import { useAppTheme, useCurrentCharacter } from '@/src/hooks/useAppTheme';
 import { getMascotState, getMascotStateLabel } from '@/src/utils/gradeHelpers';
+import { MASCOT_LOTTIE_SOURCES, emotionToAnimationState, getArchetype } from '@/src/mascot/mascotAnimations';
+import { stateToEmotion } from '@/src/mascot/mascotConfig';
 import MascotHealthBar from './MascotHealthBar';
-import MascotViewer3D from './MascotViewer3D';
+import { MascotEmotion, MascotState } from '@/src/types';
 
 interface MascotProps {
-  health: number; // 0-100
+  emotion?: MascotEmotion;
+  health?: number;
+  size?: number;
+  showHealthBar?: boolean;
+  label?: string;
 }
 
-function Mascot({ health }: MascotProps) {
+function Mascot({ emotion, health, size = 120, showHealthBar, label }: MascotProps) {
   const theme = useAppTheme();
-  const { character, customization } = useCustomizedCharacter();
-  const state = getMascotState(health);
-  const label = getMascotStateLabel(state);
+  const character = useCurrentCharacter();
+  const lottieRef = useRef<LottiePlayerRef>(null);
+
+  const resolvedEmotion: MascotEmotion = emotion ?? (
+    health != null ? stateToEmotion(getMascotState(health)) : 'neutral'
+  );
+  const resolvedState: MascotState = emotionToAnimationState(resolvedEmotion);
+  const archetype = getArchetype(character.id);
+
+  const state = health != null ? getMascotState(health) : undefined;
+  const stateLabel = label ?? (state ? getMascotStateLabel(state) : undefined);
+  const shouldShowHealthBar = showHealthBar ?? (health != null);
+
+  useEffect(() => {
+    lottieRef.current?.reset();
+    lottieRef.current?.play();
+  }, [resolvedState, archetype]);
 
   return (
     <View style={styles.container}>
-      <MascotViewer3D
-        config3d={character.config3d}
-        mascotState={state}
-        width={200}
-        height={200}
-        customization={customization}
+      <LottiePlayer
+        ref={lottieRef}
+        source={MASCOT_LOTTIE_SOURCES[archetype][resolvedState]}
+        autoPlay
+        loop
+        style={{ width: size * 1.5, height: size * 1.8 }}
+        colorFilters={[{ keypath: 'body', color: theme.colors.primary }]}
       />
       <Text style={[styles.characterName, { color: theme.colors.text }]}>
         {character.name}
       </Text>
-      <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
-        {label}
-      </Text>
-      <View style={styles.healthBarWrapper}>
-        <MascotHealthBar health={health} />
-      </View>
+      {stateLabel && (
+        <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
+          {stateLabel}
+        </Text>
+      )}
+      {shouldShowHealthBar && health != null && (
+        <View style={styles.healthBarWrapper}>
+          <MascotHealthBar health={health} />
+        </View>
+      )}
     </View>
   );
 }

@@ -1,31 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Image,
   ActivityIndicator,
-  ScrollView,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { CameraView, useCameraPermissions, CameraType } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { analyzeHomework } from '@/src/services/aiService';
-import CameraCapture from '@/src/components/camera/CameraCapture';
-import FilePickerButton from '@/src/components/camera/FilePickerButton';
 import Button from '@/src/components/ui/Button';
-import Card from '@/src/components/ui/Card';
 import { Submission } from '@/src/types';
 
 export default function SubmitHomeworkScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useAppTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const assignments = useHomeworkStore((s) => s.assignments);
   const submitHomework = useHomeworkStore((s) => s.submitHomework);
   const setAiFeedback = useHomeworkStore((s) => s.setAiFeedback);
   const homework = assignments.find((a) => a.id === id);
+
+  const [permission, requestPermission] = useCameraPermissions();
+  const [facing, setFacing] = useState<CameraType>('back');
+  const cameraRef = useRef<CameraView>(null);
 
   const [fileUri, setFileUri] = useState<string | null>(null);
   const [fileType, setFileType] = useState<'photo' | 'document'>('photo');
@@ -43,19 +49,53 @@ export default function SubmitHomeworkScreen() {
     );
   }
 
-  const handleCapture = (uri: string) => {
-    setFileUri(uri);
-    setFileType('photo');
+  // ── Handlers ────────────────────────────────────────────────
+
+  const handleCapture = async () => {
+    if (!cameraRef.current) return;
+    try {
+      const photo = await cameraRef.current.takePictureAsync();
+      if (photo?.uri) {
+        setFileUri(photo.uri);
+        setFileType('photo');
+      }
+    } catch {
+      Alert.alert('Ошибка', 'Не удалось сделать снимок.');
+    }
   };
 
-  const handleFilePick = (uri: string) => {
-    setFileUri(uri);
-    setFileType('document');
+  const handleFilePick = () => {
+    Alert.alert('Выберите источник', undefined, [
+      { text: 'Фото из галереи', onPress: pickImage },
+      { text: 'Документ', onPress: pickDocument },
+      { text: 'Отмена', style: 'cancel' },
+    ]);
+  };
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setFileUri(result.assets[0].uri);
+      setFileType('photo');
+    }
+  };
+
+  const pickDocument = async () => {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: '*/*',
+      copyToCacheDirectory: true,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setFileUri(result.assets[0].uri);
+      setFileType('document');
+    }
   };
 
   const handleSubmit = async () => {
     if (!fileUri) return;
-
     setLoading(true);
 
     const submission: Submission = {
@@ -79,178 +119,234 @@ export default function SubmitHomeworkScreen() {
     router.replace(`/homework/feedback/${homework.id}`);
   };
 
-  return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={[styles.title, { color: theme.colors.text }]}>
-          Сдача работы
-        </Text>
-        <Text style={[styles.hwTitle, { color: theme.colors.textSecondary }]}>
-          {homework.title} ({homework.subject})
-        </Text>
+  // ── Loading state ───────────────────────────────────────────
 
-        {/* Upload options */}
-        {!fileUri && !loading && (
-          <>
-            <Text style={[styles.sectionLabel, { color: theme.colors.text }]}>
-              Выберите способ загрузки:
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={[styles.loadingText, { color: theme.colors.text }]}>
+            Отправка и анализ работы...
+          </Text>
+          <Text style={[styles.loadingSubtext, { color: theme.colors.textSecondary }]}>
+            ИИ проверяет вашу работу
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ── Preview state (file selected) ──────────────────────────
+
+  if (fileUri) {
+    return (
+      <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
+        {/* Header */}
+        <View style={styles.previewHeader}>
+          <TouchableOpacity onPress={() => setFileUri(null)}>
+            <Text style={[styles.headerAction, { color: theme.colors.primary }]}>
+              Переснять
             </Text>
-            <View style={styles.optionsRow}>
-              <CameraCapture onCapture={handleCapture} />
-              <View style={styles.optionSpacer} />
-              <FilePickerButton onPick={handleFilePick} />
-            </View>
-          </>
-        )}
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]} numberOfLines={1}>
+            {homework.title}
+          </Text>
+          <View style={{ width: 70 }} />
+        </View>
 
         {/* Preview */}
-        {fileUri && !loading && (
-          <Card style={styles.previewCard}>
-            <Text style={[styles.previewLabel, { color: theme.colors.textSecondary }]}>
-              Предпросмотр:
-            </Text>
-            {fileType === 'photo' ? (
-              <Image
-                source={{ uri: fileUri }}
-                style={styles.previewImage}
-                resizeMode="contain"
-              />
-            ) : (
-              <View style={styles.docPreview}>
-                <Text style={styles.docIcon}>📄</Text>
-                <Text
-                  style={[styles.docName, { color: theme.colors.text }]}
-                  numberOfLines={2}
-                >
-                  {fileUri.split('/').pop()}
-                </Text>
-              </View>
-            )}
-            <Button
-              title="Выбрать другой файл"
-              variant="outline"
-              onPress={() => setFileUri(null)}
+        <View style={styles.previewBody}>
+          {fileType === 'photo' ? (
+            <Image
+              source={{ uri: fileUri }}
+              style={styles.previewImage}
+              resizeMode="contain"
             />
-          </Card>
-        )}
+          ) : (
+            <View style={styles.docPreview}>
+              <Text style={styles.docIcon}>📄</Text>
+              <Text style={[styles.docName, { color: theme.colors.text }]} numberOfLines={2}>
+                {fileUri.split('/').pop()}
+              </Text>
+            </View>
+          )}
+        </View>
 
-        {/* Loading */}
-        {loading && (
-          <Card style={styles.loadingCard}>
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text style={[styles.loadingText, { color: theme.colors.text }]}>
-              Отправка и анализ работы...
-            </Text>
-            <Text style={[styles.loadingSubtext, { color: theme.colors.textSecondary }]}>
-              ИИ проверяет вашу работу. Это займёт несколько секунд.
-            </Text>
-          </Card>
-        )}
+        {/* Submit */}
+        <View style={[styles.submitBar, { paddingBottom: insets.bottom + 16 }]}>
+          <Button title="Отправить" icon="📤" onPress={handleSubmit} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
-        {/* Submit button */}
-        {fileUri && !loading && (
-          <View style={styles.submitContainer}>
-            <Button
-              title="Отправить"
-              icon="📤"
-              onPress={handleSubmit}
-              loading={loading}
-            />
+  // ── Camera permission ───────────────────────────────────────
+
+  if (!permission || !permission.granted) {
+    return (
+      <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
+        <View style={styles.centered}>
+          <Text style={[styles.permMessage, { color: theme.colors.text }]}>
+            Для съёмки необходим доступ к камере
+          </Text>
+          <TouchableOpacity
+            style={[styles.permButton, { backgroundColor: theme.colors.primary }]}
+            onPress={requestPermission}
+          >
+            <Text style={styles.permButtonText}>Разрешить камеру</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.fileAlt} onPress={handleFilePick}>
+            <Text style={[styles.fileAltText, { color: theme.colors.primary }]}>
+              Или выбрать из файлов
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ── Fullscreen camera ───────────────────────────────────────
+
+  return (
+    <View style={styles.fullscreen}>
+      <CameraView ref={cameraRef} style={StyleSheet.absoluteFillObject} facing={facing}>
+        {/* Top bar — homework info + close */}
+        <SafeAreaView edges={['top']} style={styles.topBar}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
+            <Text style={styles.closeBtnText}>✕</Text>
+          </TouchableOpacity>
+          <View style={styles.topInfo}>
+            <Text style={styles.topTitle} numberOfLines={1}>{homework.title}</Text>
+            <Text style={styles.topSubtitle}>{homework.subject}</Text>
           </View>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+          <View style={{ width: 44 }} />
+        </SafeAreaView>
+
+        {/* Bottom controls */}
+        <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 20 }]}>
+          {/* Left — file picker */}
+          <TouchableOpacity style={styles.sideBtn} onPress={handleFilePick}>
+            <Text style={styles.sideBtnIcon}>📁</Text>
+            <Text style={styles.sideBtnLabel}>Файлы</Text>
+          </TouchableOpacity>
+
+          {/* Center — capture */}
+          <TouchableOpacity style={styles.captureBtn} onPress={handleCapture} activeOpacity={0.7}>
+            <View style={styles.captureOuter}>
+              <View style={styles.captureInner} />
+            </View>
+          </TouchableOpacity>
+
+          {/* Right — flip camera */}
+          <TouchableOpacity
+            style={styles.sideBtn}
+            onPress={() => setFacing((f) => (f === 'back' ? 'front' : 'back'))}
+          >
+            <Text style={styles.sideBtnIcon}>🔄</Text>
+            <Text style={styles.sideBtnLabel}>Камера</Text>
+          </TouchableOpacity>
+        </View>
+      </CameraView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
+  safe: { flex: 1 },
+  fullscreen: { flex: 1, backgroundColor: '#000' },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
+  errorText: { fontSize: 16 },
+
+  // ── Top bar (camera) ──
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 12,
+    backgroundColor: 'rgba(0,0,0,0.35)',
   },
-  centered: {
+  closeBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeBtnText: { color: '#fff', fontSize: 20, fontWeight: '600' },
+  topInfo: { flex: 1, alignItems: 'center', marginHorizontal: 8 },
+  topTitle: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  topSubtitle: { color: 'rgba(255,255,255,0.65)', fontSize: 12, marginTop: 2 },
+
+  // ── Bottom bar (camera) ──
+  bottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingTop: 20,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  captureBtn: { alignItems: 'center', justifyContent: 'center' },
+  captureOuter: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    borderWidth: 4,
+    borderColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  captureInner: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#fff',
+  },
+  sideBtn: { alignItems: 'center', width: 64 },
+  sideBtnIcon: { fontSize: 26 },
+  sideBtnLabel: { color: '#fff', fontSize: 11, marginTop: 4, fontWeight: '500' },
+
+  // ── Permission ──
+  permMessage: { fontSize: 16, textAlign: 'center', marginBottom: 16 },
+  permButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  permButtonText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  fileAlt: { marginTop: 20 },
+  fileAltText: { fontSize: 15, fontWeight: '500' },
+
+  // ── Preview ──
+  previewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  headerAction: { fontSize: 15, fontWeight: '600' },
+  headerTitle: { fontSize: 16, fontWeight: '700', flex: 1, textAlign: 'center', marginHorizontal: 8 },
+  previewBody: { flex: 1, padding: 16 },
+  previewImage: {
+    flex: 1,
+    borderRadius: 16,
+    backgroundColor: '#000',
+  },
+  docPreview: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  errorText: {
-    fontSize: 16,
-  },
-  content: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  hwTitle: {
-    fontSize: 15,
-    marginBottom: 24,
-  },
-  sectionLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 16,
-  },
-  optionsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  optionSpacer: {
-    width: 12,
-  },
-  previewCard: {
-    marginTop: 16,
-    alignItems: 'center',
-  },
-  previewLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 12,
-    alignSelf: 'flex-start',
-  },
-  previewImage: {
-    width: '100%',
-    height: 300,
-    borderRadius: 12,
-    marginBottom: 16,
-    backgroundColor: '#000',
-  },
-  docPreview: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingVertical: 16,
-  },
-  docIcon: {
-    fontSize: 40,
-    marginRight: 12,
-  },
-  docName: {
-    fontSize: 14,
-    flex: 1,
-  },
-  loadingCard: {
-    alignItems: 'center',
-    paddingVertical: 40,
-    marginTop: 20,
-  },
-  loadingText: {
-    fontSize: 17,
-    fontWeight: '600',
-    marginTop: 16,
-  },
-  loadingSubtext: {
-    fontSize: 13,
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  submitContainer: {
-    marginTop: 24,
-  },
+  docIcon: { fontSize: 64, marginBottom: 12 },
+  docName: { fontSize: 15, textAlign: 'center' },
+  submitBar: { paddingHorizontal: 20, paddingTop: 12 },
+  loadingText: { fontSize: 17, fontWeight: '600', marginTop: 16 },
+  loadingSubtext: { fontSize: 13, marginTop: 8 },
 });

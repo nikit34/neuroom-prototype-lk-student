@@ -1,11 +1,5 @@
 import React, { useMemo } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
@@ -41,12 +35,6 @@ export default function HomeScreen() {
       .slice(0, 3);
   }, [assignments]);
 
-  const firstPending = useMemo(() => {
-    return assignments.find(
-      (a) => a.status === 'pending' || a.status === 'resubmit',
-    );
-  }, [assignments]);
-
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
       <ThemeBackground />
@@ -76,34 +64,35 @@ export default function HomeScreen() {
           </Card>
         ) : (
           upcomingDeadlines.map((hw) => (
-            <Card
-              key={hw.id}
-              style={styles.deadlineCard}
-              onPress={() => router.push(`/homework/${hw.id}`)}
-            >
-              <Text style={[styles.hwTitle, { color: theme.colors.text }]} numberOfLines={1}>
-                {hw.title}
-              </Text>
-              <Text style={[styles.hwSubject, { color: theme.colors.textSecondary }]}>
-                {hw.subject}
-              </Text>
-              <View style={styles.deadlineRow}>
-                <DeadlineIndicator deadline={hw.deadline} />
-              </View>
+            <Card key={hw.id} style={styles.deadlineCard}>
+              <TouchableOpacity
+                style={styles.cardContent}
+                onPress={() => router.push(`/homework/${hw.id}`)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.cardInfo}>
+                  <Text style={[styles.hwTitle, { color: theme.colors.text }]} numberOfLines={1}>
+                    {hw.title}
+                  </Text>
+                  <Text style={[styles.hwSubject, { color: theme.colors.textSecondary }]}>
+                    {hw.subject}
+                  </Text>
+                  <DeadlineIndicator deadline={hw.deadline} />
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.cameraBtn, { backgroundColor: theme.colors.primary }]}
+                onPress={() => router.push(`/homework/submit/${hw.id}`)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.cameraBtnIcon}>📸</Text>
+                <Text style={styles.cameraBtnLabel}>Сдать</Text>
+              </TouchableOpacity>
             </Card>
           ))
         )}
       </ScrollView>
-
-      {firstPending && (
-        <TouchableOpacity
-          style={[styles.fab, { backgroundColor: theme.colors.primary }]}
-          onPress={() => router.push(`/homework/submit/${firstPending.id}`)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.fabText}>📤</Text>
-        </TouchableOpacity>
-      )}
     </SafeAreaView>
   );
 }
@@ -137,6 +126,14 @@ const styles = StyleSheet.create({
   },
   deadlineCard: {
     marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cardContent: {
+    flex: 1,
+  },
+  cardInfo: {
+    flex: 1,
   },
   hwTitle: {
     fontSize: 16,
@@ -147,31 +144,26 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: 8,
   },
-  deadlineRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   emptyText: {
     fontSize: 15,
     textAlign: 'center',
     paddingVertical: 16,
   },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 100,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  cameraBtn: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    marginLeft: 12,
   },
-  fabText: {
-    fontSize: 28,
+  cameraBtnIcon: {
+    fontSize: 22,
+  },
+  cameraBtnLabel: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
+    marginTop: 2,
   },
 });

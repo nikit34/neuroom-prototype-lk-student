@@ -3,48 +3,16 @@ export type AchievementRarity = 'common' | 'rare' | 'epic' | 'legendary';
 export type AchievementCategory = 'streak' | 'team_quest' | 'challenge' | 'duel';
 export type MascotState = 'sick' | 'sad' | 'neutral' | 'happy' | 'thriving';
 
-export type OutfitType = 'default' | 'armor' | 'cape' | 'hoodie' | 'vest' | 'robe' | 'jacket';
-export type HatType = 'none' | 'crown' | 'helmet' | 'wizard_hat' | 'cap' | 'headband' | 'horns';
-export type HandItemType = 'none' | 'sword' | 'shield' | 'bow' | 'staff' | 'guitar' | 'book' | 'wand' | 'flag';
-export type BackItemType = 'none' | 'wings' | 'cape' | 'backpack' | 'quiver';
-export type FaceItemType = 'none' | 'glasses' | 'eyepatch' | 'mask';
-
-export interface CharacterCustomization {
-  outfit: OutfitType;
-  outfitColor: string;
-  hat: HatType;
-  hatColor: string;
-  handItem: HandItemType;
-  backItem: BackItemType;
-  faceItem: FaceItemType;
-  skinColor: string;
-  clothesColor: string;
-  shoesColor: string;
-}
-
-export type CharacterBodyType = 'humanoid' | 'quadruped' | 'blob' | 'snowman' | 'bird';
-
-export interface Character3DConfig {
-  bodyType: CharacterBodyType;
-  primaryColor: string;
-  secondaryColor: string;
-  accentColor: string;
-  scale: number;
-  headShape: 'sphere' | 'cube' | 'cone' | 'cylinder';
-  hasHorns?: boolean;
-  hasTail?: boolean;
-  hasWings?: boolean;
-  hasCrown?: boolean;
-  hasWeapon?: 'sword' | 'bow' | 'staff' | 'shield' | 'guitar';
-  modelUrl?: string;
-}
+export type MascotEmotion =
+  | 'happy' | 'thinking' | 'surprised' | 'tired' | 'celebrating'
+  | 'encouraging' | 'explaining' | 'proud' | 'confused' | 'focused'
+  | 'sad' | 'sick' | 'waving' | 'neutral' | 'excited';
 
 export interface ThemeCharacter {
   id: string;
   name: string;
-  emoji: string;           // основной эмодзи (аватарка)
-  config3d: Character3DConfig;
-  mascotEmojis: {          // эмодзи по состояниям здоровья
+  emoji: string;
+  mascotEmojis: {
     sick: string;
     sad: string;
     neutral: string;
@@ -58,9 +26,9 @@ export interface Student {
   firstName: string;
   lastName: string;
   gender: 'male' | 'female';
-  grade: number; // 5-11
+  grade: number;
   classId: string;
-  mascotHealth: number; // 0-100
+  mascotHealth: number;
   currentStreak: number;
   avatarUrl?: string;
   totalPoints: number;
@@ -105,10 +73,10 @@ export interface Achievement {
   id: string;
   title: string;
   description: string;
-  icon: string; // emoji
+  icon: string;
   rarity: AchievementRarity;
   category: AchievementCategory;
-  progress: number; // 0-100
+  progress: number;
   isLocked: boolean;
   unlockedAt?: Date;
 }
@@ -163,4 +131,103 @@ export interface Classmate {
   lastName: string;
   totalPoints: number;
   avatarEmoji: string;
+}
+
+// ─── Arena Types ─────────────────────────────────────────────────
+
+// Duels
+export type DuelType = 'classmate' | 'cross_class' | 'team';
+export type DuelStatus = 'pending' | 'active' | 'finished';
+export type DuelResult = 'won' | 'lost' | 'draw' | null;
+
+export interface DuelQuestion {
+  id: string;
+  subject: string;
+  text: string;
+  options: [string, string, string, string];
+  correctIndex: number;
+}
+
+export interface DuelParticipant {
+  id: string;
+  name: string;
+  avatarEmoji: string;
+  score: number;
+  answers: (number | null)[];
+}
+
+export interface DuelTeam {
+  id: string;
+  name: string;
+  members: DuelParticipant[];
+  totalScore: number;
+}
+
+export interface Duel {
+  id: string;
+  type: DuelType;
+  subject: string;
+  status: DuelStatus;
+  result: DuelResult;
+  challenger: DuelParticipant;
+  opponent: DuelParticipant;
+  teams?: [DuelTeam, DuelTeam];
+  questions: DuelQuestion[];
+  currentQuestionIndex: number;
+  xpReward: number;
+  createdAt: Date;
+  isIncoming: boolean;
+}
+
+// Quests
+export type QuestStatus = 'available' | 'active' | 'completed';
+
+export interface QuestStep {
+  id: string;
+  title: string;
+  description: string;
+  isCompleted: boolean;
+}
+
+export interface QuestTeamMember {
+  id: string;
+  name: string;
+  avatarEmoji: string;
+  contribution: number;
+}
+
+export interface Quest {
+  id: string;
+  title: string;
+  description: string;
+  subject: string;
+  status: QuestStatus;
+  steps: QuestStep[];
+  teamMembers: QuestTeamMember[];
+  xpReward: number;
+  deadline: Date;
+  createdAt: Date;
+}
+
+// Challenges
+export type ChallengeStatus = 'available' | 'active' | 'completed' | 'expired';
+export type ChallengeDifficulty = 'easy' | 'medium' | 'hard';
+
+export interface ChallengeReward {
+  xp: number;
+  badge?: { icon: string; title: string };
+}
+
+export interface Challenge {
+  id: string;
+  title: string;
+  description: string;
+  subject: string;
+  difficulty: ChallengeDifficulty;
+  status: ChallengeStatus;
+  progress: number;
+  target: number;
+  reward: ChallengeReward;
+  deadline: Date;
+  createdAt: Date;
 }

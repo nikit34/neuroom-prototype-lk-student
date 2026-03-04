@@ -3,6 +3,7 @@ import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
@@ -48,7 +49,7 @@ function RootLayoutNav() {
   }, [isOnboardingCompleted]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <Stack
         screenOptions={{
           headerStyle: { backgroundColor: theme.colors.surface },
@@ -82,7 +83,19 @@ function RootLayoutNav() {
           name="achievements/[id]"
           options={{ title: 'Достижение' }}
         />
+        <Stack.Screen
+          name="arena/duel/[id]"
+          options={{ title: 'Дуэль' }}
+        />
+        <Stack.Screen
+          name="arena/quest/[id]"
+          options={{ title: 'Квест' }}
+        />
+        <Stack.Screen
+          name="arena/challenge/[id]"
+          options={{ title: 'Испытание' }}
+        />
       </Stack>
-    </View>
+    </GestureHandlerRootView>
   );
 }

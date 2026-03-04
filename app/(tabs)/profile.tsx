@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, memo } from 'react';
+import React, { useCallback, memo, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,122 +11,76 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme, useCurrentCharacter } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useThemeStore } from '@/src/stores/themeStore';
-import { useCustomizationStore } from '@/src/stores/customizationStore';
-import { themes, seniorThemes, juniorThemes } from '@/src/theme/themes';
+import { seniorThemes, juniorThemes } from '@/src/theme/themes';
 import Mascot from '@/src/components/mascot/Mascot';
 import Card from '@/src/components/ui/Card';
-import MascotViewer3D from '@/src/components/mascot/MascotViewer3D';
-import {
-  AppTheme,
-  ThemeCharacter,
-  CharacterCustomization,
-  OutfitType,
-  HatType,
-  HandItemType,
-  BackItemType,
-  FaceItemType,
-} from '@/src/types';
-import MascotViewer3DMini from '@/src/components/mascot/MascotViewer3DMini';
+import { AppTheme, AchievementRarity } from '@/src/types';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
-import { getMascotState } from '@/src/utils/gradeHelpers';
+import DevModePanel from '@/src/components/dev/DevModePanel';
+import BadgeCelebration from '@/src/components/dev/BadgeCelebration';
+import { mockAchievements } from '@/src/data/mockData';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// ─── Customization options ────────────────────────────────────────
-const OUTFIT_OPTIONS: { value: OutfitType; emoji: string; label: string }[] = [
-  { value: 'default', emoji: '👕', label: 'Обычн.' },
-  { value: 'armor', emoji: '🛡️', label: 'Броня' },
-  { value: 'cape', emoji: '🧥', label: 'Плащ' },
-  { value: 'hoodie', emoji: '🧙', label: 'Капюш.' },
-  { value: 'vest', emoji: '👔', label: 'Жилет' },
-  { value: 'robe', emoji: '✨', label: 'Мантия' },
-  { value: 'jacket', emoji: '🧥', label: 'Куртка' },
-];
-
-const HAT_OPTIONS: { value: HatType; emoji: string; label: string }[] = [
-  { value: 'none', emoji: '❌', label: 'Нет' },
-  { value: 'crown', emoji: '👑', label: 'Корона' },
-  { value: 'helmet', emoji: '⛑️', label: 'Шлем' },
-  { value: 'wizard_hat', emoji: '🧙', label: 'Маг' },
-  { value: 'cap', emoji: '🧢', label: 'Кепка' },
-  { value: 'headband', emoji: '🎀', label: 'Повязка' },
-  { value: 'horns', emoji: '🐂', label: 'Рога' },
-];
-
-const HAND_OPTIONS: { value: HandItemType; emoji: string; label: string }[] = [
-  { value: 'none', emoji: '❌', label: 'Нет' },
-  { value: 'sword', emoji: '⚔️', label: 'Меч' },
-  { value: 'shield', emoji: '🛡️', label: 'Щит' },
-  { value: 'bow', emoji: '🏹', label: 'Лук' },
-  { value: 'staff', emoji: '🪄', label: 'Посох' },
-  { value: 'guitar', emoji: '🎸', label: 'Гитара' },
-  { value: 'book', emoji: '📖', label: 'Книга' },
-  { value: 'wand', emoji: '✨', label: 'Палочка' },
-  { value: 'flag', emoji: '🚩', label: 'Флаг' },
-];
-
-const BACK_OPTIONS: { value: BackItemType; emoji: string; label: string }[] = [
-  { value: 'none', emoji: '❌', label: 'Нет' },
-  { value: 'wings', emoji: '🪽', label: 'Крылья' },
-  { value: 'cape', emoji: '🧣', label: 'Плащ' },
-  { value: 'backpack', emoji: '🎒', label: 'Рюкзак' },
-  { value: 'quiver', emoji: '🏹', label: 'Колчан' },
-];
-
-const FACE_OPTIONS: { value: FaceItemType; emoji: string; label: string }[] = [
-  { value: 'none', emoji: '❌', label: 'Нет' },
-  { value: 'glasses', emoji: '👓', label: 'Очки' },
-  { value: 'eyepatch', emoji: '🏴‍☠️', label: 'Повязка' },
-  { value: 'mask', emoji: '🎭', label: 'Маска' },
-];
-
-const COLOR_PRESETS = [
-  '#E74C3C', '#E67E22', '#F1C40F', '#2ECC71',
-  '#3498DB', '#9B59B6', '#1ABC9C', '#ECF0F1',
-  '#34495E', '#8B4513', '#FF69B4', '#FF6347',
-];
+const SAMPLE_BADGES: Record<AchievementRarity, { icon: string; title: string; description: string; rarity: AchievementRarity }> = {
+  common: { icon: '🎯', title: 'Первый шаг', description: 'Сдайте первое домашнее задание', rarity: 'common' },
+  rare: { icon: '⭐', title: 'Капитан команды', description: 'Станьте лидером в командном квесте', rarity: 'rare' },
+  epic: { icon: '🔬', title: 'Учёный', description: 'Сдайте все лабораторные за четверть', rarity: 'epic' },
+  legendary: { icon: '👑', title: 'Легенда школы', description: 'Серия 100 дней подряд', rarity: 'legendary' },
+};
 
 export default function ProfileScreen() {
   const theme = useAppTheme();
   const character = useCurrentCharacter();
   const student = useStudentStore((s) => s.student);
   const themeId = useThemeStore((s) => s.themeId);
-  const characterId = useThemeStore((s) => s.characterId);
   const setThemeId = useThemeStore((s) => s.setTheme);
-  const setCharacterId = useThemeStore((s) => s.setCharacter);
-  const [showAllCharacters, setShowAllCharacters] = useState(false);
 
-  const customization = useCustomizationStore((s) => s.customizations[characterId]);
-  const setCustomization = useCustomizationStore((s) => s.setCustomization);
+  const [devMode, setDevMode] = useState(false);
+  const [celebrationBadge, setCelebrationBadge] = useState<{
+    icon: string; title: string; description: string; rarity: AchievementRarity;
+  } | null>(null);
+  const badgeQueueRef = useRef<typeof SAMPLE_BADGES[AchievementRarity][]>([]);
 
-  const mascotState = getMascotState(student.mascotHealth);
+  const handleDevToggle = useCallback(() => {
+    setDevMode((prev) => !prev);
+  }, []);
 
-  const updateCustomization = useCallback(
-    (data: Partial<CharacterCustomization>) => {
-      setCustomization(characterId, data);
-    },
-    [characterId, setCustomization],
-  );
+  const handleAwardBadge = useCallback((rarity: AchievementRarity) => {
+    setCelebrationBadge(SAMPLE_BADGES[rarity]);
+  }, []);
 
-  const selectedTheme = useMemo(
-    () => themes.find((t) => t.id === themeId) || themes[0],
-    [themeId],
-  );
+  const handleAwardRandomBadge = useCallback(() => {
+    const achWithEmoji = mockAchievements.filter((a) => a.icon);
+    const randomAch = achWithEmoji[Math.floor(Math.random() * achWithEmoji.length)];
+    setCelebrationBadge({
+      icon: randomAch.icon,
+      title: randomAch.title,
+      description: randomAch.description,
+      rarity: randomAch.rarity,
+    });
+  }, []);
 
-  const allCharacters = useMemo(
-    () => themes.flatMap((t) => t.characters),
-    [],
-  );
+  const handleAwardBadgeSeries = useCallback(() => {
+    const series = [
+      SAMPLE_BADGES.common,
+      SAMPLE_BADGES.rare,
+      SAMPLE_BADGES.epic,
+    ];
+    badgeQueueRef.current = series.slice(1);
+    setCelebrationBadge(series[0]);
+  }, []);
 
-  const displayedCharacters = useMemo(
-    () => (showAllCharacters ? allCharacters : selectedTheme.characters),
-    [showAllCharacters, allCharacters, selectedTheme],
-  );
-
-  const toggleShowAll = useCallback(
-    () => setShowAllCharacters((v) => !v),
-    [],
-  );
+  const handleDismissCelebration = useCallback(() => {
+    setCelebrationBadge(null);
+    // Show next in queue after short delay
+    setTimeout(() => {
+      if (badgeQueueRef.current.length > 0) {
+        const next = badgeQueueRef.current.shift()!;
+        setCelebrationBadge(next);
+      }
+    }, 300);
+  }, []);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
@@ -136,7 +90,24 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={[styles.header, { color: theme.colors.text }]}>Профиль</Text>
+        <View style={styles.headerRow}>
+          <Text style={[styles.header, { color: theme.colors.text }]}>Профиль</Text>
+          <TouchableOpacity
+            onPress={handleDevToggle}
+            style={[
+              styles.devToggle,
+              {
+                backgroundColor: devMode ? theme.colors.accent + '20' : theme.colors.surface,
+                borderColor: devMode ? theme.colors.accent : theme.colors.border,
+              },
+            ]}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.devToggleText, { color: devMode ? theme.colors.accent : theme.colors.textSecondary }]}>
+              {devMode ? '🔧 DEV' : '🔧'}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Student Info */}
         <Card style={styles.infoCard}>
@@ -147,7 +118,7 @@ export default function ProfileScreen() {
                 { backgroundColor: theme.colors.primary + '30' },
               ]}
             >
-              <MascotViewer3DMini config3d={character.config3d} size={50} />
+              <Text style={styles.avatarEmoji}>{character.emoji}</Text>
             </View>
           </View>
           <Text style={[styles.studentName, { color: theme.colors.text }]}>
@@ -186,171 +157,16 @@ export default function ProfileScreen() {
           <Mascot health={student.mascotHealth} />
         </Card>
 
-        {/* Customization */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          Настройка персонажа
-        </Text>
-        <Card style={styles.customCard}>
-          {/* 3D Preview */}
-          <View style={styles.previewContainer}>
-            <MascotViewer3D
-              config3d={character.config3d}
-              mascotState={mascotState}
-              width={200}
-              height={200}
-              customization={customization}
+        {/* Dev Mode Panel */}
+        {devMode && (
+          <View style={styles.devSection}>
+            <DevModePanel
+              onAwardBadge={handleAwardBadge}
+              onAwardRandomBadge={handleAwardRandomBadge}
+              onAwardBadgeSeries={handleAwardBadgeSeries}
             />
           </View>
-
-          {/* Outfit */}
-          <Text style={[styles.categoryLabel, { color: theme.colors.text }]}>Одежда</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.optionsRow}>
-            {OUTFIT_OPTIONS.map((opt) => (
-              <CustomOptionCard
-                key={opt.value}
-                emoji={opt.emoji}
-                label={opt.label}
-                isSelected={customization?.outfit === opt.value || (!customization?.outfit && opt.value === 'default')}
-                theme={theme}
-                onPress={() => updateCustomization({ outfit: opt.value })}
-              />
-            ))}
-          </ScrollView>
-
-          {/* Hat */}
-          <Text style={[styles.categoryLabel, { color: theme.colors.text }]}>Шапка</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.optionsRow}>
-            {HAT_OPTIONS.map((opt) => (
-              <CustomOptionCard
-                key={opt.value}
-                emoji={opt.emoji}
-                label={opt.label}
-                isSelected={customization?.hat === opt.value || (!customization?.hat && opt.value === 'none')}
-                theme={theme}
-                onPress={() => updateCustomization({ hat: opt.value })}
-              />
-            ))}
-          </ScrollView>
-
-          {/* Hand item */}
-          <Text style={[styles.categoryLabel, { color: theme.colors.text }]}>В руке</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.optionsRow}>
-            {HAND_OPTIONS.map((opt) => (
-              <CustomOptionCard
-                key={opt.value}
-                emoji={opt.emoji}
-                label={opt.label}
-                isSelected={customization?.handItem === opt.value || (!customization?.handItem && opt.value === 'none')}
-                theme={theme}
-                onPress={() => updateCustomization({ handItem: opt.value })}
-              />
-            ))}
-          </ScrollView>
-
-          {/* Back item */}
-          <Text style={[styles.categoryLabel, { color: theme.colors.text }]}>На спине</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.optionsRow}>
-            {BACK_OPTIONS.map((opt) => (
-              <CustomOptionCard
-                key={opt.value}
-                emoji={opt.emoji}
-                label={opt.label}
-                isSelected={customization?.backItem === opt.value || (!customization?.backItem && opt.value === 'none')}
-                theme={theme}
-                onPress={() => updateCustomization({ backItem: opt.value })}
-              />
-            ))}
-          </ScrollView>
-
-          {/* Face item */}
-          <Text style={[styles.categoryLabel, { color: theme.colors.text }]}>На лице</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.optionsRow}>
-            {FACE_OPTIONS.map((opt) => (
-              <CustomOptionCard
-                key={opt.value}
-                emoji={opt.emoji}
-                label={opt.label}
-                isSelected={customization?.faceItem === opt.value || (!customization?.faceItem && opt.value === 'none')}
-                theme={theme}
-                onPress={() => updateCustomization({ faceItem: opt.value })}
-              />
-            ))}
-          </ScrollView>
-
-          {/* Color pickers */}
-          <Text style={[styles.categoryLabel, { color: theme.colors.text }]}>Цвет кожи</Text>
-          <View style={styles.colorsRow}>
-            {COLOR_PRESETS.map((c) => (
-              <TouchableOpacity
-                key={`skin-${c}`}
-                style={[
-                  styles.colorCircle,
-                  { backgroundColor: c },
-                  customization?.skinColor === c && { borderColor: theme.colors.primary, borderWidth: 3 },
-                ]}
-                onPress={() => updateCustomization({ skinColor: c })}
-                activeOpacity={0.7}
-              />
-            ))}
-          </View>
-
-          <Text style={[styles.categoryLabel, { color: theme.colors.text }]}>Цвет одежды</Text>
-          <View style={styles.colorsRow}>
-            {COLOR_PRESETS.map((c) => (
-              <TouchableOpacity
-                key={`clothes-${c}`}
-                style={[
-                  styles.colorCircle,
-                  { backgroundColor: c },
-                  customization?.clothesColor === c && { borderColor: theme.colors.primary, borderWidth: 3 },
-                ]}
-                onPress={() => updateCustomization({ clothesColor: c, outfitColor: c })}
-                activeOpacity={0.7}
-              />
-            ))}
-          </View>
-
-          <Text style={[styles.categoryLabel, { color: theme.colors.text }]}>Цвет обуви</Text>
-          <View style={styles.colorsRow}>
-            {COLOR_PRESETS.map((c) => (
-              <TouchableOpacity
-                key={`shoes-${c}`}
-                style={[
-                  styles.colorCircle,
-                  { backgroundColor: c },
-                  customization?.shoesColor === c && { borderColor: theme.colors.primary, borderWidth: 3 },
-                ]}
-                onPress={() => updateCustomization({ shoesColor: c })}
-                activeOpacity={0.7}
-              />
-            ))}
-          </View>
-        </Card>
-
-        {/* Character Selection */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          Мой персонаж
-        </Text>
-        <View style={styles.charactersGrid}>
-          {displayedCharacters.map((char: ThemeCharacter) => (
-            <CharacterCard
-              key={char.id}
-              char={char}
-              isSelected={char.id === characterId}
-              theme={theme}
-              onSelect={setCharacterId}
-            />
-          ))}
-        </View>
-        <TouchableOpacity
-          onPress={toggleShowAll}
-          style={[styles.showAllBtn, { borderColor: theme.colors.border }]}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.showAllText, { color: theme.colors.primary }]}>
-            {showAllCharacters ? 'Только из текущей темы' : 'Все персонажи'}
-          </Text>
-        </TouchableOpacity>
+        )}
 
         {/* Theme Selection */}
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -385,103 +201,17 @@ export default function ProfileScreen() {
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
+
+      {/* Badge Celebration Overlay */}
+      {celebrationBadge && (
+        <BadgeCelebration
+          badge={celebrationBadge}
+          onDismiss={handleDismissCelebration}
+        />
+      )}
     </SafeAreaView>
   );
 }
-
-// Memoized character card - only re-renders when selection changes
-const CharacterCard = memo(function CharacterCard({
-  char,
-  isSelected,
-  theme,
-  onSelect,
-}: {
-  char: ThemeCharacter;
-  isSelected: boolean;
-  theme: AppTheme;
-  onSelect: (id: string) => void;
-}) {
-  const handlePress = useCallback(() => onSelect(char.id), [onSelect, char.id]);
-
-  return (
-    <TouchableOpacity
-      style={[
-        styles.characterCard,
-        {
-          backgroundColor: isSelected
-            ? theme.colors.primary + '20'
-            : theme.colors.surface,
-          borderColor: isSelected
-            ? theme.colors.primary
-            : theme.colors.border,
-          borderWidth: isSelected ? 2.5 : 1,
-        },
-      ]}
-      onPress={handlePress}
-      activeOpacity={0.7}
-    >
-      <MascotViewer3DMini config3d={char.config3d} size={50} />
-      <Text
-        style={[
-          styles.characterNameText,
-          {
-            color: isSelected
-              ? theme.colors.primary
-              : theme.colors.text,
-            fontWeight: isSelected ? '700' : '500',
-          },
-        ]}
-        numberOfLines={1}
-      >
-        {char.name}
-      </Text>
-    </TouchableOpacity>
-  );
-});
-
-// Memoized customization option card
-const CustomOptionCard = memo(function CustomOptionCard({
-  emoji,
-  label,
-  isSelected,
-  theme,
-  onPress,
-}: {
-  emoji: string;
-  label: string;
-  isSelected: boolean;
-  theme: AppTheme;
-  onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity
-      style={[
-        styles.optionCard,
-        {
-          backgroundColor: isSelected ? theme.colors.primary + '20' : theme.colors.surface,
-          borderColor: isSelected ? theme.colors.primary : theme.colors.border,
-          borderWidth: isSelected ? 2.5 : 1,
-        },
-      ]}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <Text style={styles.optionEmoji}>{emoji}</Text>
-      <Text
-        style={[
-          styles.optionLabel,
-          {
-            color: isSelected ? theme.colors.primary : theme.colors.text,
-            fontWeight: isSelected ? '700' : '500',
-          },
-        ]}
-        numberOfLines={1}
-      >
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-});
 
 // Memoized theme card
 const ThemeCard = memo(function ThemeCard({
@@ -527,11 +257,29 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    marginBottom: 16,
+  },
   header: {
     fontSize: 26,
     fontWeight: '700',
-    marginTop: 8,
-    marginBottom: 16,
+  },
+  devToggle: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  devToggleText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  devSection: {
+    marginTop: 16,
   },
   infoCard: {
     alignItems: 'center',
@@ -588,41 +336,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  // Characters
-  charactersGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    justifyContent: 'center',
-  },
-  characterCard: {
-    width: (SCREEN_WIDTH - 40 - 24) / 2,
-    paddingVertical: 18,
-    paddingHorizontal: 10,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  characterEmoji: {
-    fontSize: 36,
-    marginBottom: 6,
-  },
-  characterNameText: {
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  showAllBtn: {
-    alignSelf: 'center',
-    marginTop: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    borderWidth: 1,
-  },
-  showAllText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-
   // Themes
   ageGroupLabel: {
     fontSize: 13,
@@ -668,55 +381,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#10B981',
     fontWeight: '700',
-  },
-  // Customization
-  customCard: {
-    paddingVertical: 16,
-  },
-  previewContainer: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  categoryLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    marginTop: 12,
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-  optionsRow: {
-    gap: 10,
-    paddingHorizontal: 4,
-    paddingBottom: 4,
-  },
-  optionCard: {
-    width: 72,
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  optionEmoji: {
-    fontSize: 24,
-    marginBottom: 4,
-  },
-  optionLabel: {
-    fontSize: 11,
-    textAlign: 'center',
-  },
-  colorsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    paddingHorizontal: 4,
-    marginBottom: 4,
-  },
-  colorCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.1)',
   },
 
   bottomSpacer: {
