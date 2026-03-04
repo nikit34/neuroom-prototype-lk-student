@@ -42,65 +42,17 @@ export const CHARACTER_ARCHETYPE: Record<string, CharacterArchetype> = {
   'au-red': 'astronaut', 'au-blue': 'astronaut', 'au-impostor': 'astronaut', 'au-green': 'astronaut',
 };
 
-// ─── Lottie source registry ─────────────────────────────────────
+// ─── One Lottie source per archetype (high-quality pure vector) ──
 
-export const MASCOT_LOTTIE_SOURCES: Record<CharacterArchetype, Record<MascotState, any>> = {
-  cat: {
-    sick: require('../../assets/animations/mascot/mascot-cat-sick.json'),
-    sad: require('../../assets/animations/mascot/mascot-cat-sad.json'),
-    neutral: require('../../assets/animations/mascot/mascot-cat-neutral.json'),
-    happy: require('../../assets/animations/mascot/mascot-cat-happy.json'),
-    thriving: require('../../assets/animations/mascot/mascot-cat-thriving.json'),
-  },
-  warrior: {
-    sick: require('../../assets/animations/mascot/mascot-warrior-sick.json'),
-    sad: require('../../assets/animations/mascot/mascot-warrior-sad.json'),
-    neutral: require('../../assets/animations/mascot/mascot-warrior-neutral.json'),
-    happy: require('../../assets/animations/mascot/mascot-warrior-happy.json'),
-    thriving: require('../../assets/animations/mascot/mascot-warrior-thriving.json'),
-  },
-  king: {
-    sick: require('../../assets/animations/mascot/mascot-king-sick.json'),
-    sad: require('../../assets/animations/mascot/mascot-king-sad.json'),
-    neutral: require('../../assets/animations/mascot/mascot-king-neutral.json'),
-    happy: require('../../assets/animations/mascot/mascot-king-happy.json'),
-    thriving: require('../../assets/animations/mascot/mascot-king-thriving.json'),
-  },
-  astronaut: {
-    sick: require('../../assets/animations/mascot/mascot-astronaut-sick.json'),
-    sad: require('../../assets/animations/mascot/mascot-astronaut-sad.json'),
-    neutral: require('../../assets/animations/mascot/mascot-astronaut-neutral.json'),
-    happy: require('../../assets/animations/mascot/mascot-astronaut-happy.json'),
-    thriving: require('../../assets/animations/mascot/mascot-astronaut-thriving.json'),
-  },
-  wizard: {
-    sick: require('../../assets/animations/mascot/mascot-wizard-sick.json'),
-    sad: require('../../assets/animations/mascot/mascot-wizard-sad.json'),
-    neutral: require('../../assets/animations/mascot/mascot-wizard-neutral.json'),
-    happy: require('../../assets/animations/mascot/mascot-wizard-happy.json'),
-    thriving: require('../../assets/animations/mascot/mascot-wizard-thriving.json'),
-  },
-  dragon: {
-    sick: require('../../assets/animations/mascot/mascot-dragon-sick.json'),
-    sad: require('../../assets/animations/mascot/mascot-dragon-sad.json'),
-    neutral: require('../../assets/animations/mascot/mascot-dragon-neutral.json'),
-    happy: require('../../assets/animations/mascot/mascot-dragon-happy.json'),
-    thriving: require('../../assets/animations/mascot/mascot-dragon-thriving.json'),
-  },
-  ninja: {
-    sick: require('../../assets/animations/mascot/mascot-ninja-sick.json'),
-    sad: require('../../assets/animations/mascot/mascot-ninja-sad.json'),
-    neutral: require('../../assets/animations/mascot/mascot-ninja-neutral.json'),
-    happy: require('../../assets/animations/mascot/mascot-ninja-happy.json'),
-    thriving: require('../../assets/animations/mascot/mascot-ninja-thriving.json'),
-  },
-  critter: {
-    sick: require('../../assets/animations/mascot/mascot-critter-sick.json'),
-    sad: require('../../assets/animations/mascot/mascot-critter-sad.json'),
-    neutral: require('../../assets/animations/mascot/mascot-critter-neutral.json'),
-    happy: require('../../assets/animations/mascot/mascot-critter-happy.json'),
-    thriving: require('../../assets/animations/mascot/mascot-critter-thriving.json'),
-  },
+export const MASCOT_LOTTIE_SOURCES: Record<CharacterArchetype, any> = {
+  cat: require('../../assets/animations/mascot/mascot-cat.json'),
+  warrior: require('../../assets/animations/mascot/mascot-warrior.json'),
+  king: require('../../assets/animations/mascot/mascot-king.json'),
+  astronaut: require('../../assets/animations/mascot/mascot-astronaut.json'),
+  wizard: require('../../assets/animations/mascot/mascot-wizard.json'),
+  dragon: require('../../assets/animations/mascot/mascot-dragon.json'),
+  ninja: require('../../assets/animations/mascot/mascot-ninja.json'),
+  critter: require('../../assets/animations/mascot/mascot-critter.json'),
 };
 
 export const DEFAULT_ARCHETYPE: CharacterArchetype = 'critter';
@@ -109,6 +61,15 @@ export const DEFAULT_ARCHETYPE: CharacterArchetype = 'critter';
 export function getArchetype(characterId: string): CharacterArchetype {
   return CHARACTER_ARCHETYPE[characterId] ?? DEFAULT_ARCHETYPE;
 }
+
+/** Animation speed per MascotState — conveys mood via tempo */
+export const STATE_SPEED: Record<MascotState, number> = {
+  sick: 0.3,
+  sad: 0.5,
+  neutral: 0.8,
+  happy: 1.0,
+  thriving: 1.4,
+};
 
 /** Maps 15 MascotEmotions → 5 MascotStates (animation files) */
 export function emotionToAnimationState(emotion: MascotEmotion): MascotState {

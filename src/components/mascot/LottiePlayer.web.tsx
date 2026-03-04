@@ -10,6 +10,7 @@ interface LottiePlayerProps {
   source: any;
   autoPlay?: boolean;
   loop?: boolean;
+  speed?: number;
   style?: any;
   colorFilters?: Array<{ keypath: string; color: string }>;
 }
@@ -77,7 +78,7 @@ function loadLottieFromCDN(): Promise<any> {
 }
 
 const LottiePlayer = forwardRef<LottiePlayerRef, LottiePlayerProps>(
-  ({ source, autoPlay = true, loop = true, style, colorFilters }, ref) => {
+  ({ source, autoPlay = true, loop = true, speed = 1, style, colorFilters }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const animRef = useRef<any>(null);
 
@@ -109,6 +110,9 @@ const LottiePlayer = forwardRef<LottiePlayerRef, LottiePlayerProps>(
           autoplay: autoPlay,
           animationData: data,
         });
+        if (speed !== 1) {
+          animRef.current.setSpeed(speed);
+        }
       }).catch((err) => {
         console.warn('[LottiePlayer.web] CDN load failed:', err);
       });
@@ -118,7 +122,7 @@ const LottiePlayer = forwardRef<LottiePlayerRef, LottiePlayerProps>(
         animRef.current?.destroy();
         animRef.current = null;
       };
-    }, [source, loop, autoPlay, JSON.stringify(colorFilters)]);
+    }, [source, loop, autoPlay, speed, JSON.stringify(colorFilters)]);
 
     const width = style?.width ?? 180;
     const height = style?.height ?? 216;

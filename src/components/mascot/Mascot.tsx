@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import LottiePlayer, { LottiePlayerRef } from './LottiePlayer';
 import { useAppTheme, useCurrentCharacter } from '@/src/hooks/useAppTheme';
 import { getMascotState, getMascotStateLabel } from '@/src/utils/gradeHelpers';
-import { MASCOT_LOTTIE_SOURCES, emotionToAnimationState, getArchetype } from '@/src/mascot/mascotAnimations';
+import { MASCOT_LOTTIE_SOURCES, emotionToAnimationState, getArchetype, STATE_SPEED } from '@/src/mascot/mascotAnimations';
 import { stateToEmotion } from '@/src/mascot/mascotConfig';
 import MascotHealthBar from './MascotHealthBar';
 import { MascotEmotion, MascotState } from '@/src/types';
@@ -26,6 +26,7 @@ function Mascot({ emotion, health, size = 120, showHealthBar, label }: MascotPro
   );
   const resolvedState: MascotState = emotionToAnimationState(resolvedEmotion);
   const archetype = getArchetype(character.id);
+  const speed = STATE_SPEED[resolvedState];
 
   const state = health != null ? getMascotState(health) : undefined;
   const stateLabel = label ?? (state ? getMascotStateLabel(state) : undefined);
@@ -40,9 +41,10 @@ function Mascot({ emotion, health, size = 120, showHealthBar, label }: MascotPro
     <View style={styles.container}>
       <LottiePlayer
         ref={lottieRef}
-        source={MASCOT_LOTTIE_SOURCES[archetype][resolvedState]}
+        source={MASCOT_LOTTIE_SOURCES[archetype]}
         autoPlay
         loop
+        speed={speed}
         style={{ width: size * 1.5, height: size * 1.8 }}
         colorFilters={[{ keypath: 'body', color: theme.colors.primary }]}
       />

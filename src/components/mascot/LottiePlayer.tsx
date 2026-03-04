@@ -10,18 +10,20 @@ interface LottiePlayerProps {
   source: any;
   autoPlay?: boolean;
   loop?: boolean;
+  speed?: number;
   style?: any;
   colorFilters?: Array<{ keypath: string; color: string }>;
 }
 
 const LottiePlayer = forwardRef<LottiePlayerRef, LottiePlayerProps>(
-  ({ source, autoPlay = true, loop = true, style, colorFilters }, ref) => {
+  ({ source, autoPlay = true, loop = true, speed, style, colorFilters }, ref) => {
     return (
       <LottieView
         ref={ref as any}
         source={source}
         autoPlay={autoPlay}
         loop={loop}
+        speed={speed}
         style={style}
         colorFilters={colorFilters}
       />
