@@ -11,6 +11,7 @@ import { useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import HomeworkCard from '@/src/components/homework/HomeworkCard';
+import ThemeBackground from '@/src/components/theme/ThemeBackground';
 
 type FilterType = 'all' | 'active' | 'overdue' | 'done';
 
@@ -32,7 +33,8 @@ export default function HomeworkScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <ThemeBackground />
+      <View style={styles.container}>
         <Text style={[styles.header, { color: theme.colors.text }]}>
           Домашние задания
         </Text>

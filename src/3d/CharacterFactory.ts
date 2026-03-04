@@ -1,6 +1,7 @@
 import * as THREE from 'three';
-import { Character3DConfig, MascotState } from '../types';
+import { Character3DConfig, CharacterBodyType, MascotState, CharacterCustomization } from '../types';
 import { getHealthEffect, desaturateColor } from './healthEffects';
+import { addOutfit, addHat, addHandItem, addBackItem, addFaceItem } from './outfitBuilder';
 
 // ─── Geometry cache ──────────────────────────────────────────────
 // Reuse geometry instances across builds (geometry is immutable data, only materials change)
@@ -27,22 +28,195 @@ function makeMat(hex: string, desaturation: number, emissiveIntensity: number): 
 
 const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
 const pupilMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+const darkMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
 
-function addEyes(group: THREE.Group, headY: number, headRadius: number) {
-  const k = Math.round(headRadius * 100); // cache key by size
-  const eyeGeo = cachedGeo(`eye_${k}`, () => new THREE.SphereGeometry(headRadius * 0.12, 8, 8));
-  const pupilGeo = cachedGeo(`pupil_${k}`, () => new THREE.SphereGeometry(headRadius * 0.07, 8, 8));
+// ─── Expressive face (eyes, eyebrows, mouth, effects) ─────────
 
+function addFace(
+  group: THREE.Group,
+  headY: number,
+  headRadius: number,
+  mascotState: MascotState,
+  skinMat: THREE.MeshStandardMaterial,
+  offsetX = 0,
+  eyeScale = 1,
+) {
+  const k = `${Math.round(headRadius * 100)}_${Math.round(eyeScale * 10)}`;
+
+  const eyeSize = headRadius * 0.12 * eyeScale;
   const spacing = headRadius * 0.3;
+  const eyeZ = headRadius * 0.85;
+  const pupilZ = headRadius * 0.95;
+
+  // Pupil size varies by emotion
+  const pupilScales: Record<MascotState, number> = {
+    sick: 0.5, sad: 0.8, neutral: 1.0, happy: 1.15, thriving: 1.35,
+  };
+  const pupilSize = headRadius * 0.07 * eyeScale * pupilScales[mascotState];
+
+  // ─── Eyes ───
+  const eyeGeo = cachedGeo(`face_eye_${k}`, () => new THREE.SphereGeometry(eyeSize, 8, 8));
+  const pupilGeo = cachedGeo(`face_pupil_${k}_${mascotState}`, () => new THREE.SphereGeometry(pupilSize, 8, 8));
 
   for (const side of [-1, 1]) {
     const eye = new THREE.Mesh(eyeGeo, eyeMat);
-    eye.position.set(side * spacing, headY, headRadius * 0.85);
+    eye.position.set(offsetX + side * spacing, headY, eyeZ);
     group.add(eye);
 
+    // Sick/sad: pupils look down
+    const pupilYOff = mascotState === 'sick' ? -eyeSize * 0.3
+                    : mascotState === 'sad' ? -eyeSize * 0.15
+                    : 0;
     const pupil = new THREE.Mesh(pupilGeo, pupilMat);
-    pupil.position.set(side * spacing, headY, headRadius * 0.95);
+    pupil.position.set(offsetX + side * spacing, headY + pupilYOff, pupilZ);
     group.add(pupil);
+  }
+
+  // ─── Eyelids (sick / sad — half-sphere caps drooping over eyes) ───
+  if (mascotState === 'sick' || mascotState === 'sad') {
+    const lidCover = mascotState === 'sick' ? 0.55 : 0.35;
+    const lidGeo = cachedGeo(`face_lid_${k}_${mascotState}`, () =>
+      new THREE.SphereGeometry(eyeSize * 1.25, 8, 8, 0, Math.PI * 2, 0, Math.PI * lidCover),
+    );
+    for (const side of [-1, 1]) {
+      const lid = new THREE.Mesh(lidGeo, skinMat);
+      lid.position.set(offsetX + side * spacing, headY + eyeSize * 0.15, eyeZ + 0.01);
+      lid.rotation.x = Math.PI; // flip so lid covers from top
+      group.add(lid);
+    }
+  }
+
+  // ─── Eyebrows ───
+  const browGeo = cachedGeo(`face_brow_${k}`, () =>
+    new THREE.BoxGeometry(headRadius * 0.22, headRadius * 0.04, headRadius * 0.04),
+  );
+  const browY = headY + eyeSize * 1.8;
+  const browAngles: Record<MascotState, number> = {
+    sick: 0.35,    // worried — inner ends raised
+    sad: 0.25,     // sad — inner ends raised
+    neutral: 0,    // flat
+    happy: -0.15,  // slightly arched up
+    thriving: -0.25, // raised and arched
+  };
+  for (const side of [-1, 1]) {
+    const brow = new THREE.Mesh(browGeo, darkMat);
+    brow.position.set(offsetX + side * spacing, browY, eyeZ);
+    brow.rotation.z = side * browAngles[mascotState];
+    group.add(brow);
+  }
+
+  // ─── Mouth ───
+  const mouthY = headY - headRadius * 0.45;
+  const mouthZ = headRadius * 0.88;
+
+  switch (mascotState) {
+    case 'sick': {
+      // Wavy zigzag mouth
+      const segGeo = cachedGeo(`face_msick_${k}`, () =>
+        new THREE.BoxGeometry(headRadius * 0.08, headRadius * 0.025, headRadius * 0.025),
+      );
+      for (let i = -2; i <= 2; i++) {
+        const seg = new THREE.Mesh(segGeo, darkMat);
+        seg.position.set(
+          offsetX + i * headRadius * 0.07,
+          mouthY + (i % 2 === 0 ? 0.01 : -0.01),
+          mouthZ,
+        );
+        group.add(seg);
+      }
+      break;
+    }
+    case 'sad': {
+      // Frown (arc curving upward = ∩)
+      const frownGeo = cachedGeo(`face_msad_${k}`, () =>
+        new THREE.TorusGeometry(headRadius * 0.15, headRadius * 0.02, 8, 12, Math.PI),
+      );
+      const frown = new THREE.Mesh(frownGeo, darkMat);
+      frown.position.set(offsetX, mouthY, mouthZ);
+      frown.rotation.x = -Math.PI / 2;
+      group.add(frown);
+      break;
+    }
+    case 'neutral': {
+      // Flat line
+      const lineGeo = cachedGeo(`face_mneutral_${k}`, () =>
+        new THREE.BoxGeometry(headRadius * 0.3, headRadius * 0.025, headRadius * 0.025),
+      );
+      const line = new THREE.Mesh(lineGeo, darkMat);
+      line.position.set(offsetX, mouthY, mouthZ);
+      group.add(line);
+      break;
+    }
+    case 'happy': {
+      // Smile (arc curving downward = ∪)
+      const smileGeo = cachedGeo(`face_mhappy_${k}`, () =>
+        new THREE.TorusGeometry(headRadius * 0.15, headRadius * 0.025, 8, 12, Math.PI),
+      );
+      const smile = new THREE.Mesh(smileGeo, darkMat);
+      smile.position.set(offsetX, mouthY, mouthZ);
+      smile.rotation.x = Math.PI / 2;
+      group.add(smile);
+      break;
+    }
+    case 'thriving': {
+      // Big wide grin
+      const grinGeo = cachedGeo(`face_mthriving_${k}`, () =>
+        new THREE.TorusGeometry(headRadius * 0.22, headRadius * 0.03, 8, 16, Math.PI),
+      );
+      const grin = new THREE.Mesh(grinGeo, darkMat);
+      grin.position.set(offsetX, mouthY, mouthZ);
+      grin.rotation.x = Math.PI / 2;
+      group.add(grin);
+      break;
+    }
+  }
+
+  // ─── Tears (sad) ───
+  if (mascotState === 'sad') {
+    const tearGeo = cachedGeo(`face_tear_${k}`, () => new THREE.SphereGeometry(headRadius * 0.04, 6, 6));
+    const tearMat = new THREE.MeshStandardMaterial({
+      color: 0x4488ff, transparent: true, opacity: 0.7,
+    });
+    for (const side of [-1, 1]) {
+      const tear = new THREE.Mesh(tearGeo, tearMat);
+      tear.position.set(offsetX + side * spacing, headY - eyeSize * 1.5, eyeZ + 0.02);
+      tear.scale.set(1, 2, 1); // elongated teardrop
+      group.add(tear);
+    }
+  }
+
+  // ─── Sick spiral ───
+  if (mascotState === 'sick') {
+    const spiralGeo = cachedGeo(`face_spiral_${k}`, () =>
+      new THREE.TorusGeometry(headRadius * 0.2, headRadius * 0.015, 6, 16, Math.PI * 1.5),
+    );
+    const spiralMat = new THREE.MeshStandardMaterial({
+      color: 0x88cc44, transparent: true, opacity: 0.6,
+    });
+    const spiral = new THREE.Mesh(spiralGeo, spiralMat);
+    spiral.position.set(offsetX + headRadius * 0.5, headY + headRadius * 0.8, 0);
+    spiral.rotation.y = Math.PI / 4;
+    group.add(spiral);
+  }
+
+  // ─── Stars (thriving) ───
+  if (mascotState === 'thriving') {
+    const starGeo = cachedGeo(`face_star_${k}`, () => new THREE.OctahedronGeometry(headRadius * 0.06, 0));
+    const starMat = new THREE.MeshStandardMaterial({
+      color: 0xffdd00,
+      emissive: new THREE.Color(0xffdd00),
+      emissiveIntensity: 0.8,
+    });
+    const positions: [number, number, number][] = [
+      [headRadius * 0.6, headRadius * 0.5, headRadius * 0.3],
+      [-headRadius * 0.5, headRadius * 0.7, headRadius * 0.2],
+      [headRadius * 0.3, headRadius * 0.8, -headRadius * 0.2],
+    ];
+    for (const [sx, sy, sz] of positions) {
+      const star = new THREE.Mesh(starGeo, starMat);
+      star.position.set(offsetX + sx, headY + sy, sz);
+      group.add(star);
+    }
   }
 }
 
@@ -70,8 +244,6 @@ function buildHumanoid(config: Character3DConfig, primary: THREE.MeshStandardMat
   const head = new THREE.Mesh(headGeo, primary);
   head.position.y = 2.0;
   group.add(head);
-
-  addEyes(group, 2.0, headRadius);
 
   // Body (cylinder)
   const bodyGeo = cachedGeo('hum_body', () => new THREE.CylinderGeometry(0.3, 0.35, 0.9, 12));
@@ -107,14 +279,6 @@ function buildQuadruped(config: Character3DConfig, primary: THREE.MeshStandardMa
   const head = new THREE.Mesh(headGeo, primary);
   head.position.set(0.6, 1.1, 0);
   group.add(head);
-
-  addEyes(group, 1.1, 0.25);
-  // Shift eyes forward for quadruped
-  group.children.forEach(c => {
-    if (c.position.z > 0 && c.position.y === 1.1) {
-      c.position.x += 0.6;
-    }
-  });
 
   // Snout
   const snoutGeo = cachedGeo('quad_snout', () => new THREE.SphereGeometry(0.12, 8, 8));
@@ -164,29 +328,6 @@ function buildBlob(config: Character3DConfig, primary: THREE.MeshStandardMateria
   body.position.y = 0.9;
   group.add(body);
 
-  // Eyes (big, prominent)
-  const eyeGeo = cachedGeo('blob_eye', () => new THREE.SphereGeometry(0.14, 12, 12));
-  const blobEyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
-  const pupilGeo = cachedGeo('blob_pupil', () => new THREE.SphereGeometry(0.08, 8, 8));
-  const blobPupilMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
-
-  for (const side of [-1, 1]) {
-    const eye = new THREE.Mesh(eyeGeo, blobEyeMat);
-    eye.position.set(side * 0.2, 1.05, 0.48);
-    group.add(eye);
-
-    const pupil = new THREE.Mesh(pupilGeo, blobPupilMat);
-    pupil.position.set(side * 0.2, 1.05, 0.58);
-    group.add(pupil);
-  }
-
-  // Mouth
-  const mouthGeo = cachedGeo('blob_mouth', () => new THREE.TorusGeometry(0.1, 0.02, 8, 16, Math.PI));
-  const mouth = new THREE.Mesh(mouthGeo, new THREE.MeshStandardMaterial({ color: 0x333333 }));
-  mouth.position.set(0, 0.78, 0.5);
-  mouth.rotation.x = Math.PI;
-  group.add(mouth);
-
   // Small arms
   const armGeo = cachedGeo('blob_arm', () => new THREE.CylinderGeometry(0.05, 0.05, 0.3, 8));
   for (const side of [-1, 1]) {
@@ -227,8 +368,6 @@ function buildSnowman(_config: Character3DConfig, primary: THREE.MeshStandardMat
   const top = new THREE.Mesh(topGeo, primary);
   top.position.y = 1.8;
   group.add(top);
-
-  addEyes(group, 1.82, 0.28);
 
   // Carrot nose
   const noseGeo = cachedGeo('snow_nose', () => new THREE.ConeGeometry(0.05, 0.25, 8));
@@ -273,8 +412,6 @@ function buildBird(config: Character3DConfig, primary: THREE.MeshStandardMateria
   const head = new THREE.Mesh(headGeo, primary);
   head.position.set(0, 1.5, 0.1);
   group.add(head);
-
-  addEyes(group, 1.52, 0.2);
 
   // Beak
   const beakGeo = cachedGeo('bird_beak', () => new THREE.ConeGeometry(0.06, 0.18, 8));
@@ -414,12 +551,21 @@ function addWings(group: THREE.Group, mat: THREE.MeshStandardMaterial) {
 
 // ─── Main factory ────────────────────────────────────────────────
 
-export function buildCharacter(config3d: Character3DConfig, mascotState: MascotState): THREE.Group {
+export function buildCharacter(
+  config3d: Character3DConfig,
+  mascotState: MascotState,
+  customization?: Partial<CharacterCustomization>,
+): THREE.Group {
   const fx = getHealthEffect(mascotState);
 
-  const primary = makeMat(config3d.primaryColor, fx.colorDesaturation, fx.emissiveIntensity);
-  const secondary = makeMat(config3d.secondaryColor, fx.colorDesaturation, fx.emissiveIntensity);
-  const accent = makeMat(config3d.accentColor, fx.colorDesaturation, fx.emissiveIntensity);
+  // Apply customization color overrides
+  const primaryColor = customization?.skinColor || config3d.primaryColor;
+  const secondaryColor = customization?.clothesColor || config3d.secondaryColor;
+  const accentColor = customization?.shoesColor || config3d.accentColor;
+
+  const primary = makeMat(primaryColor, fx.colorDesaturation, fx.emissiveIntensity);
+  const secondary = makeMat(secondaryColor, fx.colorDesaturation, fx.emissiveIntensity);
+  const accent = makeMat(accentColor, fx.colorDesaturation, fx.emissiveIntensity);
 
   let bodyGroup: THREE.Group;
 
@@ -441,6 +587,17 @@ export function buildCharacter(config3d: Character3DConfig, mascotState: MascotS
       break;
   }
 
+  // ─── Face (eyes, eyebrows, mouth, emotion effects) ───
+  const faceMap: Record<CharacterBodyType, { hy: number; hr: number; ox?: number; es?: number }> = {
+    humanoid: { hy: 2.0, hr: 0.35 },
+    quadruped: { hy: 1.1, hr: 0.25, ox: 0.6 },
+    blob: { hy: 1.05, hr: 0.55, es: 2.0 },
+    snowman: { hy: 1.82, hr: 0.28 },
+    bird: { hy: 1.52, hr: 0.2 },
+  };
+  const fp = faceMap[config3d.bodyType];
+  addFace(bodyGroup, fp.hy, fp.hr, mascotState, primary, fp.ox ?? 0, fp.es ?? 1);
+
   // Determine top Y for accessories
   let topY = 2.0;
   if (config3d.bodyType === 'quadruped') topY = 1.1;
@@ -448,12 +605,61 @@ export function buildCharacter(config3d: Character3DConfig, mascotState: MascotS
   if (config3d.bodyType === 'snowman') topY = 2.08;
   if (config3d.bodyType === 'bird') topY = 1.72;
 
-  // Add accessories
-  if (config3d.hasCrown) addCrown(bodyGroup, topY, accent);
-  if (config3d.hasHorns) addHorns(bodyGroup, topY, accent);
-  if (config3d.hasWings) addWings(bodyGroup, secondary);
+  // Outfit color material
+  const outfitColor = customization?.outfitColor || config3d.secondaryColor;
+  const outfitMat = makeMat(outfitColor, fx.colorDesaturation, fx.emissiveIntensity);
 
-  if (config3d.hasWeapon) {
+  // Hat color material
+  const hatColor = customization?.hatColor || config3d.accentColor;
+  const hatMat = makeMat(hatColor, fx.colorDesaturation, fx.emissiveIntensity);
+
+  // ─── Outfit ───
+  if (customization?.outfit && customization.outfit !== 'default') {
+    addOutfit(bodyGroup, customization.outfit, outfitMat);
+  }
+
+  // ─── Hat ───
+  const hatType = customization?.hat;
+  if (hatType && hatType !== 'none') {
+    if (hatType === 'crown') {
+      addCrown(bodyGroup, topY, hatMat);
+    } else if (hatType === 'horns') {
+      addHorns(bodyGroup, topY, hatMat);
+    } else {
+      addHat(bodyGroup, hatType, topY, hatMat);
+    }
+  } else if (!customization?.hat) {
+    // No customization set — use original config accessories
+    if (config3d.hasCrown) addCrown(bodyGroup, topY, accent);
+    if (config3d.hasHorns) addHorns(bodyGroup, topY, accent);
+  }
+
+  // ─── Wings (from config or back item) ───
+  const backItem = customization?.backItem;
+  if (backItem && backItem !== 'none') {
+    if (backItem === 'wings') {
+      addWings(bodyGroup, secondary);
+    } else if (backItem === 'cape') {
+      addOutfit(bodyGroup, 'cape', outfitMat);
+    } else {
+      addBackItem(bodyGroup, backItem, outfitMat);
+    }
+  } else if (!customization?.backItem) {
+    if (config3d.hasWings) addWings(bodyGroup, secondary);
+  }
+
+  // ─── Hand item ───
+  const handItem = customization?.handItem;
+  if (handItem && handItem !== 'none') {
+    switch (handItem) {
+      case 'sword':  addSword(bodyGroup, accent); break;
+      case 'shield': addShield(bodyGroup, accent); break;
+      case 'bow':    addBow(bodyGroup, accent); break;
+      case 'staff':  addStaff(bodyGroup, accent); break;
+      case 'guitar': addGuitar(bodyGroup, accent); break;
+      default:       addHandItem(bodyGroup, handItem, accent); break;
+    }
+  } else if (!customization?.handItem && config3d.hasWeapon) {
     switch (config3d.hasWeapon) {
       case 'sword':  addSword(bodyGroup, accent); break;
       case 'shield': addShield(bodyGroup, accent); break;
@@ -461,6 +667,11 @@ export function buildCharacter(config3d: Character3DConfig, mascotState: MascotS
       case 'staff':  addStaff(bodyGroup, accent); break;
       case 'guitar': addGuitar(bodyGroup, accent); break;
     }
+  }
+
+  // ─── Face item ───
+  if (customization?.faceItem && customization.faceItem !== 'none') {
+    addFaceItem(bodyGroup, customization.faceItem, topY, accent);
   }
 
   // Apply scale

@@ -14,6 +14,7 @@ import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import Mascot from '@/src/components/mascot/Mascot';
 import Card from '@/src/components/ui/Card';
 import DeadlineIndicator from '@/src/components/homework/DeadlineIndicator';
+import ThemeBackground from '@/src/components/theme/ThemeBackground';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -48,8 +49,9 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
+      <ThemeBackground />
       <ScrollView
-        style={[styles.container, { backgroundColor: theme.colors.background }]}
+        style={styles.container}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >

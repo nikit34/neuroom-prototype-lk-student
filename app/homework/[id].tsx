@@ -16,6 +16,7 @@ import Button from '@/src/components/ui/Button';
 import StatusChip from '@/src/components/ui/StatusChip';
 import DeadlineIndicator from '@/src/components/homework/DeadlineIndicator';
 import FeedbackBubble from '@/src/components/homework/FeedbackBubble';
+import ProgressBar from '@/src/components/ui/ProgressBar';
 import { getGradeColor, getGradeEmoji, getGradeLabel } from '@/src/utils/gradeHelpers';
 import { formatDateRu } from '@/src/utils/dateHelpers';
 
@@ -99,6 +100,22 @@ export default function HomeworkDetailScreen() {
             {homework.description}
           </Text>
         </Card>
+
+        {/* Classmates */}
+        {homework.classmateSubmittedCount != null && homework.totalClassmates != null && (
+          <Card style={styles.infoCard}>
+            <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
+              Одноклассники
+            </Text>
+            <ProgressBar
+              progress={(homework.classmateSubmittedCount / homework.totalClassmates) * 100}
+              height={10}
+            />
+            <Text style={[styles.classmateText, { color: theme.colors.text }]}>
+              {homework.classmateSubmittedCount} из {homework.totalClassmates} уже сдали
+            </Text>
+          </Card>
+        )}
 
         {/* Submissions */}
         {homework.submissions.length > 0 && (
@@ -263,6 +280,11 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 15,
     lineHeight: 22,
+  },
+  classmateText: {
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: 'center',
   },
   sectionTitle: {
     fontSize: 18,

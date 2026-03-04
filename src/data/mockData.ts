@@ -71,6 +71,8 @@ export const mockHomework: HomeworkAssignment[] = [
     status: 'pending',
     submissions: [],
     maxGrade: 10,
+    classmateSubmittedCount: 4,
+    totalClassmates: 15,
     createdAt: new Date(now - DAY * 1),
   },
   {
@@ -84,6 +86,8 @@ export const mockHomework: HomeworkAssignment[] = [
     status: 'pending',
     submissions: [],
     maxGrade: 10,
+    classmateSubmittedCount: 2,
+    totalClassmates: 15,
     createdAt: new Date(now - DAY * 2),
   },
   {
@@ -96,6 +100,8 @@ export const mockHomework: HomeworkAssignment[] = [
     status: 'pending',
     submissions: [],
     maxGrade: 10,
+    classmateSubmittedCount: 11,
+    totalClassmates: 15,
     createdAt: new Date(now - DAY * 5),
   },
   {
@@ -116,6 +122,8 @@ export const mockHomework: HomeworkAssignment[] = [
       },
     ],
     maxGrade: 10,
+    classmateSubmittedCount: 13,
+    totalClassmates: 15,
     createdAt: new Date(now - DAY * 7),
   },
   {
@@ -138,6 +146,8 @@ export const mockHomework: HomeworkAssignment[] = [
     aiFeedback:
       'Большинство упражнений выполнены верно. Обратите внимание на упражнение 3: в двух предложениях перепутан порядок слов. Перевод хороший, но есть неточность в третьем абзаце.',
     maxGrade: 10,
+    classmateSubmittedCount: 9,
+    totalClassmates: 15,
     createdAt: new Date(now - DAY * 3),
   },
   {
@@ -162,6 +172,8 @@ export const mockHomework: HomeworkAssignment[] = [
     teacherFeedback:
       'Отличная работа! Одна ошибка в задаче №7 — неверный знак при переносе.',
     aiFeedback: 'Решения оформлены аккуратно. Ошибка в знаке в задаче 7.',
+    classmateSubmittedCount: 14,
+    totalClassmates: 15,
     createdAt: new Date(now - DAY * 10),
   },
   {
@@ -185,6 +197,8 @@ export const mockHomework: HomeworkAssignment[] = [
     maxGrade: 10,
     teacherFeedback:
       'Хорошо, но допущены 3 ошибки в словах с суффиксами -онн- и -енн-.',
+    classmateSubmittedCount: 15,
+    totalClassmates: 15,
     createdAt: new Date(now - DAY * 8),
   },
   {
@@ -198,6 +212,8 @@ export const mockHomework: HomeworkAssignment[] = [
     status: 'pending',
     submissions: [],
     maxGrade: 10,
+    classmateSubmittedCount: 3,
+    totalClassmates: 15,
     createdAt: new Date(now - DAY * 1),
   },
   {
@@ -221,6 +237,8 @@ export const mockHomework: HomeworkAssignment[] = [
     grade: 10,
     maxGrade: 10,
     teacherFeedback: 'Превосходная работа! Таблица полная и подробная.',
+    classmateSubmittedCount: 15,
+    totalClassmates: 15,
     createdAt: new Date(now - DAY * 12),
   },
   {
@@ -245,6 +263,8 @@ export const mockHomework: HomeworkAssignment[] = [
     maxGrade: 10,
     teacherFeedback:
       'Слишком много ошибок в Type 2 и Type 3. Перечитайте правила и пересдайте.',
+    classmateSubmittedCount: 12,
+    totalClassmates: 15,
     createdAt: new Date(now - DAY * 10),
   },
   {
@@ -258,6 +278,8 @@ export const mockHomework: HomeworkAssignment[] = [
     status: 'pending',
     submissions: [],
     maxGrade: 10,
+    classmateSubmittedCount: 1,
+    totalClassmates: 15,
     createdAt: new Date(now),
   },
   {
@@ -282,6 +304,8 @@ export const mockHomework: HomeworkAssignment[] = [
     teacherFeedback: 'Эссе слишком короткое, не раскрыта тема последствий.',
     aiFeedback:
       'Структура эссе хорошая, но объём не соответствует требованиям.',
+    classmateSubmittedCount: 10,
+    totalClassmates: 15,
     createdAt: new Date(now - DAY * 8),
   },
 ];

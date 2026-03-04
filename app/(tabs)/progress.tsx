@@ -16,6 +16,7 @@ import { mockClassmates, mockDuels } from '@/src/data/mockData';
 import AchievementBadge from '@/src/components/achievements/AchievementBadge';
 import LeaderboardRow from '@/src/components/achievements/LeaderboardRow';
 import Card from '@/src/components/ui/Card';
+import ThemeBackground from '@/src/components/theme/ThemeBackground';
 
 const DUEL_STATUS_LABEL: Record<string, string> = {
   pending: '⏳ Ожидание',
@@ -37,6 +38,7 @@ export default function ProgressScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
+      <ThemeBackground />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.content}

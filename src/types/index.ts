@@ -3,6 +3,25 @@ export type AchievementRarity = 'common' | 'rare' | 'epic' | 'legendary';
 export type AchievementCategory = 'streak' | 'team_quest' | 'challenge' | 'duel';
 export type MascotState = 'sick' | 'sad' | 'neutral' | 'happy' | 'thriving';
 
+export type OutfitType = 'default' | 'armor' | 'cape' | 'hoodie' | 'vest' | 'robe' | 'jacket';
+export type HatType = 'none' | 'crown' | 'helmet' | 'wizard_hat' | 'cap' | 'headband' | 'horns';
+export type HandItemType = 'none' | 'sword' | 'shield' | 'bow' | 'staff' | 'guitar' | 'book' | 'wand' | 'flag';
+export type BackItemType = 'none' | 'wings' | 'cape' | 'backpack' | 'quiver';
+export type FaceItemType = 'none' | 'glasses' | 'eyepatch' | 'mask';
+
+export interface CharacterCustomization {
+  outfit: OutfitType;
+  outfitColor: string;
+  hat: HatType;
+  hatColor: string;
+  handItem: HandItemType;
+  backItem: BackItemType;
+  faceItem: FaceItemType;
+  skinColor: string;
+  clothesColor: string;
+  shoesColor: string;
+}
+
 export type CharacterBodyType = 'humanoid' | 'quadruped' | 'blob' | 'snowman' | 'bird';
 
 export interface Character3DConfig {
@@ -77,6 +96,8 @@ export interface HomeworkAssignment {
   maxGrade: number;
   aiFeedback?: string;
   teacherFeedback?: string;
+  classmateSubmittedCount?: number;
+  totalClassmates?: number;
   createdAt: Date;
 }
 
@@ -115,6 +136,7 @@ export interface AppTheme {
   emoji: string;
   ageGroup: 'junior' | 'senior';
   characters: ThemeCharacter[];
+  backgroundEmojis: string[];
   colors: {
     primary: string;
     secondary: string;

@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useAppTheme, useCurrentCharacter } from '@/src/hooks/useAppTheme';
+import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useCustomizedCharacter } from '@/src/hooks/useCustomizedCharacter';
 import { getMascotState, getMascotStateLabel } from '@/src/utils/gradeHelpers';
 import MascotHealthBar from './MascotHealthBar';
 import MascotViewer3D from './MascotViewer3D';
@@ -11,7 +12,7 @@ interface MascotProps {
 
 function Mascot({ health }: MascotProps) {
   const theme = useAppTheme();
-  const character = useCurrentCharacter();
+  const { character, customization } = useCustomizedCharacter();
   const state = getMascotState(health);
   const label = getMascotStateLabel(state);
 
@@ -22,6 +23,7 @@ function Mascot({ health }: MascotProps) {
         mascotState={state}
         width={200}
         height={200}
+        customization={customization}
       />
       <Text style={[styles.characterName, { color: theme.colors.text }]}>
         {character.name}

@@ -81,21 +81,28 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
 
         <View style={styles.footer}>
           <DeadlineIndicator deadline={homework.deadline} />
-          {homework.grade !== undefined && (
-            <View style={styles.gradeContainer}>
-              <Text style={styles.gradeEmoji}>
-                {getGradeEmoji(homework.grade, homework.maxGrade)}
+          <View style={styles.footerRight}>
+            {homework.classmateSubmittedCount != null && homework.totalClassmates != null && (
+              <Text style={[styles.classmateCount, { color: theme.colors.textSecondary }]}>
+                👥 {homework.classmateSubmittedCount} из {homework.totalClassmates}
               </Text>
-              <Text
-                style={[
-                  styles.gradeText,
-                  { color: getGradeColor(homework.grade, homework.maxGrade) },
-                ]}
-              >
-                {homework.grade}/{homework.maxGrade}
-              </Text>
-            </View>
-          )}
+            )}
+            {homework.grade !== undefined && (
+              <View style={styles.gradeContainer}>
+                <Text style={styles.gradeEmoji}>
+                  {getGradeEmoji(homework.grade, homework.maxGrade)}
+                </Text>
+                <Text
+                  style={[
+                    styles.gradeText,
+                    { color: getGradeColor(homework.grade, homework.maxGrade) },
+                  ]}
+                >
+                  {homework.grade}/{homework.maxGrade}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
       </Card>
     </Animated.View>
@@ -136,6 +143,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  footerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  classmateCount: {
+    fontSize: 12,
   },
   gradeContainer: {
     flexDirection: 'row',
