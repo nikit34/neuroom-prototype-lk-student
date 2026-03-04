@@ -1,0 +1,107 @@
+[    6567ms] [WARNING] "shadow*" style props are deprecated. Use "boxShadow". @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110190
+[   13914ms] [WARNING] props.pointerEvents is deprecated. Use style.pointerEvents @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110190
+[   15874ms] [ERROR] Warning: findDOMNode is deprecated and will be removed in the next major release. Instead, add a ref directly to the element you want to reference. Learn more about using refs safely here: https://reactjs.org/link/strict-mode-find-node
+    at CanvasWrapper (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:160778:9)
+    at GLView (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:160609:3)
+    at div
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110477:27
+    at MascotViewer3D (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:96813:5)
+    at div
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110477:27
+    at Mascot (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:96475:5)
+    at div
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110477:27
+    at div
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110477:27
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:107721:26
+    at ScrollView (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:106425:7)
+    at ScrollView
+    at div
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110477:27
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:130481:23
+    at HomeScreen (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:96210:48)
+    at Suspense
+    at Route (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:9676:5)
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:10045:11
+    at StaticContainer (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:17849:18)
+    at EnsureSingleNavigator (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:12484:5)
+    at SceneView (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:17711:5)
+    at NavigationProvider (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:16036:5)
+    at div
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110477:27
+    at div
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110477:27
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:120098:62
+    at Background (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:20683:9)
+    at Screen (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:24470:70)
+    at div
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110477:27
+    at MaybeScreen (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:25375:9)
+    at div
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110477:27
+    at MaybeScreenContainer (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:25362:9)
+    at div
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110477:27
+    at FrameSizeProvider (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:23238:5)
+    at SafeAreaProviderCompat (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:24409:5)
+    at BottomTabView (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:20199:7)
+    at PreventRemoveProvider (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:16201:5)
+    at NavigationStateListenerProvider (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:18259:5)
+    at NavigationContent (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:17444:5)
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:17460:7
+    at BottomTabNavigator (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:20104:9)
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:9570:21
+    at TabLayout (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:9273:48)
+    at Suspense
+    at Route (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:9676:5)
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:10045:11
+    at StaticContainer (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:17849:18)
+    at EnsureSingleNavigator (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:12484:5)
+    at SceneView (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:17711:5)
+    at NavigationProvider (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:16036:5)
+    at div
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110477:27
+    at AnimatedHeaderHeightProvider (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:133327:5)
+    at div
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110477:27
+    at div
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110477:27
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:120098:62
+    at Background (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:20683:9)
+    at Screen (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:24470:70)
+    at div
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110477:27
+    at FrameSizeProvider (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:23238:5)
+    at SafeAreaProviderCompat (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:24409:5)
+    at NativeStackView (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:133223:5)
+    at PreventRemoveProvider (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:16201:5)
+    at NavigationStateListenerProvider (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:18259:5)
+    at NavigationContent (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:17444:5)
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:17460:7
+    at NativeStackNavigator (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:31293:9)
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:9570:21
+    at div
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110477:27
+    at RootLayoutNav (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:99220:48)
+    at RootLayout (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:99194:52)
+    at Try (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:25513:3)
+    at Suspense
+    at Route (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:9676:5)
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:10045:11
+    at div
+    at http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:110477:27
+    at NativeSafeAreaProvider (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:190532:5)
+    at SafeAreaProvider (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:190403:9)
+    at wrapper (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:31841:7)
+    at ThemeProvider (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:13772:5)
+    at EnsureSingleNavigator (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:12484:5)
+    at BaseNavigationContainer (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:10767:5)
+    at NavigationContainerInner (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:32054:9)
+    at ContextNavigator (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:31883:5)
+    at ExpoRoot (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:31832:18)
+    at _HelmetProvider (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:226643:7)
+    at App
+    at LogBoxStateSubscription (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:104789:9)
+    at ErrorOverlay
+    at withDevTools(ErrorOverlay)
+    at AppContainer (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:128154:5) @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.routerRoot=app:105890
