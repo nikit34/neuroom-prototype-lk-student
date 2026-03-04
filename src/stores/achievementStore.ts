@@ -1,21 +1,21 @@
 import { create } from 'zustand';
-import { Achievement } from '../types';
+import { Achievement, AchievementSource } from '../types';
 import { mockAchievements } from '../data/mockData';
 
 interface AchievementState {
   achievements: Achievement[];
-  unlockAchievement: (id: string) => void;
+  unlockAchievement: (id: string, source?: AchievementSource) => void;
   updateProgress: (id: string, progress: number) => void;
 }
 
 export const useAchievementStore = create<AchievementState>((set) => ({
   achievements: [...mockAchievements],
 
-  unlockAchievement: (id) =>
+  unlockAchievement: (id, source?) =>
     set((state) => ({
       achievements: state.achievements.map((a) =>
         a.id === id
-          ? { ...a, isLocked: false, progress: 100, unlockedAt: new Date() }
+          ? { ...a, isLocked: false, progress: 100, unlockedAt: new Date(), ...(source ? { source } : {}) }
           : a
       ),
     })),

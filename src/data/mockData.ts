@@ -326,6 +326,7 @@ export const mockAchievements: Achievement[] = [
     progress: 100,
     isLocked: false,
     unlockedAt: new Date(now - DAY * 30),
+    source: { type: 'homework', homeworkId: 'hw-6', homeworkTitle: 'Системы линейных уравнений', subject: 'Математика', grade: 9, maxGrade: 10, solutionSummary: 'Решены все 8 систем методом подстановки. Одна ошибка в знаке при переносе в задаче №7.' },
   },
   {
     id: 'ach-2',
@@ -337,6 +338,7 @@ export const mockAchievements: Achievement[] = [
     progress: 100,
     isLocked: false,
     unlockedAt: new Date(now - DAY * 2),
+    source: { type: 'streak', streakDays: 5, description: 'Сдавал домашние задания 5 дней подряд без пропусков' },
   },
   {
     id: 'ach-3',
@@ -378,6 +380,7 @@ export const mockAchievements: Achievement[] = [
     progress: 100,
     isLocked: false,
     unlockedAt: new Date(now - DAY * 15),
+    source: { type: 'quest', questTitle: 'Алгебраический квест', teamMembers: ['Мария Иванова', 'Екатерина Новикова'], description: 'Участие в командном квесте по алгебре — формулы сокращённого умножения и разложение на множители' },
   },
   {
     id: 'ach-7',
@@ -389,6 +392,7 @@ export const mockAchievements: Achievement[] = [
     progress: 100,
     isLocked: false,
     unlockedAt: new Date(now - DAY * 10),
+    source: { type: 'quest', questTitle: 'Алгебраический квест', teamMembers: ['Мария Иванова', 'Екатерина Новикова'], description: 'Стал лидером команды с наибольшим вкладом (40%) в прохождение квеста' },
   },
   {
     id: 'ach-8',
@@ -410,6 +414,7 @@ export const mockAchievements: Achievement[] = [
     progress: 100,
     isLocked: false,
     unlockedAt: new Date(now - DAY * 20),
+    source: { type: 'duel', opponentName: 'Анна Кузнецова', subject: 'История', result: 'Победа 5:3' },
   },
   {
     id: 'ach-10',
@@ -481,6 +486,7 @@ export const mockAchievements: Achievement[] = [
     progress: 100,
     isLocked: false,
     unlockedAt: new Date(now - DAY * 5),
+    source: { type: 'homework', homeworkId: 'hw-9', homeworkTitle: 'Реформы Петра I', subject: 'История', grade: 10, maxGrade: 10, solutionSummary: 'Составлена полная таблица реформ Петра I с указанием годов и последствий. Превосходная работа!' },
   },
   {
     id: 'ach-17',
@@ -512,6 +518,7 @@ export const mockAchievements: Achievement[] = [
     progress: 100,
     isLocked: false,
     unlockedAt: new Date(now - DAY * 25),
+    source: { type: 'quest', questTitle: 'Математический марафон', teamMembers: ['Мария Иванова', 'Анна Кузнецова', 'Дмитрий Сидоров'], description: 'Пригласил 3 друзей в команду для совместного прохождения марафона' },
   },
   {
     id: 'ach-20',

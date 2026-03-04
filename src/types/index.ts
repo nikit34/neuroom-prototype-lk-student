@@ -69,6 +69,12 @@ export interface HomeworkAssignment {
   createdAt: Date;
 }
 
+export type AchievementSource =
+  | { type: 'homework'; homeworkId: string; homeworkTitle: string; subject: string; grade?: number; maxGrade?: number; solutionSummary: string }
+  | { type: 'streak'; streakDays: number; description: string }
+  | { type: 'duel'; opponentName: string; subject: string; result: string }
+  | { type: 'quest'; questTitle: string; teamMembers?: string[]; description: string };
+
 export interface Achievement {
   id: string;
   title: string;
@@ -79,6 +85,7 @@ export interface Achievement {
   progress: number;
   isLocked: boolean;
   unlockedAt?: Date;
+  source?: AchievementSource;
 }
 
 export interface ChatMessage {

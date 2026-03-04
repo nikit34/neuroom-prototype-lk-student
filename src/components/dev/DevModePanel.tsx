@@ -9,6 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
+import { useThemeStore } from '@/src/stores/themeStore';
 import { getMascotState, getMascotStateLabel } from '@/src/utils/gradeHelpers';
 import { AchievementRarity } from '@/src/types';
 
@@ -129,13 +130,72 @@ function HealthSlider() {
   );
 }
 
+function AgeGroupSwitch() {
+  const theme = useAppTheme();
+  const ageGroup = useThemeStore((s) => s.ageGroup);
+  const setAgeGroup = useThemeStore((s) => s.setAgeGroup);
+
+  const options = [
+    { key: 'senior' as const, label: 'Старшие (8-11)', emoji: '🎓' },
+    { key: 'junior' as const, label: 'Младшие (5-7)', emoji: '🎒' },
+  ];
+
+  return (
+    <View style={styles.ageGroupSection}>
+      <View style={styles.ageGroupRow}>
+        {options.map((opt) => {
+          const isActive = ageGroup === opt.key;
+          return (
+            <TouchableOpacity
+              key={opt.key}
+              style={[
+                styles.ageGroupBtn,
+                {
+                  backgroundColor: isActive
+                    ? theme.colors.primary + '20'
+                    : theme.colors.background,
+                  borderColor: isActive
+                    ? theme.colors.primary
+                    : theme.colors.border,
+                  borderWidth: isActive ? 2 : 1,
+                },
+              ]}
+              onPress={() => setAgeGroup(opt.key)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.ageGroupEmoji}>{opt.emoji}</Text>
+              <Text
+                style={[
+                  styles.ageGroupBtnText,
+                  {
+                    color: isActive ? theme.colors.primary : theme.colors.text,
+                    fontWeight: isActive ? '700' : '500',
+                  },
+                ]}
+              >
+                {opt.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAwardBadgeSeries }: DevModePanelProps) {
   const theme = useAppTheme();
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
-      {/* Health Slider */}
+      {/* LK Mode Switch */}
       <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
+        РЕЖИМ ЛК
+      </Text>
+      <AgeGroupSwitch />
+
+      {/* Health Slider */}
+      <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 20 }]}>
         ЗДОРОВЬЕ МАСКОТА
       </Text>
       <HealthSlider />
@@ -213,6 +273,28 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 1,
     marginBottom: 10,
+  },
+
+  // Age Group Switch
+  ageGroupSection: {},
+  ageGroupRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  ageGroupBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    gap: 6,
+  },
+  ageGroupEmoji: {
+    fontSize: 18,
+  },
+  ageGroupBtnText: {
+    fontSize: 14,
   },
 
   // Slider

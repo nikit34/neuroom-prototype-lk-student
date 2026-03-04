@@ -31,12 +31,16 @@ export default function OnboardingScreen() {
   const setCharacterId = useThemeStore((s) => s.setCharacter);
   const completeOnboarding = useOnboardingStore((s) => s.complete);
 
+  const ageGroup = useThemeStore((s) => s.ageGroup);
+
   const [step, setStep] = useState(0);
   const [selectedGender, setSelectedGender] = useState<'male' | 'female'>(student.gender);
   const [showAllCharacters, setShowAllCharacters] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const selectedTheme = themes.find((t) => t.id === themeId) || themes[0];
+  const availableThemes = ageGroup === 'senior' ? seniorThemes : juniorThemes;
+  const ageLabel = ageGroup === 'senior' ? '8–11 класс' : '5–7 класс';
 
   const animateTransition = (next: number) => {
     Animated.timing(fadeAnim, {
@@ -189,20 +193,11 @@ export default function OnboardingScreen() {
               Его всегда можно сменить в профиле
             </Text>
 
-            {/* Старшие */}
             <Text style={[styles.ageGroupLabel, { color: theme.colors.textSecondary }]}>
-              8–11 класс
+              {ageLabel}
             </Text>
             <View style={styles.themesGrid}>
-              {seniorThemes.map((t: AppTheme) => renderThemeCard(t))}
-            </View>
-
-            {/* Младшие */}
-            <Text style={[styles.ageGroupLabel, { color: theme.colors.textSecondary, marginTop: 20 }]}>
-              5–7 класс
-            </Text>
-            <View style={styles.themesGrid}>
-              {juniorThemes.map((t: AppTheme) => renderThemeCard(t))}
+              {availableThemes.map((t: AppTheme) => renderThemeCard(t))}
             </View>
           </View>
         );

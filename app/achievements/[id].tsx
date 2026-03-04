@@ -4,15 +4,17 @@ import {
   Text,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAchievementStore } from '@/src/stores/achievementStore';
 import Card from '@/src/components/ui/Card';
 import Badge from '@/src/components/ui/Badge';
 import ProgressBar from '@/src/components/ui/ProgressBar';
-import { AchievementRarity, AchievementCategory } from '@/src/types';
+import { AchievementRarity, AchievementCategory, AchievementSource } from '@/src/types';
 import { formatDateRu } from '@/src/utils/dateHelpers';
 
 const RARITY_COLORS: Record<AchievementRarity, string> = {
@@ -42,6 +44,122 @@ const CATEGORY_EMOJI: Record<AchievementCategory, string> = {
   challenge: '🎯',
   duel: '⚔️',
 };
+
+function SourceCard({ source, theme }: { source: AchievementSource; theme: ReturnType<typeof useAppTheme> }) {
+  const router = useRouter();
+
+  switch (source.type) {
+    case 'homework':
+      return (
+        <Card style={styles.sourceCard}>
+          <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
+            Как получено
+          </Text>
+          <View style={styles.sourceRow}>
+            <Text style={styles.sourceEmoji}>📝</Text>
+            <Text style={[styles.sourceTitle, { color: theme.colors.text }]}>
+              {source.homeworkTitle}
+            </Text>
+          </View>
+          <Text style={[styles.sourceSubject, { color: theme.colors.textSecondary }]}>
+            {source.subject}
+          </Text>
+          {source.grade != null && source.maxGrade != null && (
+            <View style={[styles.gradeRow, { backgroundColor: theme.colors.success + '15' }]}>
+              <Text style={[styles.gradeText, { color: theme.colors.success }]}>
+                Оценка: {source.grade}/{source.maxGrade}
+              </Text>
+            </View>
+          )}
+          <Text style={[styles.sourceSummary, { color: theme.colors.text }]}>
+            {source.solutionSummary}
+          </Text>
+          <TouchableOpacity
+            style={styles.linkRow}
+            onPress={() => router.push(`/homework/${source.homeworkId}` as any)}
+          >
+            <Text style={[styles.linkText, { color: theme.colors.primary }]}>
+              Посмотреть задание →
+            </Text>
+          </TouchableOpacity>
+        </Card>
+      );
+
+    case 'streak':
+      return (
+        <Card style={styles.sourceCard}>
+          <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
+            Как получено
+          </Text>
+          <View style={styles.sourceRow}>
+            <Text style={styles.sourceEmoji}>🔥</Text>
+            <Text style={[styles.sourceTitle, { color: theme.colors.text }]}>
+              Серия {source.streakDays} дней
+            </Text>
+          </View>
+          <Text style={[styles.sourceSummary, { color: theme.colors.text }]}>
+            {source.description}
+          </Text>
+        </Card>
+      );
+
+    case 'duel':
+      return (
+        <Card style={styles.sourceCard}>
+          <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
+            Как получено
+          </Text>
+          <View style={styles.sourceRow}>
+            <Text style={styles.sourceEmoji}>⚔️</Text>
+            <Text style={[styles.sourceTitle, { color: theme.colors.text }]}>
+              {source.result}
+            </Text>
+          </View>
+          <Text style={[styles.sourceSubject, { color: theme.colors.textSecondary }]}>
+            {source.subject}
+          </Text>
+          <View style={styles.sourceRow}>
+            <Text style={styles.sourceEmoji}>👤</Text>
+            <Text style={[styles.sourceSummary, { color: theme.colors.text }]}>
+              Противник: {source.opponentName}
+            </Text>
+          </View>
+        </Card>
+      );
+
+    case 'quest':
+      return (
+        <Card style={styles.sourceCard}>
+          <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
+            Как получено
+          </Text>
+          <View style={styles.sourceRow}>
+            <Text style={styles.sourceEmoji}>🗺️</Text>
+            <Text style={[styles.sourceTitle, { color: theme.colors.text }]}>
+              {source.questTitle}
+            </Text>
+          </View>
+          <Text style={[styles.sourceSummary, { color: theme.colors.text }]}>
+            {source.description}
+          </Text>
+          {source.teamMembers && source.teamMembers.length > 0 && (
+            <View style={styles.teamSection}>
+              <Text style={[styles.teamLabel, { color: theme.colors.textSecondary }]}>
+                Команда:
+              </Text>
+              {source.teamMembers.map((name, i) => (
+                <View key={i} style={styles.teamMemberRow}>
+                  <Text style={[styles.teamMemberText, { color: theme.colors.text }]}>
+                    👤 {name}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </Card>
+      );
+  }
+}
 
 export default function AchievementDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -146,6 +264,11 @@ export default function AchievementDetailScreen() {
               </Text>
             </View>
           </Card>
+        )}
+
+        {/* Source */}
+        {isUnlocked && achievement.source && (
+          <SourceCard source={achievement.source} theme={theme} />
         )}
 
         {/* Status */}
@@ -256,6 +379,67 @@ const styles = StyleSheet.create({
   categoryEmoji: {
     fontSize: 20,
     marginRight: 8,
+  },
+  sourceCard: {
+    width: '100%',
+    marginBottom: 10,
+  },
+  sourceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  sourceEmoji: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  sourceTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    flexShrink: 1,
+  },
+  sourceSubject: {
+    fontSize: 13,
+    marginBottom: 8,
+    marginLeft: 26,
+  },
+  gradeRow: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  gradeText: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  sourceSummary: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 4,
+  },
+  linkRow: {
+    marginTop: 8,
+  },
+  linkText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  teamSection: {
+    marginTop: 8,
+  },
+  teamLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  teamMemberRow: {
+    marginLeft: 4,
+    marginBottom: 2,
+  },
+  teamMemberText: {
+    fontSize: 14,
   },
   statusCard: {
     width: '100%',

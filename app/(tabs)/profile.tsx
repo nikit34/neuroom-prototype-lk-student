@@ -11,6 +11,7 @@ import { useAppTheme, useCurrentCharacter } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useThemeStore } from '@/src/stores/themeStore';
 import { seniorThemes, juniorThemes } from '@/src/theme/themes';
+import { useMemo } from 'react';
 import Mascot from '@/src/components/mascot/Mascot';
 import Card from '@/src/components/ui/Card';
 import { AppTheme } from '@/src/types';
@@ -22,6 +23,13 @@ export default function ProfileScreen() {
   const student = useStudentStore((s) => s.student);
   const themeId = useThemeStore((s) => s.themeId);
   const setThemeId = useThemeStore((s) => s.setTheme);
+  const ageGroup = useThemeStore((s) => s.ageGroup);
+
+  const availableThemes = useMemo(
+    () => (ageGroup === 'senior' ? seniorThemes : juniorThemes),
+    [ageGroup],
+  );
+  const ageLabel = ageGroup === 'senior' ? '8–11 класс' : '5–7 класс';
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
@@ -89,27 +97,14 @@ export default function ProfileScreen() {
         </Text>
 
         <Text style={[styles.ageGroupLabel, { color: theme.colors.textSecondary }]}>
-          8–11 класс
+          {ageLabel}
         </Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.themesRow}
         >
-          {seniorThemes.map((t: AppTheme) => (
-            <ThemeCard key={t.id} theme={t} isSelected={t.id === themeId} onSelect={setThemeId} />
-          ))}
-        </ScrollView>
-
-        <Text style={[styles.ageGroupLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
-          5–7 класс
-        </Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.themesRow}
-        >
-          {juniorThemes.map((t: AppTheme) => (
+          {availableThemes.map((t: AppTheme) => (
             <ThemeCard key={t.id} theme={t} isSelected={t.id === themeId} onSelect={setThemeId} />
           ))}
         </ScrollView>
