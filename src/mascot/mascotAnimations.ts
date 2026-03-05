@@ -3,7 +3,7 @@ import { MascotState, MascotEmotion } from '../types';
 // ─── Character archetypes ────────────────────────────────────────
 
 export type CharacterArchetype =
-  | 'cat' | 'warrior' | 'king' | 'astronaut'
+  | 'cat' | 'warrior' | 'fox'
   | 'wizard' | 'dragon' | 'ninja' | 'critter'
   | 'robot' | 'bear' | 'ghost' | 'alien' | 'owl';
 
@@ -18,19 +18,19 @@ export const CHARACTER_ARCHETYPE: Record<string, CharacterArchetype> = {
   // Anime
   'anime-naruto': 'ninja', 'anime-ninja': 'ninja', 'anime-sakura': 'ninja', 'anime-sensei': 'wizard',
   // Sakura
-  'sk-hanami': 'king', 'sk-samurai': 'warrior', 'sk-geisha': 'king', 'sk-kitsune': 'cat',
+  'sk-hanami': 'cat', 'sk-samurai': 'warrior', 'sk-geisha': 'wizard', 'sk-kitsune': 'cat',
   // Gagarin
-  'gg-cosmonaut': 'astronaut', 'gg-rocket': 'astronaut', 'gg-alien': 'alien', 'gg-star': 'astronaut',
+  'gg-cosmonaut': 'fox', 'gg-rocket': 'fox', 'gg-alien': 'alien', 'gg-star': 'fox',
   // Marvel
   'mv-ironman': 'robot', 'mv-spider': 'ninja', 'mv-captain': 'warrior', 'mv-thor': 'warrior',
   // One Piece
   'op-luffy': 'ninja', 'op-zoro': 'warrior', 'op-nami': 'ninja', 'op-chopper': 'bear',
   // Frozen
-  'fz-elsa': 'king', 'fz-olaf': 'critter', 'fz-anna': 'king', 'fz-sven': 'bear',
+  'fz-elsa': 'wizard', 'fz-olaf': 'critter', 'fz-anna': 'cat', 'fz-sven': 'bear',
   // Minions
   'mn-bob': 'critter', 'mn-kevin': 'critter', 'mn-stuart': 'critter', 'mn-gru': 'robot',
   // Clash Royale
-  'cr-king': 'king', 'cr-princess': 'king', 'cr-knight': 'warrior', 'cr-dragon': 'dragon',
+  'cr-king': 'warrior', 'cr-princess': 'wizard', 'cr-knight': 'warrior', 'cr-dragon': 'dragon',
   // Pokemon
   'pk-pikachu': 'cat', 'pk-charmander': 'dragon', 'pk-squirtle': 'bear', 'pk-bulbasaur': 'critter',
   // Minecraft
@@ -40,20 +40,39 @@ export const CHARACTER_ARCHETYPE: Record<string, CharacterArchetype> = {
   // Hogwarts
   'hw-wizard': 'wizard', 'hw-owl': 'owl', 'hw-witch': 'wizard', 'hw-phoenix': 'dragon',
   // Among Us
-  'au-red': 'alien', 'au-blue': 'alien', 'au-impostor': 'ghost', 'au-green': 'astronaut',
+  'au-red': 'alien', 'au-blue': 'alien', 'au-impostor': 'ghost', 'au-green': 'fox',
+  // K-Pop
+  'kp-idol': 'cat', 'kp-dancer': 'ninja', 'kp-rapper': 'fox', 'kp-producer': 'robot',
+  // Genshin Impact
+  'gs-traveler': 'warrior', 'gs-paimon': 'critter', 'gs-archon': 'wizard', 'gs-adeptus': 'dragon',
+  // Witcher
+  'wt-geralt': 'warrior', 'wt-sorceress': 'wizard', 'wt-bard': 'fox', 'wt-monster': 'dragon',
+  // Attack on Titan
+  'aot-eren': 'warrior', 'aot-mikasa': 'ninja', 'aot-levi': 'ninja', 'aot-armin': 'owl',
+  // Valorant
+  'vl-jett': 'ninja', 'vl-reyna': 'ghost', 'vl-cypher': 'robot', 'vl-phoenix': 'dragon',
+  // Lord of the Rings
+  'lr-hobbit': 'critter', 'lr-wizard': 'wizard', 'lr-elf': 'fox', 'lr-dwarf': 'bear',
+  // SpongeBob
+  'sb-spongebob': 'critter', 'sb-patrick': 'bear', 'sb-squidward': 'alien', 'sb-sandy': 'ninja',
+  // Mario
+  'mr-mario': 'warrior', 'mr-luigi': 'fox', 'mr-toad': 'critter', 'mr-peach': 'cat',
+  // Roblox
+  'rb-noob': 'critter', 'rb-builder': 'warrior', 'rb-pro': 'ninja', 'rb-robot': 'robot',
+  // Sonic
+  'sn-sonic': 'ninja', 'sn-tails': 'fox', 'sn-knuckles': 'warrior', 'sn-amy': 'cat',
+  // Gravity Falls
+  'gf-dipper': 'owl', 'gf-mabel': 'cat', 'gf-stan': 'bear', 'gf-bill': 'ghost',
+  // Fortnite
+  'fn-jonesy': 'warrior', 'fn-peely': 'critter', 'fn-raven': 'ghost', 'fn-shimmer': 'wizard',
 };
 
-// ─── Rive source (single file for all archetypes) ──────────────
-
-export const MASCOT_RIVE_SOURCE = require('../../assets/animations/mascot/teddy.riv');
-
-// ─── One Lottie source per archetype (high-quality pure vector) ──
+// ─── Lottie sources (one file per archetype from LottieFiles) ────
 
 export const MASCOT_LOTTIE_SOURCES: Record<CharacterArchetype, any> = {
   cat: require('../../assets/animations/mascot/mascot-cat.json'),
   warrior: require('../../assets/animations/mascot/mascot-warrior.json'),
-  king: require('../../assets/animations/mascot/mascot-king.json'),
-  astronaut: require('../../assets/animations/mascot/mascot-astronaut.json'),
+  fox: require('../../assets/animations/mascot/mascot-fox.json'),
   wizard: require('../../assets/animations/mascot/mascot-wizard.json'),
   dragon: require('../../assets/animations/mascot/mascot-dragon.json'),
   ninja: require('../../assets/animations/mascot/mascot-ninja.json'),

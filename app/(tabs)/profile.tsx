@@ -10,12 +10,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme, useCurrentCharacter } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useThemeStore } from '@/src/stores/themeStore';
-import { seniorThemes, juniorThemes } from '@/src/theme/themes';
+import { allCharacters, seniorThemes, juniorThemes } from '@/src/theme/themes';
 import { useMemo } from 'react';
 import Mascot from '@/src/components/mascot/Mascot';
 import Card from '@/src/components/ui/Card';
 import ProgressBar from '@/src/components/ui/ProgressBar';
-import { AppTheme } from '@/src/types';
+import { AppTheme, ThemeCharacter } from '@/src/types';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
 import { getLevel } from '@/src/utils/levelHelpers';
 
@@ -24,7 +24,9 @@ export default function ProfileScreen() {
   const character = useCurrentCharacter();
   const student = useStudentStore((s) => s.student);
   const themeId = useThemeStore((s) => s.themeId);
+  const characterId = useThemeStore((s) => s.characterId);
   const setThemeId = useThemeStore((s) => s.setTheme);
+  const setCharacterId = useThemeStore((s) => s.setCharacter);
   const ageGroup = useThemeStore((s) => s.ageGroup);
 
   const availableThemes = useMemo(
@@ -122,6 +124,20 @@ export default function ProfileScreen() {
           ))}
         </ScrollView>
 
+        {/* Character Selection */}
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          Выбор персонажа
+        </Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.themesRow}
+        >
+          {allCharacters.map((c: ThemeCharacter) => (
+            <CharacterCard key={c.id} character={c} isSelected={c.id === characterId} onSelect={setCharacterId} theme={theme} />
+          ))}
+        </ScrollView>
+
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
@@ -161,6 +177,42 @@ const ThemeCard = memo(function ThemeCard({
         <View style={[styles.colorDot, { backgroundColor: t.colors.secondary }]} />
         <View style={[styles.colorDot, { backgroundColor: t.colors.accent }]} />
       </View>
+      {isSelected && <Text style={styles.selectedCheck}>✓</Text>}
+    </TouchableOpacity>
+  );
+});
+
+// Memoized character card
+const CharacterCard = memo(function CharacterCard({
+  character: c,
+  isSelected,
+  onSelect,
+  theme: t,
+}: {
+  character: ThemeCharacter;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+  theme: AppTheme;
+}) {
+  const handlePress = useCallback(() => onSelect(c.id), [onSelect, c.id]);
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.characterCard,
+        {
+          backgroundColor: t.colors.surface,
+          borderColor: isSelected ? t.colors.primary : t.colors.border,
+          borderWidth: isSelected ? 3 : 1,
+        },
+      ]}
+      onPress={handlePress}
+      activeOpacity={0.7}
+    >
+      <Text style={styles.characterEmoji}>{c.emoji}</Text>
+      <Text style={[styles.characterName, { color: t.colors.text }]} numberOfLines={1}>
+        {c.name}
+      </Text>
       {isSelected && <Text style={styles.selectedCheck}>✓</Text>}
     </TouchableOpacity>
   );
@@ -294,6 +346,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#10B981',
     fontWeight: '700',
+  },
+
+  // Characters
+  characterCard: {
+    width: 100,
+    padding: 12,
+    borderRadius: 16,
+    alignItems: 'center',
+    position: 'relative',
+  },
+  characterEmoji: {
+    fontSize: 32,
+    marginBottom: 6,
+  },
+  characterName: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 
   bottomSpacer: {

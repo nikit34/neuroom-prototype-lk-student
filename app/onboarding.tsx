@@ -15,7 +15,7 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useThemeStore } from '@/src/stores/themeStore';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
-import { themes, seniorThemes, juniorThemes } from '@/src/theme/themes';
+import { themes, allCharacters, seniorThemes, juniorThemes } from '@/src/theme/themes';
 import { AppTheme, ThemeCharacter } from '@/src/types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -35,7 +35,7 @@ export default function OnboardingScreen() {
 
   const [step, setStep] = useState(0);
   const [selectedGender, setSelectedGender] = useState<'male' | 'female'>(student.gender);
-  const [showAllCharacters, setShowAllCharacters] = useState(false);
+  const [showAllCharacters, setShowAllCharacters] = useState(true);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const selectedTheme = themes.find((t) => t.id === themeId) || themes[0];
@@ -75,7 +75,6 @@ export default function OnboardingScreen() {
     }
   };
 
-  const allCharacters = themes.flatMap((t) => t.characters);
 
   const renderStep = () => {
     switch (step) {
@@ -206,13 +205,13 @@ export default function OnboardingScreen() {
       case 3:
         return (
           <View style={styles.stepContainer}>
-            <Text style={styles.stepEmoji}>{selectedTheme.emoji}</Text>
+            <Text style={styles.stepEmoji}>{'🧑‍🎤'}</Text>
             <Text style={[styles.title, { color: theme.colors.text }]}>
               Выбери персонажа
             </Text>
             <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
               {showAllCharacters
-                ? 'Все персонажи из всех тем'
+                ? 'Выбери любого персонажа'
                 : `Персонажи темы «${selectedTheme.name}»`}
             </Text>
 

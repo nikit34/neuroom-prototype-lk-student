@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -13,11 +13,24 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAchievementStore } from '@/src/stores/achievementStore';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useArenaStore } from '@/src/stores/arenaStore';
+import { AchievementCategory } from '@/src/types';
 import { mockClassmates } from '@/src/data/mockData';
 import AchievementBadge from '@/src/components/achievements/AchievementBadge';
 import LeaderboardRow from '@/src/components/achievements/LeaderboardRow';
 import Card from '@/src/components/ui/Card';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
+
+type CategoryFilter = 'all' | 'unlocked' | AchievementCategory;
+
+const CATEGORY_TABS: { key: CategoryFilter; label: string; emoji: string }[] = [
+  { key: 'all', label: 'Все', emoji: '🏅' },
+  { key: 'unlocked', label: 'Получено', emoji: '✅' },
+  { key: 'homework', label: 'Домашка', emoji: '📝' },
+  { key: 'streak', label: 'Серия', emoji: '🔥' },
+  { key: 'duel', label: 'Дуэли', emoji: '⚔️' },
+  { key: 'team_quest', label: 'Квесты', emoji: '🤝' },
+  { key: 'challenge', label: 'Испытания', emoji: '🏋️' },
+];
 
 export default function ProgressScreen() {
   const theme = useAppTheme();
@@ -26,6 +39,21 @@ export default function ProgressScreen() {
   const student = useStudentStore((s) => s.student);
   const getDuelStats = useArenaStore((s) => s.getDuelStats);
   const arenaStats = getDuelStats();
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
+
+  const filtered = useMemo(
+    () => {
+      if (categoryFilter === 'all') return achievements;
+      if (categoryFilter === 'unlocked') return achievements.filter((a) => !a.isLocked);
+      return achievements.filter((a) => a.category === categoryFilter);
+    },
+    [achievements, categoryFilter],
+  );
+
+  const stats = useMemo(() => {
+    const unlocked = achievements.filter((a) => !a.isLocked).length;
+    return { unlocked, total: achievements.length };
+  }, [achievements]);
 
   const sortedClassmates = [...mockClassmates].sort(
     (a, b) => b.totalPoints - a.totalPoints,
@@ -42,12 +70,55 @@ export default function ProgressScreen() {
       >
         <Text style={[styles.header, { color: theme.colors.text }]}>Прогресс</Text>
 
-        {/* Achievements */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          Мои достижения
+        {/* Achievement stats */}
+        <Text style={[styles.achievementCount, { color: theme.colors.textSecondary }]}>
+          {stats.unlocked} из {stats.total} достижений
         </Text>
+
+        {/* Category tabs */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabsRow}
+        >
+          {CATEGORY_TABS.map((tab) => {
+            const active = categoryFilter === tab.key;
+            const count = tab.key === 'all'
+              ? achievements.length
+              : tab.key === 'unlocked'
+                ? achievements.filter((a) => !a.isLocked).length
+                : achievements.filter((a) => a.category === tab.key).length;
+            if (tab.key !== 'all' && tab.key !== 'unlocked' && count === 0) return null;
+            return (
+              <TouchableOpacity
+                key={tab.key}
+                style={[
+                  styles.tab,
+                  {
+                    backgroundColor: active ? theme.colors.primary : theme.colors.surface,
+                    borderColor: active ? theme.colors.primary : theme.colors.border,
+                  },
+                ]}
+                onPress={() => setCategoryFilter(tab.key)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.tabEmoji}>{tab.emoji}</Text>
+                <Text
+                  style={[
+                    styles.tabLabel,
+                    { color: active ? '#FFFFFF' : theme.colors.textSecondary },
+                  ]}
+                >
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        {/* Achievements grid */}
         <FlatList
-          data={achievements}
+          data={filtered}
           keyExtractor={(item) => item.id}
           numColumns={3}
           scrollEnabled={false}
@@ -62,6 +133,13 @@ export default function ProgressScreen() {
             </TouchableOpacity>
           )}
           contentContainerStyle={styles.achievementsGrid}
+          ListEmptyComponent={
+            <Card>
+              <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+                Нет достижений в этой категории
+              </Text>
+            </Card>
+          }
         />
 
         {/* Leaderboard */}
@@ -111,14 +189,35 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: '700',
     marginTop: 8,
-    marginBottom: 8,
+    marginBottom: 4,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginTop: 24,
+  achievementCount: {
+    fontSize: 13,
     marginBottom: 12,
   },
+  // Category tabs
+  tabsRow: {
+    gap: 8,
+    paddingBottom: 4,
+    marginBottom: 12,
+  },
+  tab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    gap: 4,
+  },
+  tabEmoji: {
+    fontSize: 14,
+  },
+  tabLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  // Grid
   achievementsGrid: {
     gap: 8,
   },
@@ -128,6 +227,17 @@ const styles = StyleSheet.create({
   achievementCell: {
     flex: 1,
     maxWidth: '33%',
+  },
+  emptyText: {
+    fontSize: 14,
+    textAlign: 'center',
+    paddingVertical: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginTop: 24,
+    marginBottom: 12,
   },
   leaderboardCard: {
     paddingHorizontal: 0,

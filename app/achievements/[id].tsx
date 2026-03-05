@@ -14,7 +14,7 @@ import { useAchievementStore } from '@/src/stores/achievementStore';
 import Card from '@/src/components/ui/Card';
 import Badge from '@/src/components/ui/Badge';
 import ProgressBar from '@/src/components/ui/ProgressBar';
-import { AchievementRarity, AchievementCategory, AchievementSource } from '@/src/types';
+import { AchievementRarity, AchievementCategory, AchievementSource, AchievementTier } from '@/src/types';
 import { formatDateRu } from '@/src/utils/dateHelpers';
 
 const RARITY_COLORS: Record<AchievementRarity, string> = {
@@ -30,6 +30,26 @@ const RARITY_LABELS: Record<AchievementRarity, string> = {
   epic: 'Эпическая',
   legendary: 'Легендарная',
 };
+
+const TIER_COLORS: Record<string, string> = {
+  bronze: '#CD7F32',
+  silver: '#C0C0C0',
+  gold: '#FFD700',
+};
+
+const TIER_LABELS: Record<string, string> = {
+  bronze: 'Бронза',
+  silver: 'Серебро',
+  gold: 'Золото',
+};
+
+const TIER_EMOJI: Record<string, string> = {
+  bronze: '🥉',
+  silver: '🥈',
+  gold: '🥇',
+};
+
+const TIERS_ORDERED: AchievementTier[] = ['bronze', 'silver', 'gold'];
 
 const CATEGORY_LABELS: Record<AchievementCategory, string> = {
   streak: 'Серия',
@@ -238,6 +258,52 @@ export default function AchievementDetailScreen() {
           </Card>
         )}
 
+        {/* Tier progress */}
+        {achievement.tierThresholds && (
+          <Card style={styles.tierCard}>
+            <Text style={[styles.progressTitle, { color: theme.colors.text }]}>
+              Степени
+            </Text>
+            {TIERS_ORDERED.map((tier) => {
+              const threshold = achievement.tierThresholds![tier];
+              const reached = achievement.progress >= threshold;
+              const isCurrent = achievement.tier === tier;
+              return (
+                <View
+                  key={tier}
+                  style={[
+                    styles.tierRow,
+                    isCurrent && { backgroundColor: TIER_COLORS[tier] + '15', borderRadius: 10 },
+                  ]}
+                >
+                  <Text style={styles.tierRowEmoji}>{TIER_EMOJI[tier]}</Text>
+                  <View style={styles.tierRowInfo}>
+                    <Text style={[
+                      styles.tierRowLabel,
+                      { color: reached ? TIER_COLORS[tier] : theme.colors.textSecondary },
+                    ]}>
+                      {TIER_LABELS[tier]}
+                    </Text>
+                    <View style={styles.tierBarWrap}>
+                      <ProgressBar
+                        progress={Math.min(100, (achievement.progress / threshold) * 100)}
+                        color={reached ? TIER_COLORS[tier] : theme.colors.border}
+                        height={6}
+                      />
+                    </View>
+                  </View>
+                  <Text style={[
+                    styles.tierRowPct,
+                    { color: reached ? TIER_COLORS[tier] : theme.colors.textSecondary },
+                  ]}>
+                    {reached ? '✓' : `${threshold}%`}
+                  </Text>
+                </View>
+              );
+            })}
+          </Card>
+        )}
+
         {/* Category */}
         <Card style={styles.infoCard}>
           <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
@@ -358,6 +424,39 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     marginBottom: 10,
+  },
+  tierCard: {
+    width: '100%',
+    marginBottom: 16,
+  },
+  tierRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    marginBottom: 4,
+  },
+  tierRowEmoji: {
+    fontSize: 22,
+    marginRight: 10,
+  },
+  tierRowInfo: {
+    flex: 1,
+  },
+  tierRowLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  tierBarWrap: {
+    width: '100%',
+  },
+  tierRowPct: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginLeft: 10,
+    minWidth: 36,
+    textAlign: 'right',
   },
   infoCard: {
     width: '100%',

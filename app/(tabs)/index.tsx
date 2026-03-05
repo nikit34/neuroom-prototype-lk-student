@@ -7,6 +7,7 @@ import { useStudentStore } from '@/src/stores/studentStore';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { useAchievementStore } from '@/src/stores/achievementStore';
 import Mascot from '@/src/components/mascot/Mascot';
+import MascotHealthBar from '@/src/components/mascot/MascotHealthBar';
 import Card from '@/src/components/ui/Card';
 import ProgressBar from '@/src/components/ui/ProgressBar';
 import DeadlineIndicator from '@/src/components/homework/DeadlineIndicator';
@@ -87,6 +88,14 @@ export default function HomeScreen() {
             <Text style={[styles.streakLabel, { color: theme.colors.textSecondary }]}>
               дней подряд
             </Text>
+            <View style={styles.streakHealthRow}>
+              <MascotHealthBar health={student.mascotHealth} />
+            </View>
+            {student.currentStreak >= 1 && (
+              <Text style={[styles.streakBonus, { color: theme.colors.success }]}>
+                +{student.currentStreak >= 14 ? 4 : student.currentStreak >= 7 ? 3 : student.currentStreak >= 3 ? 2 : 1} HP за сдачу
+              </Text>
+            )}
           </Card>
           <Card style={styles.levelCard}>
             <Text style={styles.levelEmoji}>{rank.emoji}</Text>
@@ -126,7 +135,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         )}
 
-        <Mascot health={student.mascotHealth} />
+        <Mascot health={student.mascotHealth} showHealthBar={false} />
 
         {/* ── Deadlines ── */}
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -236,6 +245,16 @@ const styles = StyleSheet.create({
   streakLabel: {
     fontSize: 11,
     marginTop: 2,
+  },
+  streakHealthRow: {
+    width: '100%',
+    marginTop: 8,
+    paddingHorizontal: 4,
+  },
+  streakBonus: {
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 6,
   },
   levelCard: {
     flex: 1.5,

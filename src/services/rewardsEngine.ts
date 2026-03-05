@@ -7,17 +7,28 @@ import { Duel, Quest, Challenge } from '../types';
 // ─── Reward Constants ────────────────────────────────────────────
 const HOMEWORK_SUBMIT_XP = 50;
 const HOMEWORK_SUBMIT_HEALTH = 5;
-const HOMEWORK_GRADE_HEALTH_THRESHOLD = 0.8;
-const HOMEWORK_GRADE_HEALTH = 5;
 const MISSED_DEADLINE_HEALTH = -10;
 
 const DUEL_WIN_MULTIPLIER = 1;
 const DUEL_DRAW_MULTIPLIER = 0.5;
 const DUEL_LOSE_MULTIPLIER = 0.25;
-const DUEL_WIN_HEALTH = 3;
 
-const QUEST_COMPLETE_HEALTH = 5;
-const CHALLENGE_COMPLETE_HEALTH = 3;
+// ─── Streak → Health bonus ──────────────────────────────────────
+// Longer streaks give bigger daily health boosts
+const STREAK_HEALTH_TIERS = [
+  { minDays: 14, health: 4 },
+  { minDays: 7, health: 3 },
+  { minDays: 3, health: 2 },
+  { minDays: 1, health: 1 },
+] as const;
+
+/** Health bonus for current streak length (called on each homework submit) */
+function getStreakHealthBonus(streak: number): number {
+  for (const tier of STREAK_HEALTH_TIERS) {
+    if (streak >= tier.minDays) return tier.health;
+  }
+  return 0;
+}
 
 // ─── Achievement Rules ───────────────────────────────────────────
 interface AchievementRule {
@@ -85,23 +96,23 @@ function buildAchievementContext(): AchievementContext {
 export function rewardHomeworkSubmit(homeworkId: string): void {
   const { addPoints, incrementStreak, updateMascotHealth } = useStudentStore.getState();
 
-  addPoints(HOMEWORK_SUBMIT_XP);
   incrementStreak();
-  updateMascotHealth(HOMEWORK_SUBMIT_HEALTH);
+
+  const streak = useStudentStore.getState().student.currentStreak;
+  const streakBonus = getStreakHealthBonus(streak);
+
+  addPoints(HOMEWORK_SUBMIT_XP);
+  updateMascotHealth(HOMEWORK_SUBMIT_HEALTH + streakBonus);
 
   checkAchievements();
 }
 
 export function rewardHomeworkGraded(homeworkId: string, grade: number, maxGrade: number): void {
-  const { addPoints, updateMascotHealth } = useStudentStore.getState();
+  const { addPoints } = useStudentStore.getState();
 
   const ratio = maxGrade > 0 ? grade / maxGrade : 0;
   const bonusXp = Math.round(ratio * 100);
   addPoints(bonusXp);
-
-  if (ratio >= HOMEWORK_GRADE_HEALTH_THRESHOLD) {
-    updateMascotHealth(HOMEWORK_GRADE_HEALTH);
-  }
 
   checkAchievements();
 }
@@ -114,7 +125,7 @@ export function penaltyMissedDeadline(): void {
 }
 
 export function rewardDuelFinish(duel: Duel): void {
-  const { addPoints, updateMascotHealth } = useStudentStore.getState();
+  const { addPoints } = useStudentStore.getState();
 
   let multiplier: number;
   switch (duel.result) {
@@ -132,27 +143,21 @@ export function rewardDuelFinish(duel: Duel): void {
   const xp = Math.floor(duel.xpReward * multiplier);
   addPoints(xp);
 
-  if (duel.result === 'won') {
-    updateMascotHealth(DUEL_WIN_HEALTH);
-  }
-
   checkAchievements();
 }
 
 export function rewardQuestComplete(quest: Quest): void {
-  const { addPoints, updateMascotHealth } = useStudentStore.getState();
+  const { addPoints } = useStudentStore.getState();
 
   addPoints(quest.xpReward);
-  updateMascotHealth(QUEST_COMPLETE_HEALTH);
 
   checkAchievements();
 }
 
 export function rewardChallengeComplete(challenge: Challenge): void {
-  const { addPoints, updateMascotHealth } = useStudentStore.getState();
+  const { addPoints } = useStudentStore.getState();
 
   addPoints(challenge.reward.xp);
-  updateMascotHealth(CHALLENGE_COMPLETE_HEALTH);
 
   checkAchievements();
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
-import { Achievement, AchievementRarity } from '@/src/types';
+import { Achievement, AchievementRarity, AchievementTier } from '@/src/types';
 import ProgressBar from '@/src/components/ui/ProgressBar';
 
 interface AchievementBadgeProps {
@@ -22,9 +22,9 @@ const TIER_COLORS: Record<string, string> = {
 };
 
 const TIER_LABELS: Record<string, string> = {
-  bronze: 'Бронза',
-  silver: 'Серебро',
-  gold: 'Золото',
+  bronze: 'I',
+  silver: 'II',
+  gold: 'III',
 };
 
 const RARITY_LABELS: Record<AchievementRarity, string> = {
@@ -34,11 +34,22 @@ const RARITY_LABELS: Record<AchievementRarity, string> = {
   legendary: 'Легендарная',
 };
 
+const TIERS_ORDERED: AchievementTier[] = ['bronze', 'silver', 'gold'];
+
+function getTierIndex(tier?: string): number {
+  if (!tier) return -1;
+  return TIERS_ORDERED.indexOf(tier as any);
+}
+
 export default function AchievementBadge({ achievement }: AchievementBadgeProps) {
   const theme = useAppTheme();
   const borderColor = RARITY_COLORS[achievement.rarity];
   const isLocked = achievement.isLocked;
-  const inProgress = !isLocked && achievement.progress < 100;
+  const hasTiers = !!achievement.tierThresholds;
+  const currentTierIdx = getTierIndex(achievement.tier);
+
+  // Use tier color for border if tier is active
+  const activeBorderColor = achievement.tier ? TIER_COLORS[achievement.tier] : borderColor;
 
   return (
     <View
@@ -46,7 +57,7 @@ export default function AchievementBadge({ achievement }: AchievementBadgeProps)
         styles.container,
         {
           backgroundColor: theme.colors.card,
-          borderColor,
+          borderColor: hasTiers && achievement.tier ? activeBorderColor : borderColor,
           borderWidth: 2,
         },
       ]}
@@ -55,6 +66,18 @@ export default function AchievementBadge({ achievement }: AchievementBadgeProps)
         <View style={styles.lockOverlay}>
           <Text style={styles.lockIcon}>🔒</Text>
         </View>
+      )}
+
+      {/* Tier degree badge in top-right */}
+      {hasTiers && achievement.tier && (
+        <View style={[styles.tierBadge, { backgroundColor: TIER_COLORS[achievement.tier] }]}>
+          <Text style={styles.tierBadgeText}>{TIER_LABELS[achievement.tier]}</Text>
+        </View>
+      )}
+
+      {/* Unlocked check (only for non-tiered) */}
+      {!hasTiers && !isLocked && achievement.progress >= 100 && (
+        <Text style={styles.unlockedBadge}>✅</Text>
       )}
 
       <Text style={[styles.icon, isLocked && styles.lockedIcon]}>
@@ -73,20 +96,38 @@ export default function AchievementBadge({ achievement }: AchievementBadgeProps)
         {RARITY_LABELS[achievement.rarity]}
       </Text>
 
-      {inProgress && (
-        <View style={styles.progressWrapper}>
-          <ProgressBar progress={achievement.progress} color={borderColor} height={4} />
+      {/* Tier dots */}
+      {hasTiers && (
+        <View style={styles.tierDotsRow}>
+          {TIERS_ORDERED.map((tier, idx) => {
+            const reached = idx <= currentTierIdx;
+            return (
+              <View
+                key={tier}
+                style={[
+                  styles.tierDot,
+                  {
+                    backgroundColor: reached ? TIER_COLORS[tier] : theme.colors.border,
+                    width: reached ? 10 : 8,
+                    height: reached ? 10 : 8,
+                    borderRadius: reached ? 5 : 4,
+                  },
+                ]}
+              />
+            );
+          })}
         </View>
       )}
 
-      {!isLocked && achievement.progress >= 100 && (
-        <Text style={styles.unlockedBadge}>✅</Text>
-      )}
-
-      {achievement.tier && (
-        <Text style={[styles.tierLabel, { color: TIER_COLORS[achievement.tier] }]}>
-          {TIER_LABELS[achievement.tier]}
-        </Text>
+      {/* Progress bar for locked achievements in progress */}
+      {isLocked && achievement.progress > 0 && (
+        <View style={styles.progressWrapper}>
+          <ProgressBar
+            progress={achievement.progress}
+            color={hasTiers && achievement.tier ? TIER_COLORS[achievement.tier] : borderColor}
+            height={4}
+          />
+        </View>
       )}
     </View>
   );
@@ -113,6 +154,32 @@ const styles = StyleSheet.create({
   lockIcon: {
     fontSize: 28,
   },
+  tierBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    minWidth: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 5,
+    zIndex: 5,
+  },
+  tierBadgeText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  unlockedBadge: {
+    fontSize: 14,
+    position: 'absolute',
+    top: 6,
+    right: 6,
+  },
   icon: {
     fontSize: 36,
     marginBottom: 8,
@@ -130,22 +197,19 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     textTransform: 'uppercase',
-    marginBottom: 6,
+    marginBottom: 4,
+  },
+  tierDotsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 2,
+  },
+  tierDot: {
+    // size set dynamically
   },
   progressWrapper: {
     width: '100%',
     marginTop: 4,
-  },
-  unlockedBadge: {
-    fontSize: 14,
-    position: 'absolute',
-    top: 6,
-    right: 6,
-  },
-  tierLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    marginTop: 2,
   },
 });

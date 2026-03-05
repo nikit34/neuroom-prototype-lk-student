@@ -1508,4 +1508,6 @@ export const themes: AppTheme[] = [
 export const seniorThemes = themes.filter((t) => t.ageGroup === 'senior');
 export const juniorThemes = themes.filter((t) => t.ageGroup === 'junior');
 
+export const allCharacters: import('../types').ThemeCharacter[] = themes.flatMap((t) => t.characters);
+
 export const defaultTheme: AppTheme = sakuraTheme;

@@ -1,5 +1,5 @@
 import { useThemeStore } from '@/src/stores/themeStore';
-import { themes } from '@/src/theme/themes';
+import { themes, allCharacters } from '@/src/theme/themes';
 import { ThemeCharacter } from '@/src/types';
 
 export function useAppTheme() {
@@ -9,6 +9,5 @@ export function useAppTheme() {
 
 export function useCurrentCharacter(): ThemeCharacter {
   const characterId = useThemeStore(s => s.characterId);
-  const allCharacters = themes.flatMap(t => t.characters);
-  return allCharacters.find(c => c.id === characterId) || themes[0].characters[0];
+  return allCharacters.find(c => c.id === characterId) || allCharacters[0];
 }

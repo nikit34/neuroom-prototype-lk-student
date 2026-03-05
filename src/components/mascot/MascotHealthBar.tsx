@@ -9,8 +9,9 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
-interface MascotHealthBarProps {
+export interface MascotHealthBarProps {
   health: number; // 0-100
+  streakBonus?: number;
 }
 
 function getHealthColor(health: number): string {
@@ -29,7 +30,7 @@ function getHealthGradient(health: number): [string, string] {
   return ['#15803D', '#4ADE80'];
 }
 
-export default function MascotHealthBar({ health }: MascotHealthBarProps) {
+export default function MascotHealthBar({ health, streakBonus }: MascotHealthBarProps) {
   const theme = useAppTheme();
   const clamped = Math.max(0, Math.min(100, health));
   const animatedWidth = useSharedValue(0);
@@ -54,7 +55,7 @@ export default function MascotHealthBar({ health }: MascotHealthBarProps) {
           Здоровье
         </Text>
         <Text style={[styles.value, { color }]}>
-          {Math.round(clamped)}
+          {Math.round(clamped)}{streakBonus ? ` (+${streakBonus})` : ''}
         </Text>
       </View>
       <View style={[styles.track, { backgroundColor: theme.colors.border }]}>

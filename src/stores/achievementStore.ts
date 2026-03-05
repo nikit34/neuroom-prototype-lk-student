@@ -1,16 +1,39 @@
 import { create } from 'zustand';
-import { Achievement, AchievementSource } from '../types';
+import { Achievement, AchievementSource, AchievementTier } from '../types';
 import { mockAchievements } from '../data/mockData';
 import { useCelebrationStore } from './celebrationStore';
+import { useBadgeStore } from './badgeStore';
 
-function fireCelebration(a: Achievement) {
+const TIER_LABELS: Record<AchievementTier, string> = {
+  bronze: 'Бронза',
+  silver: 'Серебро',
+  gold: 'Золото',
+};
+
+function fireCelebration(a: Achievement, tier?: AchievementTier) {
+  const suffix = tier ? ` (${TIER_LABELS[tier]})` : '';
   useCelebrationStore.getState().push({
-    id: a.id,
+    id: tier ? `${a.id}-${tier}` : a.id,
     icon: a.icon,
-    title: a.title,
+    title: a.title + suffix,
     description: a.description,
     rarity: a.rarity,
     category: a.category,
+  });
+}
+
+function awardBadge(a: Achievement, tier?: AchievementTier) {
+  const suffix = tier ? ` (${TIER_LABELS[tier]})` : '';
+  useBadgeStore.getState().addBadge({
+    id: tier ? `${a.id}-${tier}` : a.id,
+    icon: a.icon,
+    title: a.title + suffix,
+    description: a.description,
+    rarity: a.rarity,
+    category: a.category,
+    achievementId: a.id,
+    tier,
+    earnedAt: new Date(),
   });
 }
 
@@ -29,6 +52,7 @@ export const useAchievementStore = create<AchievementState>((set, get) => ({
       if (target && target.isLocked) {
         const unlocked = { ...target, isLocked: false, progress: 100, unlockedAt: new Date(), ...(source ? { source } : {}) };
         fireCelebration(unlocked);
+        awardBadge(unlocked);
       }
       return {
         achievements: state.achievements.map((a) =>
@@ -48,11 +72,14 @@ export const useAchievementStore = create<AchievementState>((set, get) => ({
         const justUnlocked = wasLocked && clampedProgress >= 100;
 
         let tier = a.tier;
+        let newTier: AchievementTier | undefined;
         if (a.tierThresholds) {
           if (clampedProgress >= a.tierThresholds.gold) tier = 'gold';
           else if (clampedProgress >= a.tierThresholds.silver) tier = 'silver';
           else if (clampedProgress >= a.tierThresholds.bronze) tier = 'bronze';
           else tier = undefined;
+
+          if (tier && tier !== a.tier) newTier = tier;
         }
 
         const updated = {
@@ -64,7 +91,15 @@ export const useAchievementStore = create<AchievementState>((set, get) => ({
             : {}),
         };
 
-        if (justUnlocked) fireCelebration(updated);
+        // Award badge for new tier
+        if (newTier) {
+          fireCelebration(updated, newTier);
+          awardBadge(updated, newTier);
+        } else if (justUnlocked && !a.tierThresholds) {
+          // Non-tiered achievement unlocked
+          fireCelebration(updated);
+          awardBadge(updated);
+        }
 
         return updated;
       }),

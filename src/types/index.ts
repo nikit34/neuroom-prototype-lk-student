@@ -75,6 +75,8 @@ export type AchievementSource =
   | { type: 'duel'; opponentName: string; subject: string; result: string }
   | { type: 'quest'; questTitle: string; teamMembers?: string[]; description: string };
 
+export type AchievementTier = 'bronze' | 'silver' | 'gold';
+
 export interface Achievement {
   id: string;
   title: string;
@@ -86,8 +88,20 @@ export interface Achievement {
   isLocked: boolean;
   unlockedAt?: Date;
   source?: AchievementSource;
-  tier?: 'bronze' | 'silver' | 'gold';
+  tier?: AchievementTier;
   tierThresholds?: { bronze: number; silver: number; gold: number };
+}
+
+export interface Badge {
+  id: string;
+  icon: string;
+  title: string;
+  description: string;
+  rarity: AchievementRarity;
+  category: AchievementCategory;
+  achievementId: string;
+  tier?: AchievementTier;
+  earnedAt: Date;
 }
 
 export interface ChatMessage {
