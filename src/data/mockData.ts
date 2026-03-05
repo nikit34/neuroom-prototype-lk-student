@@ -702,21 +702,21 @@ export const mockAchievements: Achievement[] = [
 
 // ─── Одноклассники ────────────────────────────────────────────────
 export const mockClassmates: Classmate[] = [
-  { id: 'cl-1', firstName: 'Мария', lastName: 'Иванова', totalPoints: 1480, avatarEmoji: '🦊' },
-  { id: 'cl-2', firstName: 'Дмитрий', lastName: 'Сидоров', totalPoints: 1320, avatarEmoji: '🐺' },
-  { id: 'cl-3', firstName: 'Анна', lastName: 'Кузнецова', totalPoints: 1150, avatarEmoji: '🦋' },
-  { id: 'cl-4', firstName: 'Иван', lastName: 'Попов', totalPoints: 1090, avatarEmoji: '🦁' },
-  { id: 'cl-5', firstName: 'Екатерина', lastName: 'Новикова', totalPoints: 980, avatarEmoji: '🐱' },
-  { id: 'cl-6', firstName: 'Артём', lastName: 'Федоров', totalPoints: 940, avatarEmoji: '🐻' },
-  { id: 'cl-7', firstName: 'София', lastName: 'Михайлова', totalPoints: 870, avatarEmoji: '🦄' },
-  { id: 'cl-8', firstName: 'Максим', lastName: 'Егоров', totalPoints: 850, avatarEmoji: '🐯' },
-  { id: 'cl-9', firstName: 'Полина', lastName: 'Васильева', totalPoints: 810, avatarEmoji: '🐰' },
-  { id: 'cl-10', firstName: 'Никита', lastName: 'Соколов', totalPoints: 760, avatarEmoji: '🦅' },
-  { id: 'cl-11', firstName: 'Виктория', lastName: 'Павлова', totalPoints: 720, avatarEmoji: '🦢' },
-  { id: 'cl-12', firstName: 'Даниил', lastName: 'Козлов', totalPoints: 680, avatarEmoji: '🐲' },
+  { id: 'cl-1', firstName: 'Мария', lastName: 'Иванова', totalPoints: 3280, avatarEmoji: '🦊' },
+  { id: 'cl-2', firstName: 'Дмитрий', lastName: 'Сидоров', totalPoints: 2740, avatarEmoji: '🐺' },
+  { id: 'cl-3', firstName: 'Анна', lastName: 'Кузнецова', totalPoints: 2350, avatarEmoji: '🦋' },
+  { id: 'cl-4', firstName: 'Иван', lastName: 'Попов', totalPoints: 1990, avatarEmoji: '🦁' },
+  { id: 'cl-5', firstName: 'Екатерина', lastName: 'Новикова', totalPoints: 1780, avatarEmoji: '🐱' },
+  { id: 'cl-6', firstName: 'Артём', lastName: 'Федоров', totalPoints: 1540, avatarEmoji: '🐻' },
+  { id: 'cl-7', firstName: 'София', lastName: 'Михайлова', totalPoints: 1370, avatarEmoji: '🦄' },
+  { id: 'cl-8', firstName: 'Максим', lastName: 'Егоров', totalPoints: 1150, avatarEmoji: '🐯' },
+  { id: 'cl-9', firstName: 'Полина', lastName: 'Васильева', totalPoints: 1010, avatarEmoji: '🐰' },
+  { id: 'cl-10', firstName: 'Никита', lastName: 'Соколов', totalPoints: 960, avatarEmoji: '🦅' },
+  { id: 'cl-11', firstName: 'Виктория', lastName: 'Павлова', totalPoints: 820, avatarEmoji: '🦢' },
+  { id: 'cl-12', firstName: 'Даниил', lastName: 'Козлов', totalPoints: 730, avatarEmoji: '🐲' },
   { id: 'cl-13', firstName: 'Алиса', lastName: 'Степанова', totalPoints: 650, avatarEmoji: '🦜' },
-  { id: 'cl-14', firstName: 'Кирилл', lastName: 'Орлов', totalPoints: 600, avatarEmoji: '🐨' },
-  { id: 'cl-15', firstName: 'Ева', lastName: 'Андреева', totalPoints: 550, avatarEmoji: '🦔' },
+  { id: 'cl-14', firstName: 'Кирилл', lastName: 'Орлов', totalPoints: 580, avatarEmoji: '🐨' },
+  { id: 'cl-15', firstName: 'Ева', lastName: 'Андреева', totalPoints: 510, avatarEmoji: '🦔' },
 ];
 
 // ─── Дуэли (старые, для обратной совместимости) ──────────────────

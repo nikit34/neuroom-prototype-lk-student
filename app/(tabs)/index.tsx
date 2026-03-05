@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
@@ -53,6 +53,9 @@ export default function HomeScreen() {
       .sort((a, b) => b.progress - a.progress)[0] ?? null;
   }, [achievements]);
 
+  const { height: screenHeight } = useWindowDimensions();
+  const topBlockHeight = Math.round(screenHeight / 5);
+
   const upcomingDeadlines = useMemo(() => {
     const now = new Date();
     return assignments
@@ -76,23 +79,28 @@ export default function HomeScreen() {
           {getGreeting()}, {student.firstName}! 👋
         </Text>
 
-        {/* ── Early Streak ── */}
-        <Card style={styles.streakCard}>
-          <Text style={[styles.streakValue, { color: theme.colors.text }]}>
-            {student.earlyStreak}
-          </Text>
-          <Text style={[styles.streakLabel, { color: theme.colors.textSecondary }]}>
-            ДЗ вовремя подряд
-          </Text>
-          <View style={styles.streakHealthRow}>
-            <MascotHealthBar health={student.mascotHealth} />
-          </View>
-          {student.xpMultiplier > 1 && (
-            <Text style={[styles.streakBonus, { color: theme.colors.success }]}>
-              ×{student.xpMultiplier} Здоровье
+        {/* ── Mascot + Health row ── */}
+        <View style={[styles.topRow, { height: topBlockHeight }]}>
+          <Card style={styles.streakCard}>
+            <Text style={[styles.streakValue, { color: theme.colors.text }]}>
+              {student.earlyStreak}
             </Text>
-          )}
-        </Card>
+            <Text style={[styles.streakLabel, { color: theme.colors.textSecondary }]}>
+              ДЗ вовремя подряд
+            </Text>
+            <View style={styles.streakHealthRow}>
+              <MascotHealthBar health={student.mascotHealth} />
+            </View>
+            {student.xpMultiplier > 1 && (
+              <Text style={[styles.streakBonus, { color: theme.colors.success }]}>
+                ×{student.xpMultiplier} Здоровье
+              </Text>
+            )}
+          </Card>
+          <View style={[styles.mascotContainer, { width: topBlockHeight, height: topBlockHeight }]}>
+            <Mascot health={student.mascotHealth} showHealthBar={false} size={Math.round(topBlockHeight / 1.8)} compact />
+          </View>
+        </View>
 
         {/* ── Nearest Achievement ── */}
         {nearestAchievement && (
@@ -115,8 +123,6 @@ export default function HomeScreen() {
             </Text>
           </TouchableOpacity>
         )}
-
-        <Mascot health={student.mascotHealth} showHealthBar={false} />
 
         {/* ── Deadlines ── */}
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -202,15 +208,23 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 12,
   },
-  // ── Streak card ──
-  streakCard: {
-    alignItems: 'center',
-    paddingVertical: 8,
+  // ── Top row ──
+  topRow: {
+    flexDirection: 'row',
+    gap: 10,
     marginBottom: 4,
   },
-  streakEmoji: {
-    fontSize: 22,
-    marginBottom: 2,
+  streakCard: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+  },
+  mascotContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    borderRadius: 16,
   },
   streakValue: {
     fontSize: 18,

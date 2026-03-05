@@ -14,9 +14,10 @@ interface MascotProps {
   size?: number;
   showHealthBar?: boolean;
   label?: string;
+  compact?: boolean;
 }
 
-function Mascot({ emotion, health, size = 120, showHealthBar, label }: MascotProps) {
+function Mascot({ emotion, health, size = 120, showHealthBar, label, compact }: MascotProps) {
   const theme = useAppTheme();
   const character = useCurrentCharacter();
   const lottieRef = useRef<LottiePlayerRef>(null);
@@ -37,6 +38,25 @@ function Mascot({ emotion, health, size = 120, showHealthBar, label }: MascotPro
     lottieRef.current?.play();
   }, [resolvedState, archetype]);
 
+  const lottieW = size * 1.5;
+  const lottieH = size * 1.8;
+
+  if (compact) {
+    return (
+      <View style={[styles.container, { paddingVertical: 0 }]}>
+        <LottiePlayer
+          ref={lottieRef}
+          source={MASCOT_LOTTIE_SOURCES[archetype]}
+          autoPlay
+          loop
+          speed={speed}
+          style={{ width: lottieW, height: lottieH }}
+          colorFilters={[{ keypath: 'body', color: theme.colors.primary }]}
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <LottiePlayer
@@ -45,7 +65,7 @@ function Mascot({ emotion, health, size = 120, showHealthBar, label }: MascotPro
         autoPlay
         loop
         speed={speed}
-        style={{ width: size * 1.5, height: size * 1.8 }}
+        style={{ width: lottieW, height: lottieH }}
         colorFilters={[{ keypath: 'body', color: theme.colors.primary }]}
       />
       <Text style={[styles.characterName, { color: theme.colors.text }]}>

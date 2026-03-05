@@ -73,7 +73,7 @@ export default function ProfileScreen() {
                 🚀 {student.earlyStreak}
               </Text>
               <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
-                Вовремя подряд
+                ДЗ вовремя подряд
               </Text>
             </View>
             <View style={[styles.statDivider, { backgroundColor: theme.colors.border }]} />
@@ -103,8 +103,22 @@ export default function ProfileScreen() {
           Мой маскот
         </Text>
         <Card>
-          <Mascot health={student.mascotHealth} showHealthBar={false} />
+          <Mascot health={student.mascotHealth} showHealthBar={false} size={70} compact />
         </Card>
+
+        {/* Character Selection */}
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          Выбор персонажа
+        </Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.themesRow}
+        >
+          {allCharacters.map((c: ThemeCharacter) => (
+            <CharacterCard key={c.id} character={c} isSelected={c.id === characterId} onSelect={setCharacterId} theme={theme} />
+          ))}
+        </ScrollView>
 
         {/* Theme Selection */}
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -121,20 +135,6 @@ export default function ProfileScreen() {
         >
           {availableThemes.map((t: AppTheme) => (
             <ThemeCard key={t.id} theme={t} isSelected={t.id === themeId} onSelect={setThemeId} />
-          ))}
-        </ScrollView>
-
-        {/* Character Selection */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          Выбор персонажа
-        </Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.themesRow}
-        >
-          {allCharacters.map((c: ThemeCharacter) => (
-            <CharacterCard key={c.id} character={c} isSelected={c.id === characterId} onSelect={setCharacterId} theme={theme} />
           ))}
         </ScrollView>
 
