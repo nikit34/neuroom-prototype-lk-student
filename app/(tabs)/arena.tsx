@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -10,15 +10,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useArenaStore } from '@/src/stores/arenaStore';
+import { useStudentStore } from '@/src/stores/studentStore';
+import { mockClassmates } from '@/src/data/mockData';
 import DuelCard from '@/src/components/arena/DuelCard';
 import QuestCard from '@/src/components/arena/QuestCard';
 import ChallengeCard from '@/src/components/arena/ChallengeCard';
+import LeaderboardRow from '@/src/components/achievements/LeaderboardRow';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
 
-type Section = 'duels' | 'quests' | 'challenges';
+type Section = 'duels' | 'leaderboard' | 'quests' | 'challenges';
 
-const SECTIONS: { key: Section; label: string }[] = [
+const ALL_SECTIONS: { key: Section; label: string }[] = [
   { key: 'duels', label: 'Дуэли ⚔️' },
+  { key: 'leaderboard', label: 'Рейтинг 🏆' },
   { key: 'quests', label: 'Квесты 🗺️' },
   { key: 'challenges', label: 'Испытания 🎯' },
 ];
@@ -50,6 +54,18 @@ export default function ArenaScreen() {
 
   const section = useArenaStore((s) => s.section);
   const setSection = useArenaStore((s) => s.setSection);
+  const questsEnabled = useArenaStore((s) => s.questsEnabled);
+  const challengesEnabled = useArenaStore((s) => s.challengesEnabled);
+
+  const student = useStudentStore((s) => s.student);
+
+  const sections = ALL_SECTIONS.filter((s) => {
+    if (s.key === 'quests') return questsEnabled;
+    if (s.key === 'challenges') return challengesEnabled;
+    return true;
+  });
+
+  const activeSection = sections.some((s) => s.key === section) ? section : 'duels';
 
   const duelFilter = useArenaStore((s) => s.duelFilter);
   const setDuelFilter = useArenaStore((s) => s.setDuelFilter);
@@ -73,14 +89,62 @@ export default function ArenaScreen() {
 
   const sectionCounts: Record<Section, number> = {
     duels: duels.filter((d) => d.status === 'pending' || d.status === 'active').length,
+    leaderboard: 0,
     quests: quests.filter((q) => q.status === 'active').length,
     challenges: challenges.filter((c) => c.status === 'active').length,
   };
 
+  const leaderboard = useMemo(() => {
+    const all = [
+      ...mockClassmates.map((c) => ({
+        id: c.id,
+        name: `${c.firstName} ${c.lastName}`,
+        totalPoints: c.totalPoints,
+        avatarEmoji: c.avatarEmoji,
+        isCurrentUser: false,
+      })),
+      {
+        id: student.id,
+        name: `${student.firstName} ${student.lastName}`,
+        totalPoints: student.totalPoints,
+        avatarEmoji: '🐺',
+        isCurrentUser: true,
+      },
+    ];
+    return all.sort((a, b) => b.totalPoints - a.totalPoints);
+  }, [student.totalPoints, student.firstName, student.lastName, student.id]);
+
+  const currentUserIndex = leaderboard.findIndex((e) => e.isCurrentUser);
+  const leaderboardRef = useRef<FlatList>(null);
+  const [tipVisible, setTipVisible] = useState(false);
+
+  const scrollToStudent = useCallback(() => {
+    if (currentUserIndex >= 0 && leaderboardRef.current) {
+      leaderboardRef.current.scrollToIndex({
+        index: currentUserIndex,
+        viewPosition: 0.5,
+        animated: false,
+      });
+    }
+  }, [currentUserIndex]);
+
+  const tip = useMemo(() => {
+    if (currentUserIndex <= 0) return 'Вы на первом месте! Продолжайте в том же духе!';
+    const above = leaderboard[currentUserIndex - 1];
+    const gap = above.totalPoints - student.totalPoints;
+    const hints = [
+      `До ${above.name.split(' ')[0]} — всего ${gap} очков. Сдайте ДЗ пораньше для бонуса!`,
+      `Не хватает ${gap} очков до ${currentUserIndex}-го места. Выиграйте дуэль — это +50!`,
+      `${gap} очков отделяют вас от ${above.name.split(' ')[0]}. Серия ДЗ вовремя даст множитель!`,
+    ];
+    return hints[currentUserIndex % hints.length];
+  }, [currentUserIndex, leaderboard, student.totalPoints]);
+
   const renderFilters = () => {
-    const filters = section === 'duels' ? DUEL_FILTERS : section === 'quests' ? QUEST_FILTERS : CHALLENGE_FILTERS;
-    const current = section === 'duels' ? duelFilter : section === 'quests' ? questFilter : challengeFilter;
-    const setFn = section === 'duels' ? setDuelFilter : section === 'quests' ? setQuestFilter : setChallengeFilter;
+    if (activeSection === 'leaderboard') return null;
+    const filters = activeSection === 'duels' ? DUEL_FILTERS : activeSection === 'quests' ? QUEST_FILTERS : CHALLENGE_FILTERS;
+    const current = activeSection === 'duels' ? duelFilter : activeSection === 'quests' ? questFilter : challengeFilter;
+    const setFn = activeSection === 'duels' ? setDuelFilter : activeSection === 'quests' ? setQuestFilter : setChallengeFilter;
 
     return (
       <View style={styles.filterRow}>
@@ -110,7 +174,7 @@ export default function ArenaScreen() {
   };
 
   const renderContent = () => {
-    if (section === 'duels') {
+    if (activeSection === 'duels') {
       const duels = getFilteredDuels();
       return (
         <FlatList
@@ -126,12 +190,57 @@ export default function ArenaScreen() {
           )}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <TouchableOpacity
+              style={[styles.createDuelBtn, { backgroundColor: theme.colors.primary }]}
+              onPress={() => router.push('/arena/create-duel')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.createDuelBtnText}>+ Вызвать на дуэль</Text>
+            </TouchableOpacity>
+          }
           ListEmptyComponent={<EmptyState text="Нет дуэлей" emoji="⚔️" color={theme.colors.textSecondary} />}
         />
       );
     }
 
-    if (section === 'quests') {
+    if (activeSection === 'leaderboard') {
+      const ROW_HEIGHT = 60 + 8;
+      return (
+        <FlatList
+          ref={leaderboardRef}
+          data={leaderboard}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item, index }) => (
+            <LeaderboardRow
+              rank={index + 1}
+              name={item.name}
+              points={item.totalPoints}
+              avatarEmoji={item.avatarEmoji}
+              isCurrentUser={item.isCurrentUser}
+              onPress={item.isCurrentUser ? () => setTipVisible((v) => !v) : undefined}
+            />
+          )}
+          getItemLayout={(_, index) => ({ length: ROW_HEIGHT, offset: ROW_HEIGHT * index, index })}
+          onLayout={scrollToStudent}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            tipVisible ? (
+              <TouchableOpacity
+                style={[styles.tipCard, { backgroundColor: theme.colors.primary + '15', borderColor: theme.colors.primary }]}
+                onPress={() => setTipVisible(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.tipText, { color: theme.colors.text }]}>{tip}</Text>
+              </TouchableOpacity>
+            ) : null
+          }
+        />
+      );
+    }
+
+    if (activeSection === 'quests') {
       const questsList = getFilteredQuests();
       return (
         <FlatList
@@ -172,35 +281,37 @@ export default function ArenaScreen() {
       <View style={styles.container}>
         <Text style={[styles.header, { color: theme.colors.text }]}>Арена</Text>
 
-        {/* Section tabs */}
-        <View style={styles.sectionRow}>
-          {SECTIONS.map((s) => {
-            const active = section === s.key;
-            const count = sectionCounts[s.key];
-            return (
-              <TouchableOpacity
-                key={s.key}
-                style={[
-                  styles.sectionBtn,
-                  {
-                    borderBottomColor: active ? theme.colors.primary : 'transparent',
-                  },
-                ]}
-                onPress={() => setSection(s.key)}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.sectionText, { color: active ? theme.colors.primary : theme.colors.textSecondary }]}>
-                  {s.label}
-                </Text>
-                {count > 0 && (
-                  <View style={[styles.countBadge, { backgroundColor: theme.colors.primary }]}>
-                    <Text style={styles.countBadgeText}>{count}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        {/* Section tabs (hidden when only duels) */}
+        {sections.length > 1 && (
+          <View style={styles.sectionRow}>
+            {sections.map((s) => {
+              const active = activeSection === s.key;
+              const count = sectionCounts[s.key];
+              return (
+                <TouchableOpacity
+                  key={s.key}
+                  style={[
+                    styles.sectionBtn,
+                    {
+                      borderBottomColor: active ? theme.colors.primary : 'transparent',
+                    },
+                  ]}
+                  onPress={() => setSection(s.key)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.sectionText, { color: active ? theme.colors.primary : theme.colors.textSecondary }]}>
+                    {s.label}
+                  </Text>
+                  {count > 0 && (
+                    <View style={[styles.countBadge, { backgroundColor: theme.colors.primary }]}>
+                      <Text style={styles.countBadgeText}>{count}</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
 
         {renderFilters()}
         {renderContent()}
@@ -230,6 +341,10 @@ const styles = StyleSheet.create({
   filterRow: { flexDirection: 'row', marginBottom: 12, gap: 8 },
   filterBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
   filterText: { fontSize: 13, fontWeight: '600' },
+  tipCard: { padding: 14, borderRadius: 14, borderWidth: 1, marginBottom: 12 },
+  tipText: { fontSize: 14, lineHeight: 20 },
+  createDuelBtn: { paddingVertical: 14, borderRadius: 14, alignItems: 'center', marginBottom: 16 },
+  createDuelBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   list: { paddingBottom: 100 },
   emptyContainer: { alignItems: 'center', paddingTop: 60 },
   emptyEmoji: { fontSize: 64, marginBottom: 12 },

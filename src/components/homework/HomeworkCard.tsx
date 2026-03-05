@@ -69,7 +69,6 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
     <Animated.View style={[styles.animatedWrapper, animatedBorderStyle, { borderRadius: 16 }]}>
       <Card style={styles.card} onPress={onPress}>
         <View style={styles.header}>
-          <Text style={styles.subjectEmoji}>{getSubjectEmoji(homework.subject)}</Text>
           <View style={styles.headerText}>
             <Text style={[styles.title, { color: theme.colors.text }]} numberOfLines={1}>
               {homework.title}

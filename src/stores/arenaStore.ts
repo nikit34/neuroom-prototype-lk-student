@@ -1,9 +1,9 @@
 import { create } from 'zustand';
-import { Duel, DuelStatus, Quest, QuestStatus, Challenge, ChallengeStatus } from '../types';
-import { mockArenaDuels, mockQuests, mockChallenges } from '../data/mockData';
+import { Duel, DuelStatus, Quest, QuestStatus, Challenge, ChallengeStatus, Classmate } from '../types';
+import { mockArenaDuels, mockQuests, mockChallenges, mockDuelQuestions, mockClassmates } from '../data/mockData';
 import { rewardDuelFinish, rewardQuestComplete, rewardChallengeComplete } from '../services/rewardsEngine';
 
-type ArenaSection = 'duels' | 'quests' | 'challenges';
+type ArenaSection = 'duels' | 'leaderboard' | 'quests' | 'challenges';
 type DuelFilter = 'all' | 'pending' | 'active' | 'finished';
 type QuestFilter = 'all' | 'active' | 'available' | 'completed';
 type ChallengeFilter = 'all' | 'active' | 'available' | 'completed' | 'expired';
@@ -11,6 +11,12 @@ type ChallengeFilter = 'all' | 'active' | 'available' | 'completed' | 'expired';
 interface ArenaState {
   section: ArenaSection;
   setSection: (s: ArenaSection) => void;
+
+  // Feature toggles (dev mode)
+  questsEnabled: boolean;
+  challengesEnabled: boolean;
+  setQuestsEnabled: (v: boolean) => void;
+  setChallengesEnabled: (v: boolean) => void;
 
   // Duels
   duels: Duel[];
@@ -21,6 +27,7 @@ interface ArenaState {
   declineDuel: (id: string) => void;
   answerDuelQuestion: (duelId: string, answerIndex: number) => void;
   getDuelStats: () => { wins: number; losses: number; draws: number; active: number };
+  createDuel: (opponent: Classmate, subject: string) => string;
 
   // Quests
   quests: Quest[];
@@ -42,6 +49,11 @@ interface ArenaState {
 export const useArenaStore = create<ArenaState>((set, get) => ({
   section: 'duels',
   setSection: (s) => set({ section: s }),
+
+  questsEnabled: false,
+  challengesEnabled: false,
+  setQuestsEnabled: (v) => set({ questsEnabled: v }),
+  setChallengesEnabled: (v) => set({ challengesEnabled: v }),
 
   // ─── Duels ──────────────────────────────────────────────────────
   duels: [...mockArenaDuels],
@@ -125,6 +137,32 @@ export const useArenaStore = create<ArenaState>((set, get) => ({
       draws: duels.filter((d) => d.result === 'draw').length,
       active: duels.filter((d) => d.status === 'active' || d.status === 'pending').length,
     };
+  },
+
+  createDuel: (opponent, subject) => {
+    const questions = mockDuelQuestions
+      .filter((q) => q.subject === subject)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 5);
+
+    const id = `arena-duel-${Date.now()}`;
+    const newDuel: Duel = {
+      id,
+      type: 'classmate',
+      subject,
+      status: 'pending',
+      result: null,
+      challenger: { id: 'student-1', name: 'Алексей Петров', avatarEmoji: '🐺', score: 0, answers: questions.map(() => null) },
+      opponent: { id: opponent.id, name: `${opponent.firstName} ${opponent.lastName}`, avatarEmoji: opponent.avatarEmoji, score: 0, answers: questions.map(() => null) },
+      questions,
+      currentQuestionIndex: 0,
+      xpReward: 50,
+      createdAt: new Date(),
+      isIncoming: false,
+    };
+
+    set((state) => ({ duels: [newDuel, ...state.duels] }));
+    return id;
   },
 
   // ─── Quests ─────────────────────────────────────────────────────

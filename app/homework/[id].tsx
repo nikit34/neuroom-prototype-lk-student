@@ -16,7 +16,6 @@ import Button from '@/src/components/ui/Button';
 import StatusChip from '@/src/components/ui/StatusChip';
 import DeadlineIndicator from '@/src/components/homework/DeadlineIndicator';
 import FeedbackBubble from '@/src/components/homework/FeedbackBubble';
-import ProgressBar from '@/src/components/ui/ProgressBar';
 import { getGradeColor, getGradeEmoji, getGradeLabel } from '@/src/utils/gradeHelpers';
 import { formatDateRu } from '@/src/utils/dateHelpers';
 
@@ -73,123 +72,6 @@ export default function HomeworkDetailScreen() {
           {homework.subject}
         </Text>
 
-        {/* Teacher */}
-        <Card style={styles.infoCard}>
-          <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
-            Учитель
-          </Text>
-          <Text style={[styles.infoValue, { color: theme.colors.text }]}>
-            {homework.teacher.firstName} {homework.teacher.lastName}
-          </Text>
-        </Card>
-
-        {/* Deadline */}
-        <Card style={styles.infoCard}>
-          <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
-            Дедлайн
-          </Text>
-          <DeadlineIndicator deadline={homework.deadline} />
-        </Card>
-
-        {/* Description */}
-        <Card style={styles.infoCard}>
-          <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
-            Описание
-          </Text>
-          <Text style={[styles.description, { color: theme.colors.text }]}>
-            {homework.description}
-          </Text>
-        </Card>
-
-        {/* Classmates */}
-        {homework.classmateSubmittedCount != null && homework.totalClassmates != null && (
-          <Card style={styles.infoCard}>
-            <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
-              Одноклассники
-            </Text>
-            <ProgressBar
-              progress={(homework.classmateSubmittedCount / homework.totalClassmates) * 100}
-              height={10}
-            />
-            <Text style={[styles.classmateText, { color: theme.colors.text }]}>
-              {homework.classmateSubmittedCount} из {homework.totalClassmates} уже сдали
-            </Text>
-          </Card>
-        )}
-
-        {/* Submissions */}
-        {homework.submissions.length > 0 && (
-          <>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-              Мои ответы ({homework.submissions.length})
-            </Text>
-            {homework.submissions.map((sub) => (
-              <Card key={sub.id} style={styles.submissionCard}>
-                <View style={styles.submissionRow}>
-                  <Text style={styles.submissionIcon}>
-                    {sub.fileType === 'photo' ? '📸' : '📄'}
-                  </Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.submissionType, { color: theme.colors.text }]}>
-                      {sub.fileType === 'photo' ? 'Фотография' : 'Документ'}
-                    </Text>
-                    <Text style={[styles.submissionDate, { color: theme.colors.textSecondary }]}>
-                      {formatDateRu(sub.submittedAt)}
-                    </Text>
-                  </View>
-                </View>
-              </Card>
-            ))}
-          </>
-        )}
-
-        {/* Grade */}
-        {homework.grade !== undefined && (
-          <Card style={styles.gradeCard}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text, marginTop: 0 }]}>
-              Оценка
-            </Text>
-            <View style={styles.gradeRow}>
-              <Text style={styles.gradeEmoji}>
-                {getGradeEmoji(homework.grade, homework.maxGrade)}
-              </Text>
-              <Text
-                style={[
-                  styles.gradeValue,
-                  { color: getGradeColor(homework.grade, homework.maxGrade) },
-                ]}
-              >
-                {homework.grade}/{homework.maxGrade}
-              </Text>
-            </View>
-            <Text style={[styles.gradeLabel, { color: theme.colors.textSecondary }]}>
-              {getGradeLabel(homework.grade, homework.maxGrade)}
-            </Text>
-          </Card>
-        )}
-
-        {/* AI Feedback */}
-        {homework.aiFeedback && (
-          <FeedbackBubble
-            text={homework.aiFeedback}
-            type="ai"
-            timestamp={
-              homework.submissions.length > 0
-                ? homework.submissions[homework.submissions.length - 1].submittedAt
-                : homework.createdAt
-            }
-          />
-        )}
-
-        {/* Teacher Feedback */}
-        {homework.teacherFeedback && (
-          <FeedbackBubble
-            text={homework.teacherFeedback}
-            type="teacher"
-            timestamp={homework.createdAt}
-          />
-        )}
-
         {/* Actions */}
         <View style={styles.actions}>
           {canSubmit && (
@@ -227,6 +109,171 @@ export default function HomeworkDetailScreen() {
             </View>
           )}
         </View>
+
+        {/* Graded: Grade → AI Feedback → Teacher Feedback → Submissions first */}
+        {isGraded && (
+          <>
+            {homework.grade !== undefined && (
+              <Card style={styles.gradeCard}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text, marginTop: 0 }]}>
+                  Оценка
+                </Text>
+                <View style={styles.gradeRow}>
+                  <Text style={styles.gradeEmoji}>
+                    {getGradeEmoji(homework.grade, homework.maxGrade)}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.gradeValue,
+                      { color: getGradeColor(homework.grade, homework.maxGrade) },
+                    ]}
+                  >
+                    {homework.grade}/{homework.maxGrade}
+                  </Text>
+                </View>
+                <Text style={[styles.gradeLabel, { color: theme.colors.textSecondary }]}>
+                  {getGradeLabel(homework.grade, homework.maxGrade)}
+                </Text>
+              </Card>
+            )}
+
+            {homework.aiFeedback && (
+              <FeedbackBubble
+                text={homework.aiFeedback}
+                type="ai"
+                timestamp={
+                  homework.submissions.length > 0
+                    ? homework.submissions[homework.submissions.length - 1].submittedAt
+                    : homework.createdAt
+                }
+              />
+            )}
+
+            {homework.teacherFeedback && (
+              <FeedbackBubble
+                text={homework.teacherFeedback}
+                type="teacher"
+                timestamp={homework.createdAt}
+              />
+            )}
+
+            {homework.submissions.length > 0 && (
+              <>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                  Мои ответы ({homework.submissions.length})
+                </Text>
+                {homework.submissions.map((sub) => (
+                  <Card key={sub.id} style={styles.submissionCard}>
+                    <View style={styles.submissionRow}>
+                      <Text style={styles.submissionIcon}>
+                        {sub.fileType === 'photo' ? '📸' : '📄'}
+                      </Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.submissionType, { color: theme.colors.text }]}>
+                          {sub.fileType === 'photo' ? 'Фотография' : 'Документ'}
+                        </Text>
+                        <Text style={[styles.submissionDate, { color: theme.colors.textSecondary }]}>
+                          {formatDateRu(sub.submittedAt)}
+                        </Text>
+                      </View>
+                    </View>
+                  </Card>
+                ))}
+              </>
+            )}
+          </>
+        )}
+
+        {/* Deadline */}
+        <Card style={styles.infoCard}>
+          <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
+            Дедлайн
+          </Text>
+          <DeadlineIndicator deadline={homework.deadline} />
+        </Card>
+
+        {/* Submissions (original position for non-graded) */}
+        {!isGraded && homework.submissions.length > 0 && (
+          <>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+              Мои ответы ({homework.submissions.length})
+            </Text>
+            {homework.submissions.map((sub) => (
+              <Card key={sub.id} style={styles.submissionCard}>
+                <View style={styles.submissionRow}>
+                  <Text style={styles.submissionIcon}>
+                    {sub.fileType === 'photo' ? '📸' : '📄'}
+                  </Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.submissionType, { color: theme.colors.text }]}>
+                      {sub.fileType === 'photo' ? 'Фотография' : 'Документ'}
+                    </Text>
+                    <Text style={[styles.submissionDate, { color: theme.colors.textSecondary }]}>
+                      {formatDateRu(sub.submittedAt)}
+                    </Text>
+                  </View>
+                </View>
+              </Card>
+            ))}
+          </>
+        )}
+
+        {/* Grade (non-graded only, graded shown at top) */}
+        {!isGraded && homework.grade !== undefined && (
+          <Card style={styles.gradeCard}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text, marginTop: 0 }]}>
+              Оценка
+            </Text>
+            <View style={styles.gradeRow}>
+              <Text style={styles.gradeEmoji}>
+                {getGradeEmoji(homework.grade, homework.maxGrade)}
+              </Text>
+              <Text
+                style={[
+                  styles.gradeValue,
+                  { color: getGradeColor(homework.grade, homework.maxGrade) },
+                ]}
+              >
+                {homework.grade}/{homework.maxGrade}
+              </Text>
+            </View>
+            <Text style={[styles.gradeLabel, { color: theme.colors.textSecondary }]}>
+              {getGradeLabel(homework.grade, homework.maxGrade)}
+            </Text>
+          </Card>
+        )}
+
+        {/* AI Feedback (non-graded only) */}
+        {!isGraded && homework.aiFeedback && (
+          <FeedbackBubble
+            text={homework.aiFeedback}
+            type="ai"
+            timestamp={
+              homework.submissions.length > 0
+                ? homework.submissions[homework.submissions.length - 1].submittedAt
+                : homework.createdAt
+            }
+          />
+        )}
+
+        {/* Teacher Feedback (non-graded only) */}
+        {!isGraded && homework.teacherFeedback && (
+          <FeedbackBubble
+            text={homework.teacherFeedback}
+            type="teacher"
+            timestamp={homework.createdAt}
+          />
+        )}
+
+        {/* Description */}
+        <Card style={styles.infoCard}>
+          <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
+            Описание
+          </Text>
+          <Text style={[styles.description, { color: theme.colors.text }]}>
+            {homework.description}
+          </Text>
+        </Card>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -280,11 +327,6 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 15,
     lineHeight: 22,
-  },
-  classmateText: {
-    fontSize: 14,
-    marginTop: 8,
-    textAlign: 'center',
   },
   sectionTitle: {
     fontSize: 18,

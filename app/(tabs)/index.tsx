@@ -7,13 +7,11 @@ import { useStudentStore } from '@/src/stores/studentStore';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { useAchievementStore } from '@/src/stores/achievementStore';
 import Mascot from '@/src/components/mascot/Mascot';
-import MascotHealthBar from '@/src/components/mascot/MascotHealthBar';
 import Card from '@/src/components/ui/Card';
-import ProgressBar from '@/src/components/ui/ProgressBar';
 import DeadlineIndicator from '@/src/components/homework/DeadlineIndicator';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
 import BonusTimer from '@/src/components/homework/BonusTimer';
-import { getLevel } from '@/src/utils/levelHelpers';
+import MascotHealthBar from '@/src/components/mascot/MascotHealthBar';
 import type { Achievement, HomeworkAssignment } from '@/src/types';
 
 /** Achievement IDs linked to homework subjects */
@@ -49,7 +47,6 @@ export default function HomeScreen() {
   const assignments = useHomeworkStore((s) => s.assignments);
   const achievements = useAchievementStore((s) => s.achievements);
 
-  const { level, currentLevelXp, xpForNextLevel, rank } = getLevel(student.totalPoints);
   const nearestAchievement = useMemo(() => {
     return achievements
       .filter((a) => a.isLocked && a.progress > 0)
@@ -79,39 +76,23 @@ export default function HomeScreen() {
           {getGreeting()}, {student.firstName}! 👋
         </Text>
 
-        {/* ── Early Streak & Level ── */}
-        <View style={styles.statsRow}>
-          <Card style={styles.levelCard}>
-            <Text style={styles.levelEmoji}>{rank.emoji}</Text>
-            <Text style={[styles.levelTitle, { color: theme.colors.text }]}>
-              {rank.title}
+        {/* ── Early Streak ── */}
+        <Card style={styles.streakCard}>
+          <Text style={[styles.streakValue, { color: theme.colors.text }]}>
+            {student.earlyStreak}
+          </Text>
+          <Text style={[styles.streakLabel, { color: theme.colors.textSecondary }]}>
+            ДЗ вовремя подряд
+          </Text>
+          <View style={styles.streakHealthRow}>
+            <MascotHealthBar health={student.mascotHealth} />
+          </View>
+          {student.xpMultiplier > 1 && (
+            <Text style={[styles.streakBonus, { color: theme.colors.success }]}>
+              ×{student.xpMultiplier} Здоровье
             </Text>
-            <Text style={[styles.levelLabel, { color: theme.colors.textSecondary }]}>
-              Ур. {level} · {currentLevelXp}/{xpForNextLevel}
-            </Text>
-            <ProgressBar
-              progress={(currentLevelXp / xpForNextLevel) * 100}
-              color={theme.colors.primary}
-              height={4}
-            />
-          </Card>
-          <Card style={styles.streakCard}>
-            <Text style={[styles.streakValue, { color: theme.colors.text }]}>
-              {student.earlyStreak}
-            </Text>
-            <Text style={[styles.streakLabel, { color: theme.colors.textSecondary }]}>
-              ДЗ вовремя подряд
-            </Text>
-            <View style={styles.streakHealthRow}>
-              <MascotHealthBar health={student.mascotHealth} />
-            </View>
-            {student.xpMultiplier > 1 && (
-              <Text style={[styles.streakBonus, { color: theme.colors.success }]}>
-                ×{student.xpMultiplier} XP
-              </Text>
-            )}
-          </Card>
-        </View>
+          )}
+        </Card>
 
         {/* ── Nearest Achievement ── */}
         {nearestAchievement && (
@@ -221,16 +202,11 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 12,
   },
-  // ── Streak & Level row ──
-  statsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 4,
-  },
+  // ── Streak card ──
   streakCard: {
-    flex: 1.5,
     alignItems: 'center',
     paddingVertical: 8,
+    marginBottom: 4,
   },
   streakEmoji: {
     fontSize: 22,
@@ -253,24 +229,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     marginTop: 3,
-  },
-  levelCard: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  levelEmoji: {
-    fontSize: 22,
-    marginBottom: 2,
-  },
-  levelTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  levelLabel: {
-    fontSize: 10,
-    marginTop: 1,
-    marginBottom: 4,
   },
   // ── Achievement banner ──
   achievementBanner: {

@@ -12,6 +12,7 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useThemeStore } from '@/src/stores/themeStore';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
+import { useArenaStore } from '@/src/stores/arenaStore';
 import { getMascotState, getMascotStateLabel } from '@/src/utils/gradeHelpers';
 import { AchievementRarity } from '@/src/types';
 
@@ -186,6 +187,48 @@ function AgeGroupSwitch() {
   );
 }
 
+function ArenaFeatureToggles() {
+  const theme = useAppTheme();
+  const questsEnabled = useArenaStore((s) => s.questsEnabled);
+  const challengesEnabled = useArenaStore((s) => s.challengesEnabled);
+  const setQuestsEnabled = useArenaStore((s) => s.setQuestsEnabled);
+  const setChallengesEnabled = useArenaStore((s) => s.setChallengesEnabled);
+
+  const toggles = [
+    { label: 'Квесты', enabled: questsEnabled, onToggle: () => setQuestsEnabled(!questsEnabled) },
+    { label: 'Испытания', enabled: challengesEnabled, onToggle: () => setChallengesEnabled(!challengesEnabled) },
+  ];
+
+  return (
+    <View style={styles.toggleSection}>
+      {toggles.map((t) => (
+        <TouchableOpacity
+          key={t.label}
+          style={[
+            styles.toggleRow,
+            {
+              backgroundColor: t.enabled ? theme.colors.primary + '20' : theme.colors.background,
+              borderColor: t.enabled ? theme.colors.primary : theme.colors.border,
+            },
+          ]}
+          onPress={t.onToggle}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.toggleLabel, { color: theme.colors.text }]}>{t.label}</Text>
+          <View
+            style={[
+              styles.toggleIndicator,
+              { backgroundColor: t.enabled ? theme.colors.primary : theme.colors.border },
+            ]}
+          >
+            <Text style={styles.toggleIndicatorText}>{t.enabled ? 'ON' : 'OFF'}</Text>
+          </View>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+
 function RestartOnboardingButton({ onClose }: { onClose?: () => void }) {
   const resetOnboarding = useOnboardingStore((s) => s.reset);
   const router = useRouter();
@@ -264,6 +307,12 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Arena features */}
+      <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 20 }]}>
+        МЕХАНИКИ АРЕНЫ
+      </Text>
+      <ArenaFeatureToggles />
 
       {/* Onboarding */}
       <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 20 }]}>
@@ -402,6 +451,34 @@ const styles = StyleSheet.create({
   badgeBtnText: {
     fontSize: 13,
     fontWeight: '700',
+  },
+
+  // Feature toggles
+  toggleSection: {
+    gap: 8,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  toggleLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  toggleIndicator: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  toggleIndicatorText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '800',
   },
 
   specialRow: {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import Avatar from '@/src/components/ui/Avatar';
 
@@ -9,6 +9,7 @@ interface LeaderboardRowProps {
   points: number;
   avatarEmoji: string;
   isCurrentUser?: boolean;
+  onPress?: () => void;
 }
 
 function getRankDecoration(rank: number): string {
@@ -24,11 +25,16 @@ export default function LeaderboardRow({
   points,
   avatarEmoji,
   isCurrentUser = false,
+  onPress,
 }: LeaderboardRowProps) {
   const theme = useAppTheme();
 
+  const Wrapper = onPress ? TouchableOpacity : View;
+  const wrapperProps = onPress ? { onPress, activeOpacity: 0.7 } : {};
+
   return (
-    <View
+    <Wrapper
+      {...wrapperProps}
       style={[
         styles.container,
         {
@@ -65,7 +71,7 @@ export default function LeaderboardRow({
       <Text style={[styles.points, { color: theme.colors.primary }]}>
         {points} очков
       </Text>
-    </View>
+    </Wrapper>
   );
 }
 

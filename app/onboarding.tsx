@@ -7,6 +7,7 @@ import {
   Animated,
   Dimensions,
   ScrollView,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,14 +17,16 @@ import { useStudentStore } from '@/src/stores/studentStore';
 import { useThemeStore } from '@/src/stores/themeStore';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
 import { themes, allCharacters, seniorThemes, juniorThemes } from '@/src/theme/themes';
+import { mockClassStudents, StudentListItem } from '@/src/data/mockData';
 import { AppTheme, ThemeCharacter } from '@/src/types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 export default function OnboardingScreen() {
   const theme = useAppTheme();
   const student = useStudentStore((s) => s.student);
+  const selectStudent = useStudentStore((s) => s.selectStudent);
   const setGender = useStudentStore((s) => s.setGender);
   const themeId = useThemeStore((s) => s.themeId);
   const characterId = useThemeStore((s) => s.characterId);
@@ -36,17 +39,23 @@ export default function OnboardingScreen() {
   const genderTheme = (g: 'male' | 'female') => g === 'male' ? 'genshin' : 'sakura';
 
   useEffect(() => {
-    setThemeId(genderTheme(student.gender));
     setCharacterId('pk-pikachu');
   }, []);
 
   const [step, setStep] = useState(0);
+  const [selectedStudentItem, setSelectedStudentItem] = useState<StudentListItem | null>(null);
   const [selectedGender, setSelectedGender] = useState<'male' | 'female'>(student.gender);
+  const [searchQuery, setSearchQuery] = useState('');
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  const selectedTheme = themes.find((t) => t.id === themeId) || themes[0];
   const availableThemes = ageGroup === 'senior' ? seniorThemes : juniorThemes;
   const ageLabel = ageGroup === 'senior' ? '8–11 класс' : '5–7 класс';
+
+  const filteredStudents = searchQuery.trim()
+    ? mockClassStudents.filter((s) =>
+        `${s.firstName} ${s.lastName}`.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : mockClassStudents;
 
   const animateTransition = (next: number) => {
     Animated.timing(fadeAnim, {
@@ -63,10 +72,17 @@ export default function OnboardingScreen() {
     });
   };
 
+  const canProceed = step === 0 ? selectedStudentItem !== null : true;
+
   const handleNext = () => {
-    if (step === 1) {
+    if (step === 0) {
+      if (!selectedStudentItem) return;
+      selectStudent(selectedStudentItem);
+      setSelectedGender(selectedStudentItem.gender);
+      setThemeId(genderTheme(selectedStudentItem.gender));
+    }
+    if (step === 2) {
       setGender(selectedGender);
-      setThemeId(genderTheme(selectedGender));
     }
     if (step < TOTAL_STEPS - 1) {
       animateTransition(step + 1);
@@ -82,11 +98,82 @@ export default function OnboardingScreen() {
     }
   };
 
-
   const renderStep = () => {
     switch (step) {
-      // ── Шаг 1: Подтверждение имени ──
+      // ── Шаг 1: Выбор себя из списка ──
       case 0:
+        return (
+          <View style={styles.stepContainer}>
+            <Text style={styles.stepEmoji}>🏫</Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>
+              Найди себя
+            </Text>
+            <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+              Выбери своё имя из списка класса
+            </Text>
+
+            <View style={[styles.searchContainer, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+              <Text style={styles.searchIcon}>🔍</Text>
+              <TextInput
+                style={[styles.searchInput, { color: theme.colors.text }]}
+                placeholder="Поиск по имени..."
+                placeholderTextColor={theme.colors.textSecondary}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoCorrect={false}
+              />
+            </View>
+
+            <View style={styles.studentList}>
+              {filteredStudents.map((item) => {
+                const isSelected = selectedStudentItem?.id === item.id;
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[
+                      styles.studentCard,
+                      {
+                        backgroundColor: isSelected
+                          ? theme.colors.primary + '20'
+                          : theme.colors.surface,
+                        borderColor: isSelected
+                          ? theme.colors.primary
+                          : theme.colors.border,
+                        borderWidth: isSelected ? 2.5 : 1,
+                      },
+                    ]}
+                    onPress={() => setSelectedStudentItem(item)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.studentEmoji}>{item.avatarEmoji}</Text>
+                    <View style={styles.studentInfo}>
+                      <Text
+                        style={[
+                          styles.studentName,
+                          {
+                            color: isSelected ? theme.colors.primary : theme.colors.text,
+                            fontWeight: isSelected ? '700' : '500',
+                          },
+                        ]}
+                      >
+                        {item.lastName} {item.firstName}
+                      </Text>
+                      <Text style={[styles.studentClass, { color: theme.colors.textSecondary }]}>
+                        {item.grade} класс, {item.classId}
+                      </Text>
+                    </View>
+                    {isSelected && (
+                      <Text style={[styles.studentCheck, { color: theme.colors.primary }]}>✓</Text>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        );
+
+      // ── Шаг 2: Подтверждение имени ──
+      case 1:
         return (
           <View style={styles.stepContainer}>
             <Text style={styles.stepEmoji}>👋</Text>
@@ -123,8 +210,8 @@ export default function OnboardingScreen() {
           </View>
         );
 
-      // ── Шаг 2: Выбор пола ──
-      case 1:
+      // ── Шаг 3: Выбор пола ──
+      case 2:
         return (
           <View style={styles.stepContainer}>
             <Text style={styles.stepEmoji}>
@@ -158,7 +245,10 @@ export default function OnboardingScreen() {
                         borderWidth: isSelected ? 2.5 : 1,
                       },
                     ]}
-                    onPress={() => setSelectedGender(g)}
+                    onPress={() => {
+                      setSelectedGender(g);
+                      setThemeId(genderTheme(g));
+                    }}
                     activeOpacity={0.7}
                   >
                     <Text style={styles.genderEmoji}>{emoji}</Text>
@@ -187,8 +277,8 @@ export default function OnboardingScreen() {
           </View>
         );
 
-      // ── Шаг 3: Выбор оформления (франшизы) ──
-      case 2:
+      // ── Шаг 4: Выбор оформления (франшизы) ──
+      case 3:
         return (
           <View style={styles.stepContainer}>
             <Text style={styles.stepEmoji}>🎨</Text>
@@ -208,8 +298,8 @@ export default function OnboardingScreen() {
           </View>
         );
 
-      // ── Шаг 4: Выбор персонажа ──
-      case 3:
+      // ── Шаг 5: Выбор персонажа ──
+      case 4:
         return (
           <View style={styles.stepContainer}>
             <Text style={styles.stepEmoji}>{'🧑‍🎤'}</Text>
@@ -379,9 +469,13 @@ export default function OnboardingScreen() {
             <View style={styles.backBtn} />
           )}
 
-          <TouchableOpacity onPress={handleNext} activeOpacity={0.8}>
+          <TouchableOpacity
+            onPress={handleNext}
+            activeOpacity={canProceed ? 0.8 : 1}
+            disabled={!canProceed}
+          >
             <LinearGradient
-              colors={theme.colors.gradient}
+              colors={canProceed ? theme.colors.gradient : ['#CCCCCC', '#AAAAAA']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.nextBtn}
@@ -422,11 +516,12 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
     paddingBottom: 20,
+    paddingTop: 8,
   },
   stepContainer: {
     alignItems: 'center',
+    width: '100%',
   },
   stepEmoji: {
     fontSize: 64,
@@ -441,11 +536,61 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
     lineHeight: 22,
   },
 
-  // Step 1 — Name
+  // Step 1 — Student selection
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 12,
+    gap: 8,
+  },
+  searchIcon: {
+    fontSize: 16,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+  },
+  studentList: {
+    width: '100%',
+    gap: 8,
+  },
+  studentCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    gap: 12,
+  },
+  studentEmoji: {
+    fontSize: 28,
+  },
+  studentInfo: {
+    flex: 1,
+  },
+  studentName: {
+    fontSize: 16,
+  },
+  studentClass: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  studentCheck: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+
+  // Step 2 — Name
   nameCard: {
     width: '100%',
     padding: 24,
@@ -472,7 +617,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 
-  // Step 2 — Gender
+  // Step 3 — Gender
   genderRow: {
     flexDirection: 'row',
     gap: 16,
@@ -500,7 +645,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Step 3 — Themes
+  // Step 4 — Themes
   ageGroupLabel: {
     fontSize: 14,
     fontWeight: '600',
@@ -558,7 +703,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Step 4 — Characters
+  // Step 5 — Characters
   charactersGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -582,6 +727,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
+
   // Bottom
   bottomBar: {
     flexDirection: 'row',

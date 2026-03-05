@@ -40,7 +40,7 @@ export default function LootChestOverlay() {
         <Text style={[styles.text, { color: theme.colors.text }]}>
           Сундук с наградой!{' '}
           <Text style={[styles.amount, { color: theme.colors.primary }]}>
-            +{pendingChest.amount} XP
+            +{pendingChest.amount} Здоровье
           </Text>
         </Text>
       </TouchableOpacity>

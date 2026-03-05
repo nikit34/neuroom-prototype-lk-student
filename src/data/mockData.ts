@@ -11,6 +11,35 @@ import {
   Challenge,
 } from '../types';
 
+export interface StudentListItem {
+  id: string;
+  firstName: string;
+  lastName: string;
+  grade: number;
+  classId: string;
+  gender: 'male' | 'female';
+  avatarEmoji: string;
+}
+
+export const mockClassStudents: StudentListItem[] = [
+  { id: 'cl-15', firstName: 'Ева', lastName: 'Андреева', grade: 8, classId: '8А', gender: 'female', avatarEmoji: '🦔' },
+  { id: 'cl-9', firstName: 'Полина', lastName: 'Васильева', grade: 8, classId: '8А', gender: 'female', avatarEmoji: '🐰' },
+  { id: 'cl-8', firstName: 'Максим', lastName: 'Егоров', grade: 8, classId: '8А', gender: 'male', avatarEmoji: '🐯' },
+  { id: 'cl-1', firstName: 'Мария', lastName: 'Иванова', grade: 8, classId: '8А', gender: 'female', avatarEmoji: '🦊' },
+  { id: 'cl-12', firstName: 'Даниил', lastName: 'Козлов', grade: 8, classId: '8А', gender: 'male', avatarEmoji: '🐲' },
+  { id: 'cl-3', firstName: 'Анна', lastName: 'Кузнецова', grade: 8, classId: '8А', gender: 'female', avatarEmoji: '🦋' },
+  { id: 'cl-7', firstName: 'София', lastName: 'Михайлова', grade: 8, classId: '8А', gender: 'female', avatarEmoji: '🦄' },
+  { id: 'cl-5', firstName: 'Екатерина', lastName: 'Новикова', grade: 8, classId: '8А', gender: 'female', avatarEmoji: '🐱' },
+  { id: 'cl-14', firstName: 'Кирилл', lastName: 'Орлов', grade: 8, classId: '8А', gender: 'male', avatarEmoji: '🐨' },
+  { id: 'cl-11', firstName: 'Виктория', lastName: 'Павлова', grade: 8, classId: '8А', gender: 'female', avatarEmoji: '🦢' },
+  { id: 'student-1', firstName: 'Алексей', lastName: 'Петров', grade: 8, classId: '8А', gender: 'male', avatarEmoji: '🐺' },
+  { id: 'cl-4', firstName: 'Иван', lastName: 'Попов', grade: 8, classId: '8А', gender: 'male', avatarEmoji: '🦁' },
+  { id: 'cl-2', firstName: 'Дмитрий', lastName: 'Сидоров', grade: 8, classId: '8А', gender: 'male', avatarEmoji: '🐺' },
+  { id: 'cl-10', firstName: 'Никита', lastName: 'Соколов', grade: 8, classId: '8А', gender: 'male', avatarEmoji: '🦅' },
+  { id: 'cl-13', firstName: 'Алиса', lastName: 'Степанова', grade: 8, classId: '8А', gender: 'female', avatarEmoji: '🦜' },
+  { id: 'cl-6', firstName: 'Артём', lastName: 'Федоров', grade: 8, classId: '8А', gender: 'male', avatarEmoji: '🐻' },
+];
+
 const DAY = 86400000;
 const HOUR = 3600000;
 const now = Date.now();

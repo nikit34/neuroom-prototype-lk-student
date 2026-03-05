@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 import { Student } from '../types';
-import { mockStudent } from '../data/mockData';
+import { mockStudent, StudentListItem } from '../data/mockData';
 
 interface StudentState {
   student: Student;
+  selectStudent: (item: StudentListItem) => void;
   updateMascotHealth: (delta: number) => void;
   setMascotHealth: (health: number) => void;
   incrementEarlyStreak: () => void;
@@ -15,6 +16,22 @@ interface StudentState {
 
 export const useStudentStore = create<StudentState>((set) => ({
   student: { ...mockStudent },
+
+  selectStudent: (item) =>
+    set({
+      student: {
+        id: item.id,
+        firstName: item.firstName,
+        lastName: item.lastName,
+        gender: item.gender,
+        grade: item.grade,
+        classId: item.classId,
+        mascotHealth: 70,
+        earlyStreak: 0,
+        xpMultiplier: 1,
+        totalPoints: 0,
+      },
+    }),
 
   updateMascotHealth: (delta) =>
     set((state) => ({

@@ -103,7 +103,7 @@ export default function ProfileScreen() {
           Мой маскот
         </Text>
         <Card>
-          <Mascot health={student.mascotHealth} />
+          <Mascot health={student.mascotHealth} showHealthBar={false} />
         </Card>
 
         {/* Theme Selection */}

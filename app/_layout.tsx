@@ -88,6 +88,10 @@ function RootLayoutNav() {
           options={{ title: 'Достижение' }}
         />
         <Stack.Screen
+          name="arena/create-duel"
+          options={{ title: 'Вызвать на дуэль' }}
+        />
+        <Stack.Screen
           name="arena/duel/[id]"
           options={{ title: 'Дуэль' }}
         />
