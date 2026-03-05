@@ -193,13 +193,22 @@ export default function ArenaScreen() {
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
-            <TouchableOpacity
-              style={[styles.createDuelBtn, { backgroundColor: theme.colors.primary }]}
-              onPress={() => router.push('/arena/create-duel')}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.createDuelBtnText}>+ Вызвать на дуэль</Text>
-            </TouchableOpacity>
+            <View style={styles.duelActions}>
+              <TouchableOpacity
+                style={[styles.createDuelBtn, { backgroundColor: theme.colors.primary, flex: 1 }]}
+                onPress={() => router.push('/arena/create-duel')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.createDuelBtnText}>+ Вызвать на дуэль</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.createDuelBtn, { backgroundColor: theme.colors.accent, flex: 1 }]}
+                onPress={() => router.push('/arena/online')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.createDuelBtnText}>Онлайн ⚡</Text>
+              </TouchableOpacity>
+            </View>
           }
           ListEmptyComponent={<EmptyState text="Нет дуэлей" emoji="⚔️" color={theme.colors.textSecondary} />}
         />
@@ -358,7 +367,8 @@ const styles = StyleSheet.create({
   filterText: { fontSize: 13, fontWeight: '600' },
   tipCard: { padding: 14, borderRadius: 14, borderWidth: 1, marginBottom: 12 },
   tipText: { fontSize: 14, lineHeight: 20 },
-  createDuelBtn: { paddingVertical: 14, borderRadius: 14, alignItems: 'center', marginBottom: 16 },
+  duelActions: { flexDirection: 'row', gap: 10, marginBottom: 16 },
+  createDuelBtn: { paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
   createDuelBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   list: { paddingBottom: 100 },
   emptyContainer: { alignItems: 'center', paddingTop: 60 },

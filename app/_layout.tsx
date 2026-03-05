@@ -103,6 +103,14 @@ function RootLayoutNav() {
           name="arena/challenge/[id]"
           options={{ title: 'Испытание' }}
         />
+        <Stack.Screen
+          name="arena/online"
+          options={{ title: 'Онлайн-дуэль' }}
+        />
+        <Stack.Screen
+          name="arena/online/[code]"
+          options={{ title: 'Дуэль', headerShown: false }}
+        />
       </Stack>
       <CelebrationOverlay />
       <LootChestOverlay />
