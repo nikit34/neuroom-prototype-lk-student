@@ -7,6 +7,7 @@ interface StudentState {
   updateMascotHealth: (delta: number) => void;
   setMascotHealth: (health: number) => void;
   incrementStreak: () => void;
+  resetStreak: () => void;
   addPoints: (points: number) => void;
   setGender: (gender: 'male' | 'female') => void;
 }
@@ -35,6 +36,14 @@ export const useStudentStore = create<StudentState>((set) => ({
       student: {
         ...state.student,
         currentStreak: state.student.currentStreak + 1,
+      },
+    })),
+
+  resetStreak: () =>
+    set((state) => ({
+      student: {
+        ...state.student,
+        currentStreak: 0,
       },
     })),
 

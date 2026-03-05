@@ -1,53 +1,120 @@
-import React, { memo, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import LottiePlayer, { LottiePlayerRef } from './LottiePlayer';
+import React, { memo, useRef, useMemo, useEffect } from 'react';
+import { View, Text, StyleSheet, PanResponder } from 'react-native';
+import RivePlayer, { RivePlayerRef } from './RivePlayer';
 import { useAppTheme, useCurrentCharacter } from '@/src/hooks/useAppTheme';
 import { getMascotState, getMascotStateLabel } from '@/src/utils/gradeHelpers';
-import { MASCOT_LOTTIE_SOURCES, emotionToAnimationState, getArchetype, STATE_SPEED } from '@/src/mascot/mascotAnimations';
-import { stateToEmotion } from '@/src/mascot/mascotConfig';
+import { RIVE_CONFIG } from '@/src/mascot/riveConfig';
+import { MASCOT_RIVE_SOURCE } from '@/src/mascot/mascotAnimations';
 import MascotHealthBar from './MascotHealthBar';
-import { MascotEmotion, MascotState } from '@/src/types';
+import { MascotState } from '@/src/types';
 
 interface MascotProps {
-  emotion?: MascotEmotion;
   health?: number;
   size?: number;
   showHealthBar?: boolean;
   label?: string;
 }
 
-function Mascot({ emotion, health, size = 120, showHealthBar, label }: MascotProps) {
+const { inputs } = RIVE_CONFIG;
+
+function applyState(ref: RivePlayerRef, state: MascotState) {
+  // Reset all booleans first
+  ref.setBoolean(inputs.isChecking, false);
+  ref.setBoolean(inputs.isHandsUp, false);
+
+  switch (state) {
+    case 'sick':
+      ref.setBoolean(inputs.isChecking, true);
+      ref.fire(inputs.trigFail);
+      break;
+    case 'sad':
+      ref.setBoolean(inputs.isChecking, true);
+      break;
+    case 'neutral':
+      // defaults — all off
+      break;
+    case 'happy':
+      ref.fire(inputs.trigSuccess);
+      break;
+    case 'thriving':
+      ref.setBoolean(inputs.isHandsUp, true);
+      ref.fire(inputs.trigSuccess);
+      break;
+  }
+}
+
+function Mascot({ health, size = 120, showHealthBar, label }: MascotProps) {
   const theme = useAppTheme();
   const character = useCurrentCharacter();
-  const lottieRef = useRef<LottiePlayerRef>(null);
+  const riveRef = useRef<RivePlayerRef>(null);
+  const prevStateRef = useRef<MascotState | null>(null);
 
-  const resolvedEmotion: MascotEmotion = emotion ?? (
-    health != null ? stateToEmotion(getMascotState(health)) : 'neutral'
-  );
-  const resolvedState: MascotState = emotionToAnimationState(resolvedEmotion);
-  const archetype = getArchetype(character.id);
-  const speed = STATE_SPEED[resolvedState];
-
-  const state = health != null ? getMascotState(health) : undefined;
-  const stateLabel = label ?? (state ? getMascotStateLabel(state) : undefined);
+  const state: MascotState = health != null ? getMascotState(health) : 'neutral';
+  const stateLabel = label ?? (health != null ? getMascotStateLabel(state) : undefined);
   const shouldShowHealthBar = showHealthBar ?? (health != null);
 
+  // Apply Rive state when health changes
   useEffect(() => {
-    lottieRef.current?.reset();
-    lottieRef.current?.play();
-  }, [resolvedState, archetype]);
+    if (!riveRef.current) return;
+    if (prevStateRef.current === state) return;
+    prevStateRef.current = state;
+    applyState(riveRef.current, state);
+  }, [state]);
+
+  // Visible area for the cropped mascot
+  const visibleWidth = size * 1.5;
+  const visibleHeight = size * 1.8;
+  // Rive canvas is larger so we can crop out the background
+  const canvasScale = 2.2;
+  const canvasWidth = visibleWidth * canvasScale;
+  const canvasHeight = visibleHeight * canvasScale;
+  // Offset to center the character within the crop
+  const offsetX = (canvasWidth - visibleWidth) / -2;
+  const offsetY = (canvasHeight - visibleHeight) / -2.5;
+
+  // Touch tracking → numLook
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        onPanResponderMove: (evt) => {
+          const { locationX } = evt.nativeEvent;
+          const normalized = Math.max(0, Math.min(100, (locationX / visibleWidth) * 100));
+          riveRef.current?.setNumber(inputs.numLook, normalized);
+        },
+        onPanResponderRelease: () => {
+          riveRef.current?.setNumber(inputs.numLook, 50);
+        },
+        onPanResponderTerminate: () => {
+          riveRef.current?.setNumber(inputs.numLook, 50);
+        },
+      }),
+    [visibleWidth],
+  );
 
   return (
     <View style={styles.container}>
-      <LottiePlayer
-        ref={lottieRef}
-        source={MASCOT_LOTTIE_SOURCES[archetype]}
-        autoPlay
-        loop
-        speed={speed}
-        style={{ width: size * 1.5, height: size * 1.8 }}
-        colorFilters={[{ keypath: 'body', color: theme.colors.primary }]}
-      />
+      <View
+        {...panResponder.panHandlers}
+        style={{
+          width: visibleWidth,
+          height: visibleHeight,
+          overflow: 'hidden',
+          borderRadius: 16,
+        }}
+      >
+        <RivePlayer
+          ref={riveRef}
+          source={MASCOT_RIVE_SOURCE}
+          style={{
+            width: canvasWidth,
+            height: canvasHeight,
+            marginLeft: offsetX,
+            marginTop: offsetY,
+          }}
+        />
+      </View>
       <Text style={[styles.characterName, { color: theme.colors.text }]}>
         {character.name}
       </Text>

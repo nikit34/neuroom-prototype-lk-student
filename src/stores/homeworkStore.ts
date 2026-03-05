@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { HomeworkAssignment, HomeworkStatus, Submission } from '../types';
 import { mockHomework } from '../data/mockData';
+import { rewardHomeworkSubmit, penaltyMissedDeadline, rewardHomeworkGraded } from '../services/rewardsEngine';
 
 type FilterType = 'all' | 'active' | 'overdue' | 'done';
 
@@ -50,7 +51,8 @@ export const useHomeworkStore = create<HomeworkState>((set, get) => ({
     }
   },
 
-  submitHomework: (id, submission) =>
+  submitHomework: (id, submission) => {
+    const assignment = get().assignments.find((a) => a.id === id);
     set((state) => ({
       assignments: state.assignments.map((a) =>
         a.id === id
@@ -61,7 +63,16 @@ export const useHomeworkStore = create<HomeworkState>((set, get) => ({
             }
           : a
       ),
-    })),
+    }));
+    if (assignment) {
+      const isOverdue = assignment.deadline.getTime() < Date.now();
+      if (isOverdue) {
+        penaltyMissedDeadline();
+      } else {
+        rewardHomeworkSubmit(id);
+      }
+    }
+  },
 
   updateStatus: (id, status) =>
     set((state) => ({
@@ -70,7 +81,8 @@ export const useHomeworkStore = create<HomeworkState>((set, get) => ({
       ),
     })),
 
-  setGrade: (id, grade, feedback) =>
+  setGrade: (id, grade, feedback) => {
+    const assignment = get().assignments.find((a) => a.id === id);
     set((state) => ({
       assignments: state.assignments.map((a) =>
         a.id === id
@@ -82,7 +94,11 @@ export const useHomeworkStore = create<HomeworkState>((set, get) => ({
             }
           : a
       ),
-    })),
+    }));
+    if (assignment) {
+      rewardHomeworkGraded(id, grade, assignment.maxGrade);
+    }
+  },
 
   setAiFeedback: (id, feedback) =>
     set((state) => ({

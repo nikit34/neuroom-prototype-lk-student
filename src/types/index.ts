@@ -1,6 +1,6 @@
 export type HomeworkStatus = 'pending' | 'submitted' | 'ai_reviewed' | 'graded' | 'resubmit' | 'disputed';
 export type AchievementRarity = 'common' | 'rare' | 'epic' | 'legendary';
-export type AchievementCategory = 'streak' | 'team_quest' | 'challenge' | 'duel';
+export type AchievementCategory = 'streak' | 'team_quest' | 'challenge' | 'duel' | 'homework';
 export type MascotState = 'sick' | 'sad' | 'neutral' | 'happy' | 'thriving';
 
 export type MascotEmotion =
@@ -86,6 +86,8 @@ export interface Achievement {
   isLocked: boolean;
   unlockedAt?: Date;
   source?: AchievementSource;
+  tier?: 'bronze' | 'silver' | 'gold';
+  tierThresholds?: { bronze: number; silver: number; gold: number };
 }
 
 export interface ChatMessage {

@@ -22,16 +22,26 @@ export const useAchievementStore = create<AchievementState>((set) => ({
 
   updateProgress: (id, progress) =>
     set((state) => ({
-      achievements: state.achievements.map((a) =>
-        a.id === id
-          ? {
-              ...a,
-              progress: Math.max(0, Math.min(100, progress)),
-              ...(progress >= 100
-                ? { isLocked: false, unlockedAt: a.unlockedAt ?? new Date() }
-                : {}),
-            }
-          : a
-      ),
+      achievements: state.achievements.map((a) => {
+        if (a.id !== id) return a;
+        const clampedProgress = Math.max(0, Math.min(100, progress));
+
+        let tier = a.tier;
+        if (a.tierThresholds) {
+          if (clampedProgress >= a.tierThresholds.gold) tier = 'gold';
+          else if (clampedProgress >= a.tierThresholds.silver) tier = 'silver';
+          else if (clampedProgress >= a.tierThresholds.bronze) tier = 'bronze';
+          else tier = undefined;
+        }
+
+        return {
+          ...a,
+          progress: clampedProgress,
+          tier,
+          ...(clampedProgress >= 100
+            ? { isLocked: false, unlockedAt: a.unlockedAt ?? new Date() }
+            : {}),
+        };
+      }),
     })),
 }));

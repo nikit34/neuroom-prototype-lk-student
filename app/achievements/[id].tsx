@@ -36,6 +36,7 @@ const CATEGORY_LABELS: Record<AchievementCategory, string> = {
   team_quest: 'Командный квест',
   challenge: 'Испытание',
   duel: 'Дуэль',
+  homework: 'Домашнее задание',
 };
 
 const CATEGORY_EMOJI: Record<AchievementCategory, string> = {
@@ -43,6 +44,7 @@ const CATEGORY_EMOJI: Record<AchievementCategory, string> = {
   team_quest: '👥',
   challenge: '🎯',
   duel: '⚔️',
+  homework: '📝',
 };
 
 function SourceCard({ source, theme }: { source: AchievementSource; theme: ReturnType<typeof useAppTheme> }) {

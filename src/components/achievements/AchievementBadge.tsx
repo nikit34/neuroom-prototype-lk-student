@@ -15,6 +15,18 @@ const RARITY_COLORS: Record<AchievementRarity, string> = {
   legendary: '#F59E0B',
 };
 
+const TIER_COLORS: Record<string, string> = {
+  bronze: '#CD7F32',
+  silver: '#C0C0C0',
+  gold: '#FFD700',
+};
+
+const TIER_LABELS: Record<string, string> = {
+  bronze: 'Бронза',
+  silver: 'Серебро',
+  gold: 'Золото',
+};
+
 const RARITY_LABELS: Record<AchievementRarity, string> = {
   common: 'Обычная',
   rare: 'Редкая',
@@ -70,6 +82,12 @@ export default function AchievementBadge({ achievement }: AchievementBadgeProps)
       {!isLocked && achievement.progress >= 100 && (
         <Text style={styles.unlockedBadge}>✅</Text>
       )}
+
+      {achievement.tier && (
+        <Text style={[styles.tierLabel, { color: TIER_COLORS[achievement.tier] }]}>
+          {TIER_LABELS[achievement.tier]}
+        </Text>
+      )}
     </View>
   );
 }
@@ -123,5 +141,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 6,
     right: 6,
+  },
+  tierLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    marginTop: 2,
   },
 });

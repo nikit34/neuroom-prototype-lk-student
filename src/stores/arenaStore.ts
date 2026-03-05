@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Duel, DuelStatus, Quest, QuestStatus, Challenge, ChallengeStatus } from '../types';
 import { mockArenaDuels, mockQuests, mockChallenges } from '../data/mockData';
+import { rewardDuelFinish, rewardQuestComplete, rewardChallengeComplete } from '../services/rewardsEngine';
 
 type ArenaSection = 'duels' | 'quests' | 'challenges';
 type DuelFilter = 'all' | 'pending' | 'active' | 'finished';
@@ -65,7 +66,7 @@ export const useArenaStore = create<ArenaState>((set, get) => ({
       duels: state.duels.filter((d) => d.id !== id),
     })),
 
-  answerDuelQuestion: (duelId, answerIndex) =>
+  answerDuelQuestion: (duelId, answerIndex) => {
     set((state) => ({
       duels: state.duels.map((d) => {
         if (d.id !== duelId || d.status !== 'active') return d;
@@ -109,7 +110,12 @@ export const useArenaStore = create<ArenaState>((set, get) => ({
           opponent: { ...d.opponent, score: opponentScore, answers: newOpponentAnswers },
         };
       }),
-    })),
+    }));
+    const updatedDuel = get().duels.find((d) => d.id === duelId);
+    if (updatedDuel && updatedDuel.status === 'finished') {
+      rewardDuelFinish(updatedDuel);
+    }
+  },
 
   getDuelStats: () => {
     const { duels } = get();
@@ -148,7 +154,9 @@ export const useArenaStore = create<ArenaState>((set, get) => ({
       ),
     })),
 
-  completeQuestStep: (questId, stepId) =>
+  completeQuestStep: (questId, stepId) => {
+    const questBefore = get().quests.find((q) => q.id === questId);
+    const wasDone = questBefore?.status === 'completed';
     set((state) => ({
       quests: state.quests.map((q) => {
         if (q.id !== questId) return q;
@@ -162,7 +170,12 @@ export const useArenaStore = create<ArenaState>((set, get) => ({
           status: allDone ? ('completed' as QuestStatus) : q.status,
         };
       }),
-    })),
+    }));
+    const questAfter = get().quests.find((q) => q.id === questId);
+    if (questAfter && questAfter.status === 'completed' && !wasDone) {
+      rewardQuestComplete(questAfter);
+    }
+  },
 
   // ─── Challenges ─────────────────────────────────────────────────
   challenges: [...mockChallenges],
@@ -182,7 +195,9 @@ export const useArenaStore = create<ArenaState>((set, get) => ({
       ),
     })),
 
-  updateChallengeProgress: (id, amount) =>
+  updateChallengeProgress: (id, amount) => {
+    const challengeBefore = get().challenges.find((c) => c.id === id);
+    const wasDone = challengeBefore?.status === 'completed';
     set((state) => ({
       challenges: state.challenges.map((c) => {
         if (c.id !== id) return c;
@@ -194,5 +209,10 @@ export const useArenaStore = create<ArenaState>((set, get) => ({
           status: isCompleted ? ('completed' as ChallengeStatus) : c.status,
         };
       }),
-    })),
+    }));
+    const challengeAfter = get().challenges.find((c) => c.id === id);
+    if (challengeAfter && challengeAfter.status === 'completed' && !wasDone) {
+      rewardChallengeComplete(challengeAfter);
+    }
+  },
 }));

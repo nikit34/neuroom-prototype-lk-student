@@ -8,10 +8,15 @@ if (!config.resolver.platforms.includes('web')) {
   config.resolver.platforms.push('web');
 }
 
+// Add 'riv' to asset extensions so Metro bundles .riv files
+if (!config.resolver.assetExts.includes('riv')) {
+  config.resolver.assetExts.push('riv');
+}
+
 // Block lottie-react-native on web — it uses import.meta which Metro can't handle
 const originalResolveRequest = config.resolver.resolveRequest;
 config.resolver.resolveRequest = (context, moduleName, platform) => {
-  if (platform === 'web' && moduleName === 'lottie-react-native') {
+  if (platform === 'web' && (moduleName === 'lottie-react-native' || moduleName === 'rive-react-native')) {
     return {
       type: 'empty',
     };

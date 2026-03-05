@@ -42,6 +42,10 @@ export const CHARACTER_ARCHETYPE: Record<string, CharacterArchetype> = {
   'au-red': 'astronaut', 'au-blue': 'astronaut', 'au-impostor': 'astronaut', 'au-green': 'astronaut',
 };
 
+// ─── Rive source (single file for all archetypes) ──────────────
+
+export const MASCOT_RIVE_SOURCE = require('../../assets/animations/mascot/teddy.riv');
+
 // ─── One Lottie source per archetype (high-quality pure vector) ──
 
 export const MASCOT_LOTTIE_SOURCES: Record<CharacterArchetype, any> = {
