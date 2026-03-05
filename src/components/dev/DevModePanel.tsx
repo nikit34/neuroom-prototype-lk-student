@@ -7,9 +7,11 @@ import Animated, {
   withSpring,
   runOnJS,
 } from 'react-native-reanimated';
+import { useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useThemeStore } from '@/src/stores/themeStore';
+import { useOnboardingStore } from '@/src/stores/onboardingStore';
 import { getMascotState, getMascotStateLabel } from '@/src/utils/gradeHelpers';
 import { AchievementRarity } from '@/src/types';
 
@@ -26,6 +28,7 @@ interface DevModePanelProps {
   onAwardBadge: (rarity: AchievementRarity) => void;
   onAwardRandomBadge: () => void;
   onAwardBadgeSeries: () => void;
+  onClose?: () => void;
 }
 
 function HealthSlider() {
@@ -183,7 +186,28 @@ function AgeGroupSwitch() {
   );
 }
 
-export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAwardBadgeSeries }: DevModePanelProps) {
+function RestartOnboardingButton({ onClose }: { onClose?: () => void }) {
+  const resetOnboarding = useOnboardingStore((s) => s.reset);
+  const router = useRouter();
+
+  return (
+    <TouchableOpacity
+      style={[styles.specialBtn, { backgroundColor: '#EF444420', borderColor: '#EF4444' }]}
+      onPress={() => {
+        onClose?.();
+        resetOnboarding();
+        router.replace('/onboarding');
+      }}
+      activeOpacity={0.7}
+    >
+      <Text style={[styles.specialBtnText, { color: '#EF4444' }]}>
+        🔄 Перезапустить онбординг
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
+export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAwardBadgeSeries, onClose }: DevModePanelProps) {
   const theme = useAppTheme();
 
   return (
@@ -240,6 +264,12 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Onboarding */}
+      <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 20 }]}>
+        НАВИГАЦИЯ
+      </Text>
+      <RestartOnboardingButton onClose={onClose} />
     </View>
   );
 }

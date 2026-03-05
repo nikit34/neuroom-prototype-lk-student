@@ -12,6 +12,25 @@ import ProgressBar from '@/src/components/ui/ProgressBar';
 import DeadlineIndicator from '@/src/components/homework/DeadlineIndicator';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
 import { getLevel, HOMEWORK_XP_REWARD } from '@/src/utils/levelHelpers';
+import type { Achievement, HomeworkAssignment } from '@/src/types';
+
+/** Achievement IDs linked to homework subjects */
+const SUBJECT_ACHIEVEMENT_IDS: Record<string, string[]> = {
+  'Математика': ['ach-12'],
+  'Русский язык': ['ach-13'],
+  'Английский язык': ['ach-14'],
+  'Физика': ['ach-15'],
+  'История': ['ach-16'],
+};
+
+function getLinkedAchievement(
+  hw: HomeworkAssignment,
+  achievements: Achievement[],
+): Achievement | null {
+  const ids = SUBJECT_ACHIEVEMENT_IDS[hw.subject];
+  if (!ids) return null;
+  return achievements.find((a) => ids.includes(a.id) && a.isLocked && a.progress > 0) ?? null;
+}
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -19,6 +38,7 @@ function getGreeting(): string {
   if (hour < 18) return 'Добрый день';
   return 'Добрый вечер';
 }
+
 
 export default function HomeScreen() {
   const theme = useAppTheme();
@@ -28,7 +48,6 @@ export default function HomeScreen() {
   const achievements = useAchievementStore((s) => s.achievements);
 
   const { level, currentLevelXp, xpForNextLevel, rank } = getLevel(student.totalPoints);
-
   const nearestAchievement = useMemo(() => {
     return achievements
       .filter((a) => a.isLocked && a.progress > 0)
@@ -43,8 +62,7 @@ export default function HomeScreen() {
           (a.status === 'pending' || a.status === 'resubmit') &&
           a.deadline.getTime() >= now.getTime(),
       )
-      .sort((a, b) => a.deadline.getTime() - b.deadline.getTime())
-      .slice(0, 3);
+      .sort((a, b) => a.deadline.getTime() - b.deadline.getTime());
   }, [assignments]);
 
   return (
@@ -59,57 +77,58 @@ export default function HomeScreen() {
           {getGreeting()}, {student.firstName}! 👋
         </Text>
 
-        <Card style={styles.statsCard}>
-          <View style={styles.statsTopRow}>
-            <View style={styles.statChip}>
-              <Text style={styles.statChipEmoji}>🔥</Text>
-              <Text style={[styles.statChipValue, { color: theme.colors.text }]}>
-                {student.currentStreak}
+        {/* ── Streak & Level ── */}
+        <View style={styles.statsRow}>
+          <Card style={styles.streakCard}>
+            <Text style={styles.streakEmoji}>🔥</Text>
+            <Text style={[styles.streakValue, { color: theme.colors.text }]}>
+              {student.currentStreak}
+            </Text>
+            <Text style={[styles.streakLabel, { color: theme.colors.textSecondary }]}>
+              дней подряд
+            </Text>
+          </Card>
+          <Card style={styles.levelCard}>
+            <Text style={styles.levelEmoji}>{rank.emoji}</Text>
+            <Text style={[styles.levelTitle, { color: theme.colors.text }]}>
+              {rank.title}
+            </Text>
+            <Text style={[styles.levelLabel, { color: theme.colors.textSecondary }]}>
+              Ур. {level} · {currentLevelXp}/{xpForNextLevel}
+            </Text>
+            <ProgressBar
+              progress={(currentLevelXp / xpForNextLevel) * 100}
+              color={theme.colors.primary}
+              height={4}
+            />
+          </Card>
+        </View>
+
+        {/* ── Nearest Achievement ── */}
+        {nearestAchievement && (
+          <TouchableOpacity
+            style={[styles.achievementBanner, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}
+            onPress={() => router.push(`/achievements/${nearestAchievement.id}`)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.achievementIcon}>{nearestAchievement.icon}</Text>
+            <View style={styles.achievementInfo}>
+              <Text style={[styles.achievementTitle, { color: theme.colors.text }]} numberOfLines={1}>
+                {nearestAchievement.title}
               </Text>
-              <Text style={[styles.statChipLabel, { color: theme.colors.textSecondary }]}>
-                дней
+              <Text style={[styles.achievementDesc, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+                {nearestAchievement.description}
               </Text>
             </View>
-            <View style={[styles.statChipDivider, { backgroundColor: theme.colors.border }]} />
-            <View style={styles.statChip}>
-              <Text style={styles.statChipEmoji}>{rank.emoji}</Text>
-              <Text style={[styles.statChipValue, { color: theme.colors.text }]}>
-                {rank.title}
-              </Text>
-              <Text style={[styles.statChipLabel, { color: theme.colors.textSecondary }]}>
-                Уровень {level} · {currentLevelXp}/{xpForNextLevel}
-              </Text>
-            </View>
-          </View>
-          <ProgressBar
-            progress={(currentLevelXp / xpForNextLevel) * 100}
-            color={theme.colors.primary}
-            height={6}
-          />
-          {nearestAchievement && (
-            <TouchableOpacity
-              style={styles.nearestAchievement}
-              onPress={() => router.push(`/achievements/${nearestAchievement.id}`)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.nearestAchievementIcon}>{nearestAchievement.icon}</Text>
-              <View style={styles.nearestAchievementInfo}>
-                <Text style={[styles.nearestAchievementTitle, { color: theme.colors.text }]} numberOfLines={1}>
-                  {nearestAchievement.title}
-                </Text>
-                <Text style={[styles.nearestAchievementDesc, { color: theme.colors.textSecondary }]} numberOfLines={1}>
-                  {nearestAchievement.description}
-                </Text>
-              </View>
-              <Text style={[styles.nearestAchievementProgress, { color: theme.colors.primary }]}>
-                {nearestAchievement.progress}%
-              </Text>
-            </TouchableOpacity>
-          )}
-        </Card>
+            <Text style={[styles.achievementProgress, { color: theme.colors.primary }]}>
+              {nearestAchievement.progress}%
+            </Text>
+          </TouchableOpacity>
+        )}
 
         <Mascot health={student.mascotHealth} />
 
+        {/* ── Deadlines ── */}
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           Ближайшие дедлайны
         </Text>
@@ -121,39 +140,57 @@ export default function HomeScreen() {
             </Text>
           </Card>
         ) : (
-          upcomingDeadlines.map((hw) => (
-            <Card key={hw.id} style={styles.deadlineCard}>
-              <TouchableOpacity
-                style={styles.cardContent}
-                onPress={() => router.push(`/homework/${hw.id}`)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.cardInfo}>
-                  <Text style={[styles.hwTitle, { color: theme.colors.text }]} numberOfLines={1}>
-                    {hw.title}
-                  </Text>
-                  <View style={styles.hwSubRow}>
-                    <Text style={[styles.hwSubject, { color: theme.colors.textSecondary }]}>
-                      {hw.subject}
+          upcomingDeadlines.map((hw) => {
+            const linked = getLinkedAchievement(hw, achievements);
+            return (
+              <Card key={hw.id} style={styles.deadlineCard}>
+                <TouchableOpacity
+                  style={styles.cardContent}
+                  onPress={() => router.push(`/homework/${hw.id}`)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.cardInfo}>
+                    <Text style={[styles.hwTitle, { color: theme.colors.text }]} numberOfLines={1}>
+                      {hw.title}
                     </Text>
-                    <Text style={[styles.hwXp, { color: theme.colors.primary }]}>
-                      +{HOMEWORK_XP_REWARD} опыта
-                    </Text>
+                    <View style={styles.hwSubRow}>
+                      <Text style={[styles.hwSubject, { color: theme.colors.textSecondary }]}>
+                        {hw.subject}
+                      </Text>
+                      <Text style={[styles.hwXp, { color: theme.colors.primary }]}>
+                        +{HOMEWORK_XP_REWARD} опыта
+                      </Text>
+                    </View>
+                    {linked && (
+                      <TouchableOpacity
+                        style={[styles.linkedBadge, { backgroundColor: theme.colors.surface }]}
+                        onPress={() => router.push(`/achievements/${linked.id}`)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.linkedBadgeIcon}>{linked.icon}</Text>
+                        <Text style={[styles.linkedBadgeText, { color: theme.colors.text }]} numberOfLines={1}>
+                          {linked.title}
+                        </Text>
+                        <Text style={[styles.linkedBadgeProgress, { color: theme.colors.primary }]}>
+                          {linked.progress}%
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                    <DeadlineIndicator deadline={hw.deadline} />
                   </View>
-                  <DeadlineIndicator deadline={hw.deadline} />
-                </View>
-              </TouchableOpacity>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.cameraBtn, { backgroundColor: theme.colors.primary }]}
-                onPress={() => router.push(`/homework/submit/${hw.id}`)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.cameraBtnIcon}>📸</Text>
-                <Text style={styles.cameraBtnLabel}>Сдать</Text>
-              </TouchableOpacity>
-            </Card>
-          ))
+                <TouchableOpacity
+                  style={[styles.cameraBtn, { backgroundColor: theme.colors.primary }]}
+                  onPress={() => router.push(`/homework/submit/${hw.id}`)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.cameraBtnIcon}>📸</Text>
+                  <Text style={styles.cameraBtnLabel}>Сдать</Text>
+                </TouchableOpacity>
+              </Card>
+            );
+          })
         )}
       </ScrollView>
     </SafeAreaView>
@@ -177,58 +214,74 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 12,
   },
-  statsCard: {
+  // ── Streak & Level row ──
+  statsRow: {
+    flexDirection: 'row',
+    gap: 10,
     marginBottom: 4,
   },
-  statsTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  statChip: {
+  streakCard: {
     flex: 1,
     alignItems: 'center',
+    paddingVertical: 14,
   },
-  statChipEmoji: {
-    fontSize: 20,
-    marginBottom: 2,
+  streakEmoji: {
+    fontSize: 28,
+    marginBottom: 4,
   },
-  statChipValue: {
-    fontSize: 15,
+  streakValue: {
+    fontSize: 22,
+    fontWeight: '800',
+  },
+  streakLabel: {
+    fontSize: 11,
+    marginTop: 2,
+  },
+  levelCard: {
+    flex: 1.5,
+    alignItems: 'center',
+    paddingVertical: 14,
+  },
+  levelEmoji: {
+    fontSize: 28,
+    marginBottom: 4,
+  },
+  levelTitle: {
+    fontSize: 16,
     fontWeight: '700',
   },
-  statChipLabel: {
+  levelLabel: {
     fontSize: 11,
-    marginTop: 1,
+    marginTop: 2,
+    marginBottom: 8,
   },
-  statChipDivider: {
-    width: 1,
-    height: 36,
-  },
-  nearestAchievement: {
+  // ── Achievement banner ──
+  achievementBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 12,
-    paddingTop: 10,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(128,128,128,0.2)',
+    marginTop: 8,
+    marginBottom: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
   },
-  nearestAchievementIcon: {
+  achievementIcon: {
     fontSize: 24,
     marginRight: 10,
   },
-  nearestAchievementInfo: {
+  achievementInfo: {
     flex: 1,
   },
-  nearestAchievementTitle: {
+  achievementTitle: {
     fontSize: 13,
     fontWeight: '600',
   },
-  nearestAchievementDesc: {
+  achievementDesc: {
     fontSize: 11,
     marginTop: 1,
   },
-  nearestAchievementProgress: {
+  achievementProgress: {
     fontSize: 13,
     fontWeight: '700',
     marginLeft: 8,
@@ -239,6 +292,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 12,
   },
+  // ── Deadline cards ──
   deadlineCard: {
     marginBottom: 10,
     flexDirection: 'row',
@@ -266,6 +320,27 @@ const styles = StyleSheet.create({
   },
   hwXp: {
     fontSize: 12,
+    fontWeight: '700',
+  },
+  linkedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginBottom: 6,
+    gap: 4,
+  },
+  linkedBadgeIcon: {
+    fontSize: 14,
+  },
+  linkedBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  linkedBadgeProgress: {
+    fontSize: 11,
     fontWeight: '700',
   },
   emptyText: {

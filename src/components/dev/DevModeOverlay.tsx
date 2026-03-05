@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,36 +6,33 @@ import {
   TouchableOpacity,
   Modal,
   ScrollView,
-  Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withTiming,
 } from 'react-native-reanimated';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { AchievementRarity } from '@/src/types';
 import { mockAchievements } from '@/src/data/mockData';
+import { useCelebrationStore } from '@/src/stores/celebrationStore';
 import DevModePanel from './DevModePanel';
-import BadgeCelebration from './BadgeCelebration';
 
-const SAMPLE_BADGES: Record<AchievementRarity, { icon: string; title: string; description: string; rarity: AchievementRarity }> = {
-  common: { icon: '🎯', title: 'Первый шаг', description: 'Сдайте первое домашнее задание', rarity: 'common' },
-  rare: { icon: '⭐', title: 'Капитан команды', description: 'Станьте лидером в командном квесте', rarity: 'rare' },
-  epic: { icon: '🔬', title: 'Учёный', description: 'Сдайте все лабораторные за четверть', rarity: 'epic' },
-  legendary: { icon: '👑', title: 'Легенда школы', description: 'Серия 100 дней подряд', rarity: 'legendary' },
+import { CelebrationItem } from '@/src/stores/celebrationStore';
+
+const SAMPLE_BADGES: Record<AchievementRarity, CelebrationItem> = {
+  common: { id: 'dev-common', icon: '🎯', title: 'Первый шаг', description: 'Сдайте первое домашнее задание', rarity: 'common', category: 'homework' },
+  rare: { id: 'dev-rare', icon: '⭐', title: 'Капитан команды', description: 'Станьте лидером в командном квесте', rarity: 'rare', category: 'team_quest' },
+  epic: { id: 'dev-epic', icon: '🔬', title: 'Учёный', description: 'Сдайте все лабораторные за четверть', rarity: 'epic', category: 'homework' },
+  legendary: { id: 'dev-legendary', icon: '👑', title: 'Легенда школы', description: 'Серия 100 дней подряд', rarity: 'legendary', category: 'streak' },
 };
 
 export default function DevModeOverlay() {
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
   const [modalVisible, setModalVisible] = useState(false);
-  const [celebrationBadge, setCelebrationBadge] = useState<{
-    icon: string; title: string; description: string; rarity: AchievementRarity;
-  } | null>(null);
-  const badgeQueueRef = useRef<typeof SAMPLE_BADGES[AchievementRarity][]>([]);
+  const pushCelebration = useCelebrationStore((s) => s.push);
 
   const fabScale = useSharedValue(1);
 
@@ -51,41 +48,29 @@ export default function DevModeOverlay() {
   }, []);
 
   const handleAwardBadge = useCallback((rarity: AchievementRarity) => {
-    setCelebrationBadge(SAMPLE_BADGES[rarity]);
+    pushCelebration(SAMPLE_BADGES[rarity]);
     setModalVisible(false);
   }, []);
 
   const handleAwardRandomBadge = useCallback(() => {
     const achWithEmoji = mockAchievements.filter((a) => a.icon);
     const randomAch = achWithEmoji[Math.floor(Math.random() * achWithEmoji.length)];
-    setCelebrationBadge({
+    pushCelebration({
+      id: randomAch.id,
       icon: randomAch.icon,
       title: randomAch.title,
       description: randomAch.description,
       rarity: randomAch.rarity,
+      category: randomAch.category,
     });
     setModalVisible(false);
   }, []);
 
   const handleAwardBadgeSeries = useCallback(() => {
-    const series = [
-      SAMPLE_BADGES.common,
-      SAMPLE_BADGES.rare,
-      SAMPLE_BADGES.epic,
-    ];
-    badgeQueueRef.current = series.slice(1);
-    setCelebrationBadge(series[0]);
+    pushCelebration(SAMPLE_BADGES.common);
+    pushCelebration(SAMPLE_BADGES.rare);
+    pushCelebration(SAMPLE_BADGES.epic);
     setModalVisible(false);
-  }, []);
-
-  const handleDismissCelebration = useCallback(() => {
-    setCelebrationBadge(null);
-    setTimeout(() => {
-      if (badgeQueueRef.current.length > 0) {
-        const next = badgeQueueRef.current.shift()!;
-        setCelebrationBadge(next);
-      }
-    }, 300);
   }, []);
 
   const fabStyle = useAnimatedStyle(() => ({
@@ -151,18 +136,11 @@ export default function DevModeOverlay() {
               onAwardBadge={handleAwardBadge}
               onAwardRandomBadge={handleAwardRandomBadge}
               onAwardBadgeSeries={handleAwardBadgeSeries}
+              onClose={handleClose}
             />
           </ScrollView>
         </View>
       </Modal>
-
-      {/* Badge Celebration Overlay */}
-      {celebrationBadge && (
-        <BadgeCelebration
-          badge={celebrationBadge}
-          onDismiss={handleDismissCelebration}
-        />
-      )}
     </>
   );
 }

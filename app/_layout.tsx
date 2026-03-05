@@ -8,6 +8,7 @@ import 'react-native-reanimated';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
 import DevModeOverlay from '@/src/components/dev/DevModeOverlay';
+import CelebrationOverlay from '@/src/components/CelebrationOverlay';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -98,6 +99,7 @@ function RootLayoutNav() {
           options={{ title: 'Испытание' }}
         />
       </Stack>
+      <CelebrationOverlay />
       <DevModeOverlay />
     </GestureHandlerRootView>
   );
