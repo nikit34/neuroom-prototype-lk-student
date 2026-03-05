@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useThemeStore } from '@/src/stores/themeStore';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
-import { themes, allCharacters, seniorThemes, juniorThemes } from '@/src/theme/themes';
+import { themes, allCharacters, defaultTheme, seniorThemes, juniorThemes } from '@/src/theme/themes';
 import { AppTheme, ThemeCharacter } from '@/src/types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -32,6 +32,11 @@ export default function OnboardingScreen() {
   const completeOnboarding = useOnboardingStore((s) => s.complete);
 
   const ageGroup = useThemeStore((s) => s.ageGroup);
+
+  useEffect(() => {
+    setThemeId(defaultTheme.id);
+    setCharacterId('sk-kitsune');
+  }, []);
 
   const [step, setStep] = useState(0);
   const [selectedGender, setSelectedGender] = useState<'male' | 'female'>(student.gender);

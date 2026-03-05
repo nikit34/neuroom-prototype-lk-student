@@ -12,7 +12,8 @@ import Card from '@/src/components/ui/Card';
 import ProgressBar from '@/src/components/ui/ProgressBar';
 import DeadlineIndicator from '@/src/components/homework/DeadlineIndicator';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
-import { getLevel, HOMEWORK_XP_REWARD } from '@/src/utils/levelHelpers';
+import BonusTimer from '@/src/components/homework/BonusTimer';
+import { getLevel } from '@/src/utils/levelHelpers';
 import type { Achievement, HomeworkAssignment } from '@/src/types';
 
 /** Achievement IDs linked to homework subjects */
@@ -78,25 +79,8 @@ export default function HomeScreen() {
           {getGreeting()}, {student.firstName}! 👋
         </Text>
 
-        {/* ── Streak & Level ── */}
+        {/* ── Early Streak & Level ── */}
         <View style={styles.statsRow}>
-          <Card style={styles.streakCard}>
-            <Text style={styles.streakEmoji}>🔥</Text>
-            <Text style={[styles.streakValue, { color: theme.colors.text }]}>
-              {student.currentStreak}
-            </Text>
-            <Text style={[styles.streakLabel, { color: theme.colors.textSecondary }]}>
-              дней подряд
-            </Text>
-            <View style={styles.streakHealthRow}>
-              <MascotHealthBar health={student.mascotHealth} />
-            </View>
-            {student.currentStreak >= 1 && (
-              <Text style={[styles.streakBonus, { color: theme.colors.success }]}>
-                +{student.currentStreak >= 14 ? 4 : student.currentStreak >= 7 ? 3 : student.currentStreak >= 3 ? 2 : 1} HP за сдачу
-              </Text>
-            )}
-          </Card>
           <Card style={styles.levelCard}>
             <Text style={styles.levelEmoji}>{rank.emoji}</Text>
             <Text style={[styles.levelTitle, { color: theme.colors.text }]}>
@@ -110,6 +94,22 @@ export default function HomeScreen() {
               color={theme.colors.primary}
               height={4}
             />
+          </Card>
+          <Card style={styles.streakCard}>
+            <Text style={[styles.streakValue, { color: theme.colors.text }]}>
+              {student.earlyStreak}
+            </Text>
+            <Text style={[styles.streakLabel, { color: theme.colors.textSecondary }]}>
+              ДЗ вовремя подряд
+            </Text>
+            <View style={styles.streakHealthRow}>
+              <MascotHealthBar health={student.mascotHealth} />
+            </View>
+            {student.xpMultiplier > 1 && (
+              <Text style={[styles.streakBonus, { color: theme.colors.success }]}>
+                ×{student.xpMultiplier} XP
+              </Text>
+            )}
           </Card>
         </View>
 
@@ -166,9 +166,7 @@ export default function HomeScreen() {
                       <Text style={[styles.hwSubject, { color: theme.colors.textSecondary }]}>
                         {hw.subject}
                       </Text>
-                      <Text style={[styles.hwXp, { color: theme.colors.primary }]}>
-                        +{HOMEWORK_XP_REWARD} опыта
-                      </Text>
+                      <BonusTimer homework={hw} />
                     </View>
                     {linked && (
                       <TouchableOpacity
@@ -230,49 +228,49 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   streakCard: {
-    flex: 1,
+    flex: 1.5,
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 8,
   },
   streakEmoji: {
-    fontSize: 28,
-    marginBottom: 4,
+    fontSize: 22,
+    marginBottom: 2,
   },
   streakValue: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '800',
   },
   streakLabel: {
-    fontSize: 11,
-    marginTop: 2,
+    fontSize: 10,
+    marginTop: 1,
   },
   streakHealthRow: {
     width: '100%',
-    marginTop: 8,
+    marginTop: 4,
     paddingHorizontal: 4,
   },
   streakBonus: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
-    marginTop: 6,
+    marginTop: 3,
   },
   levelCard: {
-    flex: 1.5,
+    flex: 1,
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 8,
   },
   levelEmoji: {
-    fontSize: 28,
-    marginBottom: 4,
+    fontSize: 22,
+    marginBottom: 2,
   },
   levelTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
   },
   levelLabel: {
-    fontSize: 11,
-    marginTop: 2,
-    marginBottom: 8,
+    fontSize: 10,
+    marginTop: 1,
+    marginBottom: 4,
   },
   // ── Achievement banner ──
   achievementBanner: {

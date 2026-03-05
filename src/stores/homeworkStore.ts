@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { HomeworkAssignment, HomeworkStatus, Submission } from '../types';
 import { mockHomework } from '../data/mockData';
-import { rewardHomeworkSubmit, penaltyMissedDeadline, rewardHomeworkGraded } from '../services/rewardsEngine';
+import { rewardHomeworkSubmit, rewardHomeworkGraded } from '../services/rewardsEngine';
 
 type FilterType = 'all' | 'active' | 'overdue' | 'done';
 
@@ -65,12 +65,7 @@ export const useHomeworkStore = create<HomeworkState>((set, get) => ({
       ),
     }));
     if (assignment) {
-      const isOverdue = assignment.deadline.getTime() < Date.now();
-      if (isOverdue) {
-        penaltyMissedDeadline();
-      } else {
-        rewardHomeworkSubmit(id);
-      }
+      rewardHomeworkSubmit(assignment);
     }
   },
 

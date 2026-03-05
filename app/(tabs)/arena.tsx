@@ -56,7 +56,7 @@ export default function ArenaScreen() {
   const getFilteredDuels = useArenaStore((s) => s.getFilteredDuels);
   const acceptDuel = useArenaStore((s) => s.acceptDuel);
   const declineDuel = useArenaStore((s) => s.declineDuel);
-  const getDuelStats = useArenaStore((s) => s.getDuelStats);
+
 
   const questFilter = useArenaStore((s) => s.questFilter);
   const setQuestFilter = useArenaStore((s) => s.setQuestFilter);
@@ -67,11 +67,15 @@ export default function ArenaScreen() {
   const getFilteredChallenges = useArenaStore((s) => s.getFilteredChallenges);
   const startChallenge = useArenaStore((s) => s.startChallenge);
 
-  const stats = getDuelStats();
+  const duels = useArenaStore((s) => s.duels);
   const quests = useArenaStore((s) => s.quests);
   const challenges = useArenaStore((s) => s.challenges);
-  const activeQuests = quests.filter((q) => q.status === 'active').length;
-  const activeChallenges = challenges.filter((c) => c.status === 'active').length;
+
+  const sectionCounts: Record<Section, number> = {
+    duels: duels.filter((d) => d.status === 'pending' || d.status === 'active').length,
+    quests: quests.filter((q) => q.status === 'active').length,
+    challenges: challenges.filter((c) => c.status === 'active').length,
+  };
 
   const renderFilters = () => {
     const filters = section === 'duels' ? DUEL_FILTERS : section === 'quests' ? QUEST_FILTERS : CHALLENGE_FILTERS;
@@ -168,34 +172,11 @@ export default function ArenaScreen() {
       <View style={styles.container}>
         <Text style={[styles.header, { color: theme.colors.text }]}>Арена</Text>
 
-        {/* Stats summary */}
-        <View style={[styles.statsRow, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNum, { color: theme.colors.success }]}>{stats.wins}</Text>
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Побед</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNum, { color: theme.colors.overdue }]}>{stats.losses}</Text>
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Поражений</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNum, { color: theme.colors.accent }]}>{stats.active}</Text>
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Активных</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNum, { color: theme.colors.primary }]}>{activeQuests}</Text>
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Квестов</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNum, { color: theme.colors.warning }]}>{activeChallenges}</Text>
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Испытаний</Text>
-          </View>
-        </View>
-
         {/* Section tabs */}
         <View style={styles.sectionRow}>
           {SECTIONS.map((s) => {
             const active = section === s.key;
+            const count = sectionCounts[s.key];
             return (
               <TouchableOpacity
                 key={s.key}
@@ -211,6 +192,11 @@ export default function ArenaScreen() {
                 <Text style={[styles.sectionText, { color: active ? theme.colors.primary : theme.colors.textSecondary }]}>
                   {s.label}
                 </Text>
+                {count > 0 && (
+                  <View style={[styles.countBadge, { backgroundColor: theme.colors.primary }]}>
+                    <Text style={styles.countBadgeText}>{count}</Text>
+                  </View>
+                )}
               </TouchableOpacity>
             );
           })}
@@ -236,20 +222,11 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   container: { flex: 1, paddingHorizontal: 20 },
   header: { fontSize: 26, fontWeight: '700', marginTop: 16, marginBottom: 12 },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    marginBottom: 16,
-  },
-  statItem: { alignItems: 'center' },
-  statNum: { fontSize: 20, fontWeight: '800' },
-  statLabel: { fontSize: 10, fontWeight: '500', marginTop: 2 },
   sectionRow: { flexDirection: 'row', marginBottom: 12, gap: 4 },
-  sectionBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderBottomWidth: 3 },
+  sectionBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderBottomWidth: 3, flexDirection: 'row', justifyContent: 'center', gap: 6 },
   sectionText: { fontSize: 13, fontWeight: '700' },
+  countBadge: { minWidth: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
+  countBadgeText: { fontSize: 10, fontWeight: '800', color: '#FFFFFF' },
   filterRow: { flexDirection: 'row', marginBottom: 12, gap: 8 },
   filterBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
   filterText: { fontSize: 13, fontWeight: '600' },

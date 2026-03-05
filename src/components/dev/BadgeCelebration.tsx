@@ -36,12 +36,12 @@ const CATEGORY_THEMES: Record<AchievementCategory, CategoryTheme> = {
     sparkTrail: ['✨', '💫', '⭐'],
     bgEmoji: '📚',
   },
-  streak: {
-    label: 'СЕРИЯ',
-    emoji: '🔥',
-    confettiEmoji: ['🔥', '🔥', '💥', '⚡', '☄️'],
-    sparkTrail: ['🔥', '💥', '✨'],
-    bgEmoji: '🔥',
+  early_streak: {
+    label: 'РАННЯЯ СДАЧА',
+    emoji: '🚀',
+    confettiEmoji: ['🚀', '🚀', '⏱️', '⚡', '🎯'],
+    sparkTrail: ['🚀', '💫', '✨'],
+    bgEmoji: '🚀',
   },
   duel: {
     label: 'ДУЭЛЬ',

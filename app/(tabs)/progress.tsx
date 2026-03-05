@@ -12,7 +12,6 @@ import { useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAchievementStore } from '@/src/stores/achievementStore';
 import { useStudentStore } from '@/src/stores/studentStore';
-import { useArenaStore } from '@/src/stores/arenaStore';
 import { AchievementCategory } from '@/src/types';
 import { mockClassmates } from '@/src/data/mockData';
 import AchievementBadge from '@/src/components/achievements/AchievementBadge';
@@ -26,7 +25,7 @@ const CATEGORY_TABS: { key: CategoryFilter; label: string; emoji: string }[] = [
   { key: 'all', label: 'Все', emoji: '🏅' },
   { key: 'unlocked', label: 'Получено', emoji: '✅' },
   { key: 'homework', label: 'Домашка', emoji: '📝' },
-  { key: 'streak', label: 'Серия', emoji: '🔥' },
+  { key: 'early_streak', label: 'Ранняя сдача', emoji: '🚀' },
   { key: 'duel', label: 'Дуэли', emoji: '⚔️' },
   { key: 'team_quest', label: 'Квесты', emoji: '🤝' },
   { key: 'challenge', label: 'Испытания', emoji: '🏋️' },
@@ -37,8 +36,6 @@ export default function ProgressScreen() {
   const router = useRouter();
   const achievements = useAchievementStore((s) => s.achievements);
   const student = useStudentStore((s) => s.student);
-  const getDuelStats = useArenaStore((s) => s.getDuelStats);
-  const arenaStats = getDuelStats();
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
 
   const filtered = useMemo(
@@ -160,13 +157,12 @@ export default function ProgressScreen() {
         </Card>
 
         {/* Arena link */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Арена</Text>
         <Card style={styles.arenaCard} onPress={() => router.push('/(tabs)/arena')}>
           <Text style={styles.arenaEmoji}>⚔️</Text>
           <View style={styles.arenaContent}>
             <Text style={[styles.arenaTitle, { color: theme.colors.text }]}>Арена</Text>
-            <Text style={[styles.arenaStats, { color: theme.colors.textSecondary }]}>
-              {arenaStats.wins} побед · {arenaStats.losses} поражений · {arenaStats.active} активных
+            <Text style={[styles.arenaSubtitle, { color: theme.colors.textSecondary }]}>
+              Дуэли, квесты и испытания
             </Text>
           </View>
           <Text style={[styles.arenaArrow, { color: theme.colors.textSecondary }]}>›</Text>
@@ -260,7 +256,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 2,
   },
-  arenaStats: {
+  arenaSubtitle: {
     fontSize: 13,
   },
   arenaArrow: {

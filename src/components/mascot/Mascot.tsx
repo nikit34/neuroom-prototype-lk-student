@@ -14,10 +14,9 @@ interface MascotProps {
   size?: number;
   showHealthBar?: boolean;
   label?: string;
-  streakBonus?: number;
 }
 
-function Mascot({ emotion, health, size = 120, showHealthBar, label, streakBonus }: MascotProps) {
+function Mascot({ emotion, health, size = 120, showHealthBar, label }: MascotProps) {
   const theme = useAppTheme();
   const character = useCurrentCharacter();
   const lottieRef = useRef<LottiePlayerRef>(null);
@@ -59,7 +58,7 @@ function Mascot({ emotion, health, size = 120, showHealthBar, label, streakBonus
       )}
       {shouldShowHealthBar && health != null && (
         <View style={styles.healthBarWrapper}>
-          <MascotHealthBar health={health} streakBonus={streakBonus} />
+          <MascotHealthBar health={health} />
         </View>
       )}
     </View>

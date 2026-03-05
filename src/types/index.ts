@@ -1,6 +1,6 @@
 export type HomeworkStatus = 'pending' | 'submitted' | 'ai_reviewed' | 'graded' | 'resubmit' | 'disputed';
 export type AchievementRarity = 'common' | 'rare' | 'epic' | 'legendary';
-export type AchievementCategory = 'streak' | 'team_quest' | 'challenge' | 'duel' | 'homework';
+export type AchievementCategory = 'early_streak' | 'team_quest' | 'challenge' | 'duel' | 'homework';
 export type MascotState = 'sick' | 'sad' | 'neutral' | 'happy' | 'thriving';
 
 export type MascotEmotion =
@@ -29,7 +29,8 @@ export interface Student {
   grade: number;
   classId: string;
   mascotHealth: number;
-  currentStreak: number;
+  earlyStreak: number;
+  xpMultiplier: number;
   avatarUrl?: string;
   totalPoints: number;
   characterId?: string;
@@ -71,7 +72,7 @@ export interface HomeworkAssignment {
 
 export type AchievementSource =
   | { type: 'homework'; homeworkId: string; homeworkTitle: string; subject: string; grade?: number; maxGrade?: number; solutionSummary: string }
-  | { type: 'streak'; streakDays: number; description: string }
+  | { type: 'early_streak'; earlyCount: number; description: string }
   | { type: 'duel'; opponentName: string; subject: string; result: string }
   | { type: 'quest'; questTitle: string; teamMembers?: string[]; description: string };
 
@@ -253,4 +254,9 @@ export interface Challenge {
   reward: ChallengeReward;
   deadline: Date;
   createdAt: Date;
+}
+
+export interface LootChestResult {
+  type: 'xp';
+  amount: number;
 }

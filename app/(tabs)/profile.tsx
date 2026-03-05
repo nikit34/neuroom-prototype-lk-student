@@ -70,10 +70,10 @@ export default function ProfileScreen() {
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: theme.colors.accent }]}>
-                🔥 {student.currentStreak}
+                🚀 {student.earlyStreak}
               </Text>
               <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
-                Серия (дней)
+                Вовремя подряд
               </Text>
             </View>
             <View style={[styles.statDivider, { backgroundColor: theme.colors.border }]} />

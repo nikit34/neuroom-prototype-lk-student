@@ -18,4 +18,3 @@ export function getLevel(totalPoints: number) {
   return { level, currentLevelXp, xpForNextLevel: XP_PER_LEVEL, rank };
 }
 
-export const HOMEWORK_XP_REWARD = 50;

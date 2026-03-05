@@ -52,7 +52,7 @@ const TIER_EMOJI: Record<string, string> = {
 const TIERS_ORDERED: AchievementTier[] = ['bronze', 'silver', 'gold'];
 
 const CATEGORY_LABELS: Record<AchievementCategory, string> = {
-  streak: 'Серия',
+  early_streak: 'Ранняя сдача',
   team_quest: 'Командный квест',
   challenge: 'Испытание',
   duel: 'Дуэль',
@@ -60,7 +60,7 @@ const CATEGORY_LABELS: Record<AchievementCategory, string> = {
 };
 
 const CATEGORY_EMOJI: Record<AchievementCategory, string> = {
-  streak: '🔥',
+  early_streak: '🚀',
   team_quest: '👥',
   challenge: '🎯',
   duel: '⚔️',
@@ -107,16 +107,16 @@ function SourceCard({ source, theme }: { source: AchievementSource; theme: Retur
         </Card>
       );
 
-    case 'streak':
+    case 'early_streak':
       return (
         <Card style={styles.sourceCard}>
           <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
             Как получено
           </Text>
           <View style={styles.sourceRow}>
-            <Text style={styles.sourceEmoji}>🔥</Text>
+            <Text style={styles.sourceEmoji}>🚀</Text>
             <Text style={[styles.sourceTitle, { color: theme.colors.text }]}>
-              Серия {source.streakDays} дней
+              {source.earlyCount} вовремя подряд
             </Text>
           </View>
           <Text style={[styles.sourceSummary, { color: theme.colors.text }]}>

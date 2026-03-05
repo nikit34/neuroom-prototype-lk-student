@@ -2,10 +2,10 @@ import { useStudentStore } from '../stores/studentStore';
 import { useHomeworkStore } from '../stores/homeworkStore';
 import { useArenaStore } from '../stores/arenaStore';
 import { useAchievementStore } from '../stores/achievementStore';
-import { Duel, Quest, Challenge } from '../types';
+import { useRewardStore } from '../stores/rewardStore';
+import { Duel, Quest, Challenge, HomeworkAssignment, LootChestResult } from '../types';
 
 // ─── Reward Constants ────────────────────────────────────────────
-const HOMEWORK_SUBMIT_XP = 50;
 const HOMEWORK_SUBMIT_HEALTH = 5;
 const MISSED_DEADLINE_HEALTH = -10;
 
@@ -13,21 +13,69 @@ const DUEL_WIN_MULTIPLIER = 1;
 const DUEL_DRAW_MULTIPLIER = 0.5;
 const DUEL_LOSE_MULTIPLIER = 0.25;
 
-// ─── Streak → Health bonus ──────────────────────────────────────
-// Longer streaks give bigger daily health boosts
-const STREAK_HEALTH_TIERS = [
-  { minDays: 14, health: 4 },
-  { minDays: 7, health: 3 },
-  { minDays: 3, health: 2 },
-  { minDays: 1, health: 1 },
+// ─── Dynamic XP Tiers ──────────────────────────────────────────
+const HOUR = 3600000;
+const DAY = 86400000;
+
+/** Calculate base XP for homework submission based on timing */
+export function calculateSubmissionXp(homework: HomeworkAssignment, now: Date = new Date()): number {
+  const deadline = homework.deadline.getTime();
+  const created = homework.createdAt.getTime();
+  const current = now.getTime();
+  const timeToDeadline = deadline - current;
+
+  // After deadline
+  if (timeToDeadline < 0) return 50;
+
+  // Same day as creation (in the day it was assigned)
+  if (current - created < DAY) return 150;
+
+  // 1+ day before deadline
+  if (timeToDeadline >= DAY) return 120;
+
+  // 6+ hours before deadline
+  if (timeToDeadline >= 6 * HOUR) return 100;
+
+  // On time but less than 6 hours
+  return 80;
+}
+
+// ─── Early Streak Milestones ────────────────────────────────────
+const EARLY_STREAK_MILESTONES = [
+  { count: 20, bonus: 1000 },
+  { count: 10, bonus: 500 },
+  { count: 5, bonus: 200 },
 ] as const;
 
-/** Health bonus for current streak length (called on each homework submit) */
-function getStreakHealthBonus(streak: number): number {
-  for (const tier of STREAK_HEALTH_TIERS) {
-    if (streak >= tier.minDays) return tier.health;
+function getEarlyStreakMilestoneBonus(streak: number): number {
+  for (const milestone of EARLY_STREAK_MILESTONES) {
+    if (streak === milestone.count) return milestone.bonus;
   }
   return 0;
+}
+
+// ─── Multiplier Tiers ───────────────────────────────────────────
+const MULTIPLIER_TIERS = [
+  { minStreak: 7, multiplier: 2.0 },
+  { minStreak: 3, multiplier: 1.5 },
+] as const;
+
+function getMultiplierForStreak(streak: number): number {
+  for (const tier of MULTIPLIER_TIERS) {
+    if (streak >= tier.minStreak) return tier.multiplier;
+  }
+  return 1;
+}
+
+// ─── Loot Chest ─────────────────────────────────────────────────
+const CHEST_CHANCE = 0.3;
+const CHEST_MIN_XP = 50;
+const CHEST_MAX_XP = 200;
+
+function rollLootChest(): LootChestResult | null {
+  if (Math.random() > CHEST_CHANCE) return null;
+  const amount = CHEST_MIN_XP + Math.floor(Math.random() * (CHEST_MAX_XP - CHEST_MIN_XP + 1));
+  return { type: 'xp', amount };
 }
 
 // ─── Achievement Rules ───────────────────────────────────────────
@@ -38,7 +86,7 @@ interface AchievementRule {
 
 interface AchievementContext {
   submittedHomework: number;
-  streak: number;
+  earlyStreak: number;
   duelWins: number;
   completedQuests: number;
   perfectHomework: number;
@@ -46,10 +94,10 @@ interface AchievementContext {
 
 const ACHIEVEMENT_RULES: Record<string, AchievementRule> = {
   'ach-1': { target: 1, calc: (ctx) => ctx.submittedHomework },
-  'ach-2': { target: 5, calc: (ctx) => ctx.streak },
-  'ach-3': { target: 14, calc: (ctx) => ctx.streak },
-  'ach-4': { target: 30, calc: (ctx) => ctx.streak },
-  'ach-5': { target: 100, calc: (ctx) => ctx.streak },
+  'ach-2': { target: 5, calc: (ctx) => ctx.earlyStreak },
+  'ach-3': { target: 10, calc: (ctx) => ctx.earlyStreak },
+  'ach-4': { target: 20, calc: (ctx) => ctx.earlyStreak },
+  'ach-5': { target: 50, calc: (ctx) => ctx.earlyStreak },
   'ach-6': { target: 3, calc: (ctx) => ctx.completedQuests },
   'ach-7': { target: 5, calc: (ctx) => ctx.completedQuests },
   'ach-8': { target: 10, calc: (ctx) => ctx.completedQuests },
@@ -84,7 +132,7 @@ function buildAchievementContext(): AchievementContext {
 
   return {
     submittedHomework,
-    streak: student.currentStreak,
+    earlyStreak: student.earlyStreak,
     duelWins,
     completedQuests,
     perfectHomework,
@@ -93,16 +141,46 @@ function buildAchievementContext(): AchievementContext {
 
 // ─── Reward Functions ────────────────────────────────────────────
 
-export function rewardHomeworkSubmit(homeworkId: string): void {
-  const { addPoints, incrementStreak, updateMascotHealth } = useStudentStore.getState();
+export function rewardHomeworkSubmit(homework: HomeworkAssignment): void {
+  const { addPoints, incrementEarlyStreak, resetEarlyStreak, updateMascotHealth, setXpMultiplier } = useStudentStore.getState();
 
-  incrementStreak();
+  const now = new Date();
+  const isOnTime = homework.deadline.getTime() >= now.getTime();
 
-  const streak = useStudentStore.getState().student.currentStreak;
-  const streakBonus = getStreakHealthBonus(streak);
+  // 1. Calculate base XP
+  const baseXp = calculateSubmissionXp(homework, now);
 
-  addPoints(HOMEWORK_SUBMIT_XP);
-  updateMascotHealth(HOMEWORK_SUBMIT_HEALTH + streakBonus);
+  // 2. Update early streak
+  if (isOnTime) {
+    incrementEarlyStreak();
+  } else {
+    resetEarlyStreak();
+  }
+
+  const earlyStreak = useStudentStore.getState().student.earlyStreak;
+
+  // 3. Check milestone bonus
+  const milestoneBonus = isOnTime ? getEarlyStreakMilestoneBonus(earlyStreak) : 0;
+
+  // 4. Apply multiplier
+  const multiplier = getMultiplierForStreak(earlyStreak);
+  setXpMultiplier(multiplier);
+
+  const totalXp = Math.round(baseXp * multiplier) + milestoneBonus;
+
+  // 5. Roll loot chest (only if on time)
+  let chestXp = 0;
+  if (isOnTime) {
+    const chest = rollLootChest();
+    if (chest) {
+      chestXp = chest.amount;
+      useRewardStore.getState().showChest(chest);
+    }
+  }
+
+  // 6. Award XP and health
+  addPoints(totalXp + chestXp);
+  updateMascotHealth(isOnTime ? HOMEWORK_SUBMIT_HEALTH : 0);
 
   checkAchievements();
 }
@@ -118,10 +196,10 @@ export function rewardHomeworkGraded(homeworkId: string, grade: number, maxGrade
 }
 
 export function penaltyMissedDeadline(): void {
-  const { updateMascotHealth, resetStreak } = useStudentStore.getState();
+  const { updateMascotHealth, resetEarlyStreak } = useStudentStore.getState();
 
   updateMascotHealth(MISSED_DEADLINE_HEALTH);
-  resetStreak();
+  resetEarlyStreak();
 }
 
 export function rewardDuelFinish(duel: Duel): void {

@@ -9,6 +9,7 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
 import DevModeOverlay from '@/src/components/dev/DevModeOverlay';
 import CelebrationOverlay from '@/src/components/CelebrationOverlay';
+import LootChestOverlay from '@/src/components/rewards/LootChestOverlay';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -100,6 +101,7 @@ function RootLayoutNav() {
         />
       </Stack>
       <CelebrationOverlay />
+      <LootChestOverlay />
       <DevModeOverlay />
     </GestureHandlerRootView>
   );

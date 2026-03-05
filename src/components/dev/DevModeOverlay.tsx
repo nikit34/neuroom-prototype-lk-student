@@ -25,7 +25,7 @@ const SAMPLE_BADGES: Record<AchievementRarity, CelebrationItem> = {
   common: { id: 'dev-common', icon: '🎯', title: 'Первый шаг', description: 'Сдайте первое домашнее задание', rarity: 'common', category: 'homework' },
   rare: { id: 'dev-rare', icon: '⭐', title: 'Капитан команды', description: 'Станьте лидером в командном квесте', rarity: 'rare', category: 'team_quest' },
   epic: { id: 'dev-epic', icon: '🔬', title: 'Учёный', description: 'Сдайте все лабораторные за четверть', rarity: 'epic', category: 'homework' },
-  legendary: { id: 'dev-legendary', icon: '👑', title: 'Легенда школы', description: 'Серия 100 дней подряд', rarity: 'legendary', category: 'streak' },
+  legendary: { id: 'dev-legendary', icon: '👑', title: 'Легенда пунктуальности', description: '50 заданий вовремя подряд', rarity: 'legendary', category: 'early_streak' },
 };
 
 export default function DevModeOverlay() {

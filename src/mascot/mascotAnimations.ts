@@ -9,38 +9,38 @@ export type CharacterArchetype =
 
 /** Maps every character ID to its visual archetype */
 export const CHARACTER_ARCHETYPE: Record<string, CharacterArchetype> = {
-  // CS:GO → warrior
-  'csgo-ct': 'warrior', 'csgo-t': 'warrior', 'csgo-awp': 'warrior', 'csgo-spec': 'robot',
+  // CS:GO
+  'csgo-ct': 'warrior', 'csgo-t': 'ninja', 'csgo-awp': 'fox', 'csgo-spec': 'robot',
   // Game of Thrones
-  'got-dragon': 'dragon', 'got-wolf': 'cat', 'got-lion': 'cat', 'got-raven': 'owl',
+  'got-dragon': 'dragon', 'got-wolf': 'bear', 'got-lion': 'cat', 'got-raven': 'owl',
   // Twilight
-  'tw-vampire': 'ghost', 'tw-werewolf': 'cat', 'tw-shewolf': 'cat', 'tw-mystic': 'wizard',
+  'tw-vampire': 'ghost', 'tw-werewolf': 'bear', 'tw-shewolf': 'cat', 'tw-mystic': 'wizard',
   // Anime
-  'anime-naruto': 'ninja', 'anime-ninja': 'ninja', 'anime-sakura': 'ninja', 'anime-sensei': 'wizard',
+  'anime-naruto': 'ninja', 'anime-ninja': 'warrior', 'anime-sakura': 'cat', 'anime-sensei': 'wizard',
   // Sakura
-  'sk-hanami': 'cat', 'sk-samurai': 'warrior', 'sk-geisha': 'wizard', 'sk-kitsune': 'cat',
+  'sk-hanami': 'cat', 'sk-samurai': 'warrior', 'sk-geisha': 'wizard', 'sk-kitsune': 'fox',
   // Gagarin
-  'gg-cosmonaut': 'fox', 'gg-rocket': 'fox', 'gg-alien': 'alien', 'gg-star': 'fox',
+  'gg-cosmonaut': 'robot', 'gg-rocket': 'fox', 'gg-alien': 'alien', 'gg-star': 'wizard',
   // Marvel
-  'mv-ironman': 'robot', 'mv-spider': 'ninja', 'mv-captain': 'warrior', 'mv-thor': 'warrior',
+  'mv-ironman': 'robot', 'mv-spider': 'ninja', 'mv-captain': 'warrior', 'mv-thor': 'dragon',
   // One Piece
-  'op-luffy': 'ninja', 'op-zoro': 'warrior', 'op-nami': 'ninja', 'op-chopper': 'bear',
+  'op-luffy': 'warrior', 'op-zoro': 'ninja', 'op-nami': 'cat', 'op-chopper': 'bear',
   // Frozen
   'fz-elsa': 'wizard', 'fz-olaf': 'critter', 'fz-anna': 'cat', 'fz-sven': 'bear',
   // Minions
-  'mn-bob': 'critter', 'mn-kevin': 'critter', 'mn-stuart': 'critter', 'mn-gru': 'robot',
+  'mn-bob': 'critter', 'mn-kevin': 'bear', 'mn-stuart': 'fox', 'mn-gru': 'robot',
   // Clash Royale
-  'cr-king': 'warrior', 'cr-princess': 'wizard', 'cr-knight': 'warrior', 'cr-dragon': 'dragon',
+  'cr-king': 'warrior', 'cr-princess': 'wizard', 'cr-knight': 'ninja', 'cr-dragon': 'dragon',
   // Pokemon
   'pk-pikachu': 'cat', 'pk-charmander': 'dragon', 'pk-squirtle': 'bear', 'pk-bulbasaur': 'critter',
   // Minecraft
   'mc-steve': 'warrior', 'mc-creeper': 'ghost', 'mc-enderman': 'alien', 'mc-pig': 'bear',
   // Brawl Stars
-  'bw-shelly': 'warrior', 'bw-colt': 'warrior', 'bw-spike': 'critter', 'bw-crow': 'owl',
+  'bw-shelly': 'warrior', 'bw-colt': 'ninja', 'bw-spike': 'critter', 'bw-crow': 'owl',
   // Hogwarts
-  'hw-wizard': 'wizard', 'hw-owl': 'owl', 'hw-witch': 'wizard', 'hw-phoenix': 'dragon',
+  'hw-wizard': 'wizard', 'hw-owl': 'owl', 'hw-witch': 'cat', 'hw-phoenix': 'dragon',
   // Among Us
-  'au-red': 'alien', 'au-blue': 'alien', 'au-impostor': 'ghost', 'au-green': 'fox',
+  'au-red': 'alien', 'au-blue': 'robot', 'au-impostor': 'ghost', 'au-green': 'fox',
   // K-Pop
   'kp-idol': 'cat', 'kp-dancer': 'ninja', 'kp-rapper': 'fox', 'kp-producer': 'robot',
   // Genshin Impact
@@ -48,7 +48,7 @@ export const CHARACTER_ARCHETYPE: Record<string, CharacterArchetype> = {
   // Witcher
   'wt-geralt': 'warrior', 'wt-sorceress': 'wizard', 'wt-bard': 'fox', 'wt-monster': 'dragon',
   // Attack on Titan
-  'aot-eren': 'warrior', 'aot-mikasa': 'ninja', 'aot-levi': 'ninja', 'aot-armin': 'owl',
+  'aot-eren': 'warrior', 'aot-mikasa': 'ninja', 'aot-levi': 'fox', 'aot-armin': 'owl',
   // Valorant
   'vl-jett': 'ninja', 'vl-reyna': 'ghost', 'vl-cypher': 'robot', 'vl-phoenix': 'dragon',
   // Lord of the Rings

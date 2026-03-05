@@ -14,7 +14,7 @@ import { getGradeColor, getGradeEmoji } from '@/src/utils/gradeHelpers';
 import Card from '@/src/components/ui/Card';
 import StatusChip from '@/src/components/ui/StatusChip';
 import DeadlineIndicator from './DeadlineIndicator';
-import { HOMEWORK_XP_REWARD } from '@/src/utils/levelHelpers';
+import BonusTimer from './BonusTimer';
 
 interface HomeworkCardProps {
   homework: HomeworkAssignment;
@@ -85,9 +85,7 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
           <DeadlineIndicator deadline={homework.deadline} />
           <View style={styles.footerRight}>
             {showXp && (
-              <Text style={[styles.xpLabel, { color: theme.colors.primary }]}>
-                +{HOMEWORK_XP_REWARD} опыта
-              </Text>
+              <BonusTimer homework={homework} />
             )}
             {homework.classmateSubmittedCount != null && homework.totalClassmates != null && (
               <Text style={[styles.classmateCount, { color: theme.colors.textSecondary }]}>

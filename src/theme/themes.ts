@@ -379,7 +379,7 @@ const gotTheme: AppTheme = {
   characters: [
     {
       id: 'got-dragon',
-      name: 'Дракон',
+      name: 'Дрогон',
       emoji: '🐉',
       mascotEmojis: { sick: '🥀', sad: '😔', neutral: '🐉', happy: '🔥', thriving: '👑' },
     },
@@ -397,7 +397,7 @@ const gotTheme: AppTheme = {
     },
     {
       id: 'got-raven',
-      name: 'Ворон',
+      name: 'Трёхглазый',
       emoji: '🐦‍⬛',
       mascotEmojis: { sick: '💀', sad: '🌑', neutral: '🐦‍⬛', happy: '🔮', thriving: '👁️' },
     },
@@ -1183,7 +1183,7 @@ const clashRoyaleTheme: AppTheme = {
     },
     {
       id: 'cr-dragon',
-      name: 'Дракон',
+      name: 'Малыш-Дракон',
       emoji: '🐲',
       mascotEmojis: { sick: '😮‍💨', sad: '😕', neutral: '🐲', happy: '🔥', thriving: '⭐' },
     },
@@ -1235,7 +1235,7 @@ const brawlTheme: AppTheme = {
     },
     {
       id: 'bw-crow',
-      name: 'Ворон',
+      name: 'Кроу',
       emoji: '🐦‍⬛',
       mascotEmojis: { sick: '😵', sad: '😔', neutral: '🐦‍⬛', happy: '🗡️', thriving: '💎' },
     },
@@ -1287,7 +1287,7 @@ const hogwartsTheme: AppTheme = {
     },
     {
       id: 'hw-phoenix',
-      name: 'Феникс',
+      name: 'Фоукс',
       emoji: '🔥',
       mascotEmojis: { sick: '💀', sad: '😥', neutral: '🔥', happy: '🦅', thriving: '👑' },
     },
@@ -1510,4 +1510,4 @@ export const juniorThemes = themes.filter((t) => t.ageGroup === 'junior');
 
 export const allCharacters: import('../types').ThemeCharacter[] = themes.flatMap((t) => t.characters);
 
-export const defaultTheme: AppTheme = sakuraTheme;
+export const defaultTheme: AppTheme = genshinTheme;

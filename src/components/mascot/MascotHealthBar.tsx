@@ -11,7 +11,6 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 export interface MascotHealthBarProps {
   health: number; // 0-100
-  streakBonus?: number;
 }
 
 function getHealthColor(health: number): string {
@@ -30,7 +29,7 @@ function getHealthGradient(health: number): [string, string] {
   return ['#15803D', '#4ADE80'];
 }
 
-export default function MascotHealthBar({ health, streakBonus }: MascotHealthBarProps) {
+export default function MascotHealthBar({ health }: MascotHealthBarProps) {
   const theme = useAppTheme();
   const clamped = Math.max(0, Math.min(100, health));
   const animatedWidth = useSharedValue(0);
@@ -55,7 +54,7 @@ export default function MascotHealthBar({ health, streakBonus }: MascotHealthBar
           Здоровье
         </Text>
         <Text style={[styles.value, { color }]}>
-          {Math.round(clamped)}{streakBonus ? ` (+${streakBonus})` : ''}
+          {Math.round(clamped)}
         </Text>
       </View>
       <View style={[styles.track, { backgroundColor: theme.colors.border }]}>
@@ -80,19 +79,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 3,
   },
   label: {
-    fontSize: 13,
+    fontSize: 10,
     fontWeight: '500',
   },
   value: {
-    fontSize: 15,
+    fontSize: 11,
     fontWeight: '700',
   },
   track: {
-    height: 10,
-    borderRadius: 5,
+    height: 6,
+    borderRadius: 3,
     overflow: 'hidden',
   },
   fillWrapper: {
