@@ -153,6 +153,108 @@ const SCENES: Record<string, ThemeScene> = {
       { type: 'bushes',      color: '#D890A8', opacity: 0.6,  height: 0.15 },
     ],
   },
+
+  // ── New senior themes ──────────────────────────────────────────
+
+  kpop: {
+    sky: ['#E8A0FF', '#FFC0E0', '#D0F0FF'],
+    layers: [
+      { type: 'skyscrapers',   color: '#D0A0E8', opacity: 0.25, height: 0.4 },
+      { type: 'buildings',     color: '#C090D8', opacity: 0.35, height: 0.3 },
+      { type: 'buildingsNear', color: '#A870C0', opacity: 0.5,  height: 0.2 },
+    ],
+  },
+  genshin: {
+    sky: ['#80C8FF', '#B0E0F8', '#F0F8FF'],
+    layers: [
+      { type: 'mountains', color: '#88C0B0', opacity: 0.3,  height: 0.35 },
+      { type: 'hills',     color: '#68A898', opacity: 0.45, height: 0.25 },
+      { type: 'pines',     color: '#488878', opacity: 0.6,  height: 0.18 },
+    ],
+  },
+  witcher: {
+    sky: ['#0A0808', '#1A1210', '#121010'],
+    layers: [
+      { type: 'mountains', color: '#18100A', opacity: 0.35, height: 0.35 },
+      { type: 'forest',    color: '#100A06', opacity: 0.55, height: 0.25 },
+      { type: 'bushes',    color: '#080604', opacity: 0.75, height: 0.15 },
+    ],
+  },
+  aot: {
+    sky: ['#180808', '#2A1818', '#1A1010'],
+    layers: [
+      { type: 'skyscrapers',   color: '#201010', opacity: 0.35, height: 0.4 },
+      { type: 'buildings',     color: '#180A0A', opacity: 0.55, height: 0.3 },
+      { type: 'buildingsNear', color: '#100606', opacity: 0.75, height: 0.2 },
+    ],
+  },
+  valorant: {
+    sky: ['#0A0A18', '#101028', '#0E0E1A'],
+    layers: [
+      { type: 'skyscrapers',   color: '#0E0E28', opacity: 0.35, height: 0.4 },
+      { type: 'buildings',     color: '#0A0A1E', opacity: 0.55, height: 0.3 },
+      { type: 'buildingsNear', color: '#060614', opacity: 0.75, height: 0.2 },
+    ],
+  },
+  lotr: {
+    sky: ['#0A0A10', '#151520', '#0D0D15'],
+    layers: [
+      { type: 'mountains', color: '#0E0E18', opacity: 0.35, height: 0.35 },
+      { type: 'forest',    color: '#0A0A12', opacity: 0.55, height: 0.25 },
+      { type: 'bushes',    color: '#06060A', opacity: 0.75, height: 0.15 },
+    ],
+  },
+
+  // ── New junior themes ──────────────────────────────────────────
+
+  spongebob: {
+    sky: ['#40C8F0', '#70D8FF', '#A0E8FF'],
+    layers: [
+      { type: 'clouds',    color: '#FFFFFF', opacity: 0.3,  height: 0.3 },
+      { type: 'waves',     color: '#50B0E0', opacity: 0.35, height: 0.25 },
+      { type: 'wavesNear', color: '#3090C8', opacity: 0.5,  height: 0.15 },
+    ],
+  },
+  mario: {
+    sky: ['#60B0FF', '#90D0FF', '#C0E8FF'],
+    layers: [
+      { type: 'hills',   color: '#60C060', opacity: 0.3,  height: 0.35 },
+      { type: 'hills',   color: '#40A840', opacity: 0.45, height: 0.25 },
+      { type: 'bushes',  color: '#288828', opacity: 0.6,  height: 0.15 },
+    ],
+  },
+  roblox: {
+    sky: ['#50A8F0', '#80C8FF', '#D0ECFF'],
+    layers: [
+      { type: 'skyscrapers',   color: '#60A0D8', opacity: 0.25, height: 0.4 },
+      { type: 'buildings',     color: '#4888C0', opacity: 0.35, height: 0.3 },
+      { type: 'buildingsNear', color: '#3070A0', opacity: 0.5,  height: 0.2 },
+    ],
+  },
+  sonic: {
+    sky: ['#3898FF', '#60B0FF', '#A0D8FF'],
+    layers: [
+      { type: 'hills',   color: '#50C850', opacity: 0.3,  height: 0.35 },
+      { type: 'hills',   color: '#38B038', opacity: 0.45, height: 0.25 },
+      { type: 'bushes',  color: '#209020', opacity: 0.6,  height: 0.15 },
+    ],
+  },
+  gravityfalls: {
+    sky: ['#0A1020', '#182838', '#0E1820'],
+    layers: [
+      { type: 'mountains', color: '#0E1820', opacity: 0.35, height: 0.35 },
+      { type: 'forest',    color: '#0A1218', opacity: 0.55, height: 0.25 },
+      { type: 'pines',     color: '#060E10', opacity: 0.75, height: 0.18 },
+    ],
+  },
+  fortnite: {
+    sky: ['#0A0818', '#181030', '#100A20'],
+    layers: [
+      { type: 'mountains', color: '#100A20', opacity: 0.4,  height: 0.35 },
+      { type: 'hills',     color: '#0C0818', opacity: 0.55, height: 0.25 },
+      { type: 'pines',     color: '#080510', opacity: 0.75, height: 0.15 },
+    ],
+  },
 };
 
 // ── Main Component ───────────────────────────────────────────────────
