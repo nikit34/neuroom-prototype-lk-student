@@ -147,11 +147,11 @@ export default function HomeScreen() {
                 >
                   <View style={styles.cardInfo}>
                     <Text style={[styles.hwTitle, { color: theme.colors.text }]} numberOfLines={1}>
-                      {hw.title}
+                      {hw.subject}
                     </Text>
                     <View style={styles.hwSubRow}>
-                      <Text style={[styles.hwSubject, { color: theme.colors.textSecondary }]}>
-                        {hw.subject}
+                      <Text style={[styles.hwSubject, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+                        {hw.title}
                       </Text>
                       <BonusTimer homework={hw} />
                     </View>

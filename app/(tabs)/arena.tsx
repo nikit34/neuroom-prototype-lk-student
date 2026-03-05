@@ -212,30 +212,29 @@ export default function ArenaScreen() {
           data={leaderboard}
           keyExtractor={(item) => item.id}
           renderItem={({ item, index }) => (
-            <LeaderboardRow
-              rank={index + 1}
-              name={item.name}
-              points={item.totalPoints}
-              avatarEmoji={item.avatarEmoji}
-              isCurrentUser={item.isCurrentUser}
-              onPress={item.isCurrentUser ? () => setTipVisible((v) => !v) : undefined}
-            />
+            <>
+              <LeaderboardRow
+                rank={index + 1}
+                name={item.name}
+                points={item.totalPoints}
+                avatarEmoji={item.avatarEmoji}
+                isCurrentUser={item.isCurrentUser}
+                onPress={item.isCurrentUser ? () => setTipVisible((v) => !v) : undefined}
+              />
+              {item.isCurrentUser && tipVisible && (
+                <TouchableOpacity
+                  style={[styles.tipCard, { backgroundColor: theme.colors.primary + '15', borderColor: theme.colors.primary }]}
+                  onPress={() => setTipVisible(false)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.tipText, { color: theme.colors.text }]}>{tip}</Text>
+                </TouchableOpacity>
+              )}
+            </>
           )}
-          getItemLayout={(_, index) => ({ length: ROW_HEIGHT, offset: ROW_HEIGHT * index, index })}
           onLayout={scrollToStudent}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
-          ListHeaderComponent={
-            tipVisible ? (
-              <TouchableOpacity
-                style={[styles.tipCard, { backgroundColor: theme.colors.primary + '15', borderColor: theme.colors.primary }]}
-                onPress={() => setTipVisible(false)}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.tipText, { color: theme.colors.text }]}>{tip}</Text>
-              </TouchableOpacity>
-            ) : null
-          }
         />
       );
     }
