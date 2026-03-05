@@ -44,7 +44,7 @@ export default function FeedbackScreen() {
           Обратная связь
         </Text>
         <Text style={[styles.hwTitle, { color: theme.colors.textSecondary }]}>
-          {homework.title} ({homework.subject})
+          {homework.subject}
         </Text>
 
         {/* Grade if available */}

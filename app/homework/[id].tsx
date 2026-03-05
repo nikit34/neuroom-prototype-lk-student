@@ -66,53 +66,18 @@ export default function HomeworkDetailScreen() {
           <StatusChip status={homework.status} />
         </View>
         <Text style={[styles.title, { color: theme.colors.text }]}>
-          {homework.title}
-        </Text>
-        <Text style={[styles.subject, { color: theme.colors.primary }]}>
           {homework.subject}
         </Text>
 
-        {/* Actions */}
-        <View style={styles.actions}>
-          {canSubmit && (
-            <Button
-              title="Сдать работу"
-              icon="📤"
-              onPress={() => router.push(`/homework/submit/${homework.id}`)}
-            />
-          )}
+        {/* Description (задание) */}
+        <Text style={[styles.description, { color: theme.colors.text }]}>
+          {homework.description}
+        </Text>
 
-          {isGraded && (
-            <View style={styles.actionGap}>
-              <Button
-                title="Оспорить оценку"
-                icon="💬"
-                variant="outline"
-                onPress={() =>
-                  router.push(
-                    `/chat/${homework.teacher.id}?dispute=true&hwTitle=${encodeURIComponent(homework.title)}&grade=${homework.grade}/${homework.maxGrade}`,
-                  )
-                }
-              />
-            </View>
-          )}
-
-          {(homework.aiFeedback || homework.teacherFeedback) && (
-            <View style={styles.actionGap}>
-              <Button
-                title="Разобрать ошибки"
-                icon="🔍"
-                variant="secondary"
-                onPress={handleDeepAnalysis}
-                loading={analyzing}
-              />
-            </View>
-          )}
-        </View>
-
-        {/* Graded: Grade → AI Feedback → Teacher Feedback → Submissions first */}
+        {/* Graded flow */}
         {isGraded && (
           <>
+            {/* Grade */}
             {homework.grade !== undefined && (
               <Card style={styles.gradeCard}>
                 <Text style={[styles.sectionTitle, { color: theme.colors.text, marginTop: 0 }]}>
@@ -137,6 +102,7 @@ export default function HomeworkDetailScreen() {
               </Card>
             )}
 
+            {/* AI Feedback */}
             {homework.aiFeedback && (
               <FeedbackBubble
                 text={homework.aiFeedback}
@@ -149,6 +115,7 @@ export default function HomeworkDetailScreen() {
               />
             )}
 
+            {/* Teacher Feedback */}
             {homework.teacherFeedback && (
               <FeedbackBubble
                 text={homework.teacherFeedback}
@@ -157,6 +124,100 @@ export default function HomeworkDetailScreen() {
               />
             )}
 
+            {/* Dispute + Deep analysis */}
+            <View style={styles.actions}>
+              <Button
+                title="Оспорить оценку"
+                icon="💬"
+                variant="outline"
+                onPress={() =>
+                  router.push(
+                    `/chat/${homework.teacher.id}?dispute=true&hwTitle=${encodeURIComponent(homework.subject)}&grade=${homework.grade}/${homework.maxGrade}`,
+                  )
+                }
+              />
+              {(homework.aiFeedback || homework.teacherFeedback) && (
+                <View style={styles.actionGap}>
+                  <Button
+                    title="Разобрать ошибки"
+                    icon="🔍"
+                    variant="secondary"
+                    onPress={handleDeepAnalysis}
+                    loading={analyzing}
+                  />
+                </View>
+              )}
+            </View>
+
+            {/* Submissions */}
+            {homework.submissions.length > 0 && (
+              <>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                  Мои ответы ({homework.submissions.length})
+                </Text>
+                {homework.submissions.map((sub) => (
+                  <Card key={sub.id} style={styles.submissionCard}>
+                    <View style={styles.submissionRow}>
+                      <Text style={styles.submissionIcon}>
+                        {sub.fileType === 'photo' ? '📸' : '📄'}
+                      </Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.submissionType, { color: theme.colors.text }]}>
+                          {sub.fileType === 'photo' ? 'Фотография' : 'Документ'}
+                        </Text>
+                        <Text style={[styles.submissionDate, { color: theme.colors.textSecondary }]}>
+                          {formatDateRu(sub.submittedAt)}
+                        </Text>
+                      </View>
+                    </View>
+                  </Card>
+                ))}
+              </>
+            )}
+
+            {/* Deadline + Submitted date */}
+            <Card style={styles.infoCard}>
+              <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
+                Дедлайн
+              </Text>
+              <DeadlineIndicator deadline={homework.deadline} />
+            </Card>
+            {homework.submissions.length > 0 && (
+              <Card style={styles.infoCard}>
+                <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
+                  Сдано
+                </Text>
+                <Text style={[styles.infoValue, { color: theme.colors.text }]}>
+                  {formatDateRu(homework.submissions[homework.submissions.length - 1].submittedAt)}
+                </Text>
+              </Card>
+            )}
+          </>
+        )}
+
+        {/* Non-graded flow */}
+        {!isGraded && (
+          <>
+            {/* Actions */}
+            <View style={styles.actions}>
+              {canSubmit && (
+                <Button
+                  title="Сдать работу"
+                  icon="📤"
+                  onPress={() => router.push(`/homework/submit/${homework.id}`)}
+                />
+              )}
+            </View>
+
+            {/* Deadline */}
+            <Card style={styles.infoCard}>
+              <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
+                Дедлайн
+              </Text>
+              <DeadlineIndicator deadline={homework.deadline} />
+            </Card>
+
+            {/* Submissions */}
             {homework.submissions.length > 0 && (
               <>
                 <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -183,97 +244,6 @@ export default function HomeworkDetailScreen() {
             )}
           </>
         )}
-
-        {/* Deadline */}
-        <Card style={styles.infoCard}>
-          <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
-            Дедлайн
-          </Text>
-          <DeadlineIndicator deadline={homework.deadline} />
-        </Card>
-
-        {/* Submissions (original position for non-graded) */}
-        {!isGraded && homework.submissions.length > 0 && (
-          <>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-              Мои ответы ({homework.submissions.length})
-            </Text>
-            {homework.submissions.map((sub) => (
-              <Card key={sub.id} style={styles.submissionCard}>
-                <View style={styles.submissionRow}>
-                  <Text style={styles.submissionIcon}>
-                    {sub.fileType === 'photo' ? '📸' : '📄'}
-                  </Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.submissionType, { color: theme.colors.text }]}>
-                      {sub.fileType === 'photo' ? 'Фотография' : 'Документ'}
-                    </Text>
-                    <Text style={[styles.submissionDate, { color: theme.colors.textSecondary }]}>
-                      {formatDateRu(sub.submittedAt)}
-                    </Text>
-                  </View>
-                </View>
-              </Card>
-            ))}
-          </>
-        )}
-
-        {/* Grade (non-graded only, graded shown at top) */}
-        {!isGraded && homework.grade !== undefined && (
-          <Card style={styles.gradeCard}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text, marginTop: 0 }]}>
-              Оценка
-            </Text>
-            <View style={styles.gradeRow}>
-              <Text style={styles.gradeEmoji}>
-                {getGradeEmoji(homework.grade, homework.maxGrade)}
-              </Text>
-              <Text
-                style={[
-                  styles.gradeValue,
-                  { color: getGradeColor(homework.grade, homework.maxGrade) },
-                ]}
-              >
-                {homework.grade}/{homework.maxGrade}
-              </Text>
-            </View>
-            <Text style={[styles.gradeLabel, { color: theme.colors.textSecondary }]}>
-              {getGradeLabel(homework.grade, homework.maxGrade)}
-            </Text>
-          </Card>
-        )}
-
-        {/* AI Feedback (non-graded only) */}
-        {!isGraded && homework.aiFeedback && (
-          <FeedbackBubble
-            text={homework.aiFeedback}
-            type="ai"
-            timestamp={
-              homework.submissions.length > 0
-                ? homework.submissions[homework.submissions.length - 1].submittedAt
-                : homework.createdAt
-            }
-          />
-        )}
-
-        {/* Teacher Feedback (non-graded only) */}
-        {!isGraded && homework.teacherFeedback && (
-          <FeedbackBubble
-            text={homework.teacherFeedback}
-            type="teacher"
-            timestamp={homework.createdAt}
-          />
-        )}
-
-        {/* Description */}
-        <Card style={styles.infoCard}>
-          <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
-            Описание
-          </Text>
-          <Text style={[styles.description, { color: theme.colors.text }]}>
-            {homework.description}
-          </Text>
-        </Card>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -305,11 +275,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 4,
   },
-  subject: {
-    fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 16,
-  },
   infoCard: {
     marginBottom: 10,
   },
@@ -327,6 +292,7 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 15,
     lineHeight: 22,
+    marginBottom: 8,
   },
   sectionTitle: {
     fontSize: 18,
@@ -377,6 +343,7 @@ const styles = StyleSheet.create({
   },
   actions: {
     marginTop: 24,
+    marginBottom: 16,
   },
   actionGap: {
     marginTop: 10,

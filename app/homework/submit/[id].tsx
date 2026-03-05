@@ -150,7 +150,7 @@ export default function SubmitHomeworkScreen() {
             </Text>
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: theme.colors.text }]} numberOfLines={1}>
-            {homework.title}
+            {homework.subject}
           </Text>
           <View style={{ width: 70 }} />
         </View>
@@ -217,8 +217,8 @@ export default function SubmitHomeworkScreen() {
             <Text style={styles.closeBtnText}>✕</Text>
           </TouchableOpacity>
           <View style={styles.topInfo}>
-            <Text style={styles.topTitle} numberOfLines={1}>{homework.title}</Text>
-            <Text style={styles.topSubtitle}>{homework.subject}</Text>
+            <Text style={styles.topTitle} numberOfLines={1}>{homework.subject}</Text>
+            <Text style={styles.topSubtitle} numberOfLines={1}>{homework.description.split('\n')[0]}</Text>
           </View>
           <View style={{ width: 44 }} />
         </SafeAreaView>

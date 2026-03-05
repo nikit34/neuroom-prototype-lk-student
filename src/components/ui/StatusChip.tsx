@@ -10,8 +10,8 @@ interface StatusChipProps {
 const STATUS_CONFIG: Record<HomeworkStatus, { label: string; color: string }> = {
   pending: { label: 'Ожидает сдачи', color: '#F59E0B' },
   submitted: { label: 'Отправлено', color: '#3B82F6' },
-  ai_reviewed: { label: 'Проверено ИИ', color: '#8B5CF6' },
-  graded: { label: 'Оценено', color: '#10B981' },
+  ai_reviewed: { label: 'Проверено Нейрумом', color: '#8B5CF6' },
+  graded: { label: 'Проверено учителем', color: '#10B981' },
   resubmit: { label: 'На доработку', color: '#EF4444' },
   disputed: { label: 'Оспорено', color: '#F97316' },
 };

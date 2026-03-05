@@ -50,10 +50,11 @@ export default function HomeScreen() {
   const assignments = useHomeworkStore((s) => s.assignments);
   const achievements = useAchievementStore((s) => s.achievements);
 
-  const nearestAchievement = useMemo(() => {
+  const nearestAchievements = useMemo(() => {
     return achievements
       .filter((a) => a.isLocked && a.progress > 0)
-      .sort((a, b) => b.progress - a.progress)[0] ?? null;
+      .sort((a, b) => b.progress - a.progress)
+      .slice(0, 3);
   }, [achievements]);
 
   const { height: screenHeight } = useWindowDimensions();
@@ -88,23 +89,24 @@ export default function HomeScreen() {
             <View style={styles.healthSection}>
               <MascotHealthBar health={student.mascotHealth} />
             </View>
-            {nearestAchievement && (
+            {nearestAchievements.map((ach) => (
               <TouchableOpacity
+                key={ach.id}
                 style={[styles.nearestReward, { backgroundColor: theme.colors.surface }]}
-                onPress={() => router.push(`/achievements/${nearestAchievement.id}`)}
+                onPress={() => router.push(`/achievements/${ach.id}`)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.nearestRewardIcon}>{nearestAchievement.icon}</Text>
+                <Text style={styles.nearestRewardIcon}>{ach.icon}</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.nearestRewardTitle, { color: theme.colors.text }]} numberOfLines={1}>
-                    {nearestAchievement.title}
+                    {ach.title}
                   </Text>
                   <Text style={[styles.nearestRewardProgress, { color: theme.colors.primary }]}>
-                    {nearestAchievement.progress}%
+                    {ach.progress}%
                   </Text>
                 </View>
               </TouchableOpacity>
-            )}
+            ))}
           </Card>
           <View style={[styles.mascotContainer, { width: topBlockHeight, height: topBlockHeight }]}>
             <Mascot health={student.mascotHealth} showHealthBar={false} size={Math.round(topBlockHeight / 1.8)} compact />
