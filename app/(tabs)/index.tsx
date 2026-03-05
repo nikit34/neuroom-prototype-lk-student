@@ -87,9 +87,6 @@ export default function HomeScreen() {
           <Card style={styles.streakCard}>
             <View style={styles.healthSection}>
               <MascotHealthBar health={student.mascotHealth} />
-              <Text style={[styles.healthLabel, { color: theme.colors.textSecondary }]}>
-                Здоровье: {student.mascotHealth}%
-              </Text>
             </View>
             {nearestAchievement && (
               <TouchableOpacity
@@ -243,11 +240,6 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: 4,
     marginBottom: 6,
-  },
-  healthLabel: {
-    fontSize: 10,
-    textAlign: 'center',
-    marginTop: 3,
   },
   nearestReward: {
     flexDirection: 'row',

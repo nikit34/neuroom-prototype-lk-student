@@ -96,13 +96,15 @@ export default function ArenaScreen() {
 
   const leaderboard = useMemo(() => {
     const all = [
-      ...mockClassmates.map((c) => ({
-        id: c.id,
-        name: `${c.firstName} ${c.lastName}`,
-        totalPoints: c.totalPoints,
-        avatarEmoji: c.avatarEmoji,
-        isCurrentUser: false,
-      })),
+      ...mockClassmates
+        .filter((c) => c.id !== student.id)
+        .map((c) => ({
+          id: c.id,
+          name: `${c.firstName} ${c.lastName}`,
+          totalPoints: c.totalPoints,
+          avatarEmoji: c.avatarEmoji,
+          isCurrentUser: false,
+        })),
       {
         id: student.id,
         name: `${student.firstName} ${student.lastName}`,
@@ -211,6 +213,20 @@ export default function ArenaScreen() {
           ref={leaderboardRef}
           data={leaderboard}
           keyExtractor={(item) => item.id}
+          getItemLayout={(_, index) => ({
+            length: ROW_HEIGHT,
+            offset: ROW_HEIGHT * index,
+            index,
+          })}
+          onScrollToIndexFailed={(info) => {
+            setTimeout(() => {
+              leaderboardRef.current?.scrollToIndex({
+                index: info.index,
+                viewPosition: 0.5,
+                animated: false,
+              });
+            }, 100);
+          }}
           renderItem={({ item, index }) => (
             <>
               <LeaderboardRow

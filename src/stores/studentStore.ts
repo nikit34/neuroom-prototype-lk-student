@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Student } from '../types';
-import { mockStudent, StudentListItem } from '../data/mockData';
+import { mockStudent, mockClassmates, StudentListItem } from '../data/mockData';
 
 interface StudentState {
   student: Student;
@@ -17,7 +17,8 @@ interface StudentState {
 export const useStudentStore = create<StudentState>((set) => ({
   student: { ...mockStudent },
 
-  selectStudent: (item) =>
+  selectStudent: (item) => {
+    const classmate = mockClassmates.find((c) => c.id === item.id);
     set({
       student: {
         id: item.id,
@@ -29,9 +30,10 @@ export const useStudentStore = create<StudentState>((set) => ({
         mascotHealth: 70,
         earlyStreak: 0,
         xpMultiplier: 1,
-        totalPoints: 0,
+        totalPoints: classmate?.totalPoints ?? 0,
       },
-    }),
+    });
+  },
 
   updateMascotHealth: (delta) =>
     set((state) => ({

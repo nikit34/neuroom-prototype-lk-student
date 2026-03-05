@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAchievementStore } from '@/src/stores/achievementStore';
 import { useStudentStore } from '@/src/stores/studentStore';
+import { useArenaStore } from '@/src/stores/arenaStore';
 import { AchievementCategory } from '@/src/types';
 import { mockClassmates } from '@/src/data/mockData';
 import AchievementBadge from '@/src/components/achievements/AchievementBadge';
@@ -36,6 +37,8 @@ export default function ProgressScreen() {
   const router = useRouter();
   const achievements = useAchievementStore((s) => s.achievements);
   const student = useStudentStore((s) => s.student);
+  const questsEnabled = useArenaStore((s) => s.questsEnabled);
+  const challengesEnabled = useArenaStore((s) => s.challengesEnabled);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
 
   const filtered = useMemo(
@@ -79,6 +82,8 @@ export default function ProgressScreen() {
           contentContainerStyle={styles.tabsRow}
         >
           {CATEGORY_TABS.map((tab) => {
+            if (tab.key === 'team_quest' && !questsEnabled) return null;
+            if (tab.key === 'challenge' && !challengesEnabled) return null;
             const active = categoryFilter === tab.key;
             const count = tab.key === 'all'
               ? achievements.length
@@ -162,7 +167,7 @@ export default function ProgressScreen() {
           <View style={styles.arenaContent}>
             <Text style={[styles.arenaTitle, { color: theme.colors.text }]}>Арена</Text>
             <Text style={[styles.arenaSubtitle, { color: theme.colors.textSecondary }]}>
-              Дуэли, квесты и испытания
+              Дуэли{questsEnabled ? ', квесты' : ''}{challengesEnabled ? ' и испытания' : ''}
             </Text>
           </View>
           <Text style={[styles.arenaArrow, { color: theme.colors.textSecondary }]}>›</Text>
