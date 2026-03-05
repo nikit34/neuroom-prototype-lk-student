@@ -807,4 +807,4 @@ export const allCharacters: import('../types').ThemeCharacter[] = [
   { id: 'hw-owl', name: 'Сова', emoji: '🦉', mascotEmojis: { sick: '😷', sad: '😿', neutral: '🦉', happy: '📜', thriving: '✨' } },
 ];
 
-export const defaultTheme: AppTheme = genshinTheme;
+export const defaultTheme: AppTheme = sakuraTheme;
