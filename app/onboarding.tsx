@@ -15,7 +15,7 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useThemeStore } from '@/src/stores/themeStore';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
-import { themes, allCharacters, defaultTheme, seniorThemes, juniorThemes } from '@/src/theme/themes';
+import { themes, allCharacters, seniorThemes, juniorThemes } from '@/src/theme/themes';
 import { AppTheme, ThemeCharacter } from '@/src/types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -33,8 +33,10 @@ export default function OnboardingScreen() {
 
   const ageGroup = useThemeStore((s) => s.ageGroup);
 
+  const genderTheme = (g: 'male' | 'female') => g === 'male' ? 'genshin' : 'sakura';
+
   useEffect(() => {
-    setThemeId(defaultTheme.id);
+    setThemeId(genderTheme(student.gender));
     setCharacterId('pk-pikachu');
   }, []);
 
@@ -64,6 +66,7 @@ export default function OnboardingScreen() {
   const handleNext = () => {
     if (step === 1) {
       setGender(selectedGender);
+      setThemeId(genderTheme(selectedGender));
     }
     if (step < TOTAL_STEPS - 1) {
       animateTransition(step + 1);
