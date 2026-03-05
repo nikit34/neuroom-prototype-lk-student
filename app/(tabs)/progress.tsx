@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -55,10 +55,42 @@ export default function ProgressScreen() {
     return { unlocked, total: achievements.length };
   }, [achievements]);
 
-  const sortedClassmates = [...mockClassmates].sort(
-    (a, b) => b.totalPoints - a.totalPoints,
-  );
-  const top10 = sortedClassmates.slice(0, 10);
+  const leaderboard = useMemo(() => {
+    const all = [
+      ...mockClassmates
+        .filter((c) => c.id !== student.id)
+        .map((c) => ({
+          id: c.id,
+          name: `${c.firstName} ${c.lastName}`,
+          totalPoints: c.totalPoints,
+          avatarEmoji: c.avatarEmoji,
+          isCurrentUser: false,
+        })),
+      {
+        id: student.id,
+        name: `${student.firstName} ${student.lastName}`,
+        totalPoints: student.totalPoints,
+        avatarEmoji: '🐺',
+        isCurrentUser: true,
+      },
+    ];
+    return all.sort((a, b) => b.totalPoints - a.totalPoints);
+  }, [student.totalPoints, student.firstName, student.lastName, student.id]);
+
+  const currentUserIndex = leaderboard.findIndex((e) => e.isCurrentUser);
+  const [tipVisible, setTipVisible] = useState(false);
+
+  const tip = useMemo(() => {
+    if (currentUserIndex <= 0) return 'Вы на первом месте! Продолжайте в том же духе!';
+    const above = leaderboard[currentUserIndex - 1];
+    const gap = above.totalPoints - student.totalPoints;
+    const hints = [
+      `До ${above.name.split(' ')[0]} — всего ${gap} очков. Сдайте ДЗ пораньше для бонуса!`,
+      `Не хватает ${gap} очков до ${currentUserIndex}-го места. Выиграйте дуэль — это +50!`,
+      `${gap} очков отделяют вас от ${above.name.split(' ')[0]}. Серия ДЗ вовремя даст множитель!`,
+    ];
+    return hints[currentUserIndex % hints.length];
+  }, [currentUserIndex, leaderboard, student.totalPoints]);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
@@ -148,18 +180,27 @@ export default function ProgressScreen() {
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           Лидерборд
         </Text>
-        <Card style={styles.leaderboardCard}>
-          {top10.map((classmate, index) => (
+        {leaderboard.map((item, index) => (
+          <React.Fragment key={item.id}>
             <LeaderboardRow
-              key={classmate.id}
-              name={`${classmate.firstName} ${classmate.lastName}`}
-              points={classmate.totalPoints}
-              avatarEmoji={classmate.avatarEmoji}
               rank={index + 1}
-              isCurrentUser={classmate.totalPoints === student.totalPoints}
+              name={item.name}
+              points={item.totalPoints}
+              avatarEmoji={item.avatarEmoji}
+              isCurrentUser={item.isCurrentUser}
+              onPress={item.isCurrentUser ? () => setTipVisible((v) => !v) : undefined}
             />
-          ))}
-        </Card>
+            {item.isCurrentUser && tipVisible && (
+              <TouchableOpacity
+                style={[styles.tipCard, { backgroundColor: theme.colors.primary + '15', borderColor: theme.colors.primary }]}
+                onPress={() => setTipVisible(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.tipText, { color: theme.colors.text }]}>{tip}</Text>
+              </TouchableOpacity>
+            )}
+          </React.Fragment>
+        ))}
 
         {/* Arena link */}
         <Card style={styles.arenaCard} onPress={() => router.push('/(tabs)/arena')}>
@@ -240,9 +281,15 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 12,
   },
-  leaderboardCard: {
-    paddingHorizontal: 0,
-    paddingVertical: 4,
+  tipCard: {
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  tipText: {
+    fontSize: 13,
+    lineHeight: 18,
   },
   arenaCard: {
     flexDirection: 'row',
