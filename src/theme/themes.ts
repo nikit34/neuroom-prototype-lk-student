@@ -10,32 +10,6 @@ const sakuraTheme: AppTheme = {
   emoji: '🌸',
   ageGroup: 'senior',
   backgroundEmojis: ['🌸', '🏯', '🎎', '🍡', '🎐', '🌺'],
-  characters: [
-    {
-      id: 'sk-hanami',
-      name: 'Ханами',
-      emoji: '🌸',
-      mascotEmojis: { sick: '🥀', sad: '😢', neutral: '🌸', happy: '💮', thriving: '✨' },
-    },
-    {
-      id: 'sk-samurai',
-      name: 'Самурай',
-      emoji: '⚔️',
-      mascotEmojis: { sick: '🤕', sad: '😔', neutral: '⚔️', happy: '🎌', thriving: '🏯' },
-    },
-    {
-      id: 'sk-geisha',
-      name: 'Гейша',
-      emoji: '🎎',
-      mascotEmojis: { sick: '😷', sad: '😿', neutral: '🎎', happy: '🌺', thriving: '👘' },
-    },
-    {
-      id: 'sk-kitsune',
-      name: 'Кицунэ',
-      emoji: '🦊',
-      mascotEmojis: { sick: '😵', sad: '😥', neutral: '🦊', happy: '🔮', thriving: '🌙' },
-    },
-  ],
   colors: {
     primary: '#E8A0BF',
     secondary: '#F2C6DE',
@@ -62,32 +36,6 @@ const animeTheme: AppTheme = {
   emoji: '⛩️',
   ageGroup: 'senior',
   backgroundEmojis: ['🍥', '⛩️', '🌸', '✨', '💮', '🥷'],
-  characters: [
-    {
-      id: 'anime-naruto',
-      name: 'Наруто',
-      emoji: '🍥',
-      mascotEmojis: { sick: '😵', sad: '😤', neutral: '🍥', happy: '💪', thriving: '🌀' },
-    },
-    {
-      id: 'anime-ninja',
-      name: 'Ниндзя',
-      emoji: '🥷',
-      mascotEmojis: { sick: '🤕', sad: '😶', neutral: '🥷', happy: '⚡', thriving: '🔥' },
-    },
-    {
-      id: 'anime-sakura',
-      name: 'Сакура',
-      emoji: '🌸',
-      mascotEmojis: { sick: '🥀', sad: '😢', neutral: '🌸', happy: '💮', thriving: '✨' },
-    },
-    {
-      id: 'anime-sensei',
-      name: 'Сенсей',
-      emoji: '📖',
-      mascotEmojis: { sick: '😷', sad: '😑', neutral: '📖', happy: '🎓', thriving: '👑' },
-    },
-  ],
   colors: {
     primary: '#C850C0',
     secondary: '#FF6B9D',
@@ -114,32 +62,6 @@ const marvelTheme: AppTheme = {
   emoji: '🦸',
   ageGroup: 'senior',
   backgroundEmojis: ['🦸', '⚡', '🛡️', '🕷️', '🔨', '💥'],
-  characters: [
-    {
-      id: 'mv-ironman',
-      name: 'Железный человек',
-      emoji: '🤖',
-      mascotEmojis: { sick: '⚙️', sad: '😤', neutral: '🤖', happy: '🔥', thriving: '💎' },
-    },
-    {
-      id: 'mv-spider',
-      name: 'Паук',
-      emoji: '🕷️',
-      mascotEmojis: { sick: '🕸️', sad: '😟', neutral: '🕷️', happy: '🤸', thriving: '⚡' },
-    },
-    {
-      id: 'mv-captain',
-      name: 'Капитан',
-      emoji: '🛡️',
-      mascotEmojis: { sick: '🩹', sad: '😔', neutral: '🛡️', happy: '💪', thriving: '⭐' },
-    },
-    {
-      id: 'mv-thor',
-      name: 'Тор',
-      emoji: '🔨',
-      mascotEmojis: { sick: '😵', sad: '🌧️', neutral: '🔨', happy: '⚡', thriving: '👑' },
-    },
-  ],
   colors: {
     primary: '#E23636',
     secondary: '#518CCA',
@@ -166,32 +88,6 @@ const onepieceTheme: AppTheme = {
   emoji: '☠️',
   ageGroup: 'senior',
   backgroundEmojis: ['☠️', '⛵', '🌊', '🏝️', '🗡️', '🍖'],
-  characters: [
-    {
-      id: 'op-luffy',
-      name: 'Луффи',
-      emoji: '🏴‍☠️',
-      mascotEmojis: { sick: '🤕', sad: '😤', neutral: '🏴‍☠️', happy: '🍖', thriving: '👑' },
-    },
-    {
-      id: 'op-zoro',
-      name: 'Зоро',
-      emoji: '🗡️',
-      mascotEmojis: { sick: '🩹', sad: '😑', neutral: '🗡️', happy: '⚔️', thriving: '🔥' },
-    },
-    {
-      id: 'op-nami',
-      name: 'Нами',
-      emoji: '🗺️',
-      mascotEmojis: { sick: '😷', sad: '😢', neutral: '🗺️', happy: '💰', thriving: '🌊' },
-    },
-    {
-      id: 'op-chopper',
-      name: 'Чоппер',
-      emoji: '🦌',
-      mascotEmojis: { sick: '🤒', sad: '😿', neutral: '🦌', happy: '💊', thriving: '⭐' },
-    },
-  ],
   colors: {
     primary: '#D4A843',
     secondary: '#F0D060',
@@ -218,32 +114,6 @@ const kpopTheme: AppTheme = {
   emoji: '🎤',
   ageGroup: 'senior',
   backgroundEmojis: ['🎤', '💜', '🎶', '✨', '💃', '🎧'],
-  characters: [
-    {
-      id: 'kp-idol',
-      name: 'Айдол',
-      emoji: '🎤',
-      mascotEmojis: { sick: '😷', sad: '😢', neutral: '🎤', happy: '💜', thriving: '👑' },
-    },
-    {
-      id: 'kp-dancer',
-      name: 'Танцор',
-      emoji: '💃',
-      mascotEmojis: { sick: '🤕', sad: '😔', neutral: '💃', happy: '🎶', thriving: '🌟' },
-    },
-    {
-      id: 'kp-rapper',
-      name: 'Рэпер',
-      emoji: '🎧',
-      mascotEmojis: { sick: '😵', sad: '😤', neutral: '🎧', happy: '🔥', thriving: '⚡' },
-    },
-    {
-      id: 'kp-producer',
-      name: 'Продюсер',
-      emoji: '🎹',
-      mascotEmojis: { sick: '😮‍💨', sad: '😑', neutral: '🎹', happy: '🎵', thriving: '💎' },
-    },
-  ],
   colors: {
     primary: '#C850C0',
     secondary: '#FF80C0',
@@ -270,32 +140,6 @@ const genshinTheme: AppTheme = {
   emoji: '✨',
   ageGroup: 'senior',
   backgroundEmojis: ['✨', '⚡', '🌸', '🗡️', '🌟', '🔥'],
-  characters: [
-    {
-      id: 'gs-traveler',
-      name: 'Путешественник',
-      emoji: '⭐',
-      mascotEmojis: { sick: '😵', sad: '😔', neutral: '⭐', happy: '✨', thriving: '🌟' },
-    },
-    {
-      id: 'gs-paimon',
-      name: 'Паймон',
-      emoji: '🌟',
-      mascotEmojis: { sick: '😷', sad: '🥺', neutral: '🌟', happy: '🍖', thriving: '👑' },
-    },
-    {
-      id: 'gs-archon',
-      name: 'Архонт',
-      emoji: '⚡',
-      mascotEmojis: { sick: '😮‍💨', sad: '😢', neutral: '⚡', happy: '🔥', thriving: '💎' },
-    },
-    {
-      id: 'gs-adeptus',
-      name: 'Адепт',
-      emoji: '🌸',
-      mascotEmojis: { sick: '🥀', sad: '😥', neutral: '🌸', happy: '💮', thriving: '🏔️' },
-    },
-  ],
   colors: {
     primary: '#4878C8',
     secondary: '#80B0E8',
@@ -324,32 +168,6 @@ const csgoTheme: AppTheme = {
   emoji: '🔫',
   ageGroup: 'senior',
   backgroundEmojis: ['🔫', '💣', '🎯', '⚔️', '🛡️', '💥'],
-  characters: [
-    {
-      id: 'csgo-ct',
-      name: 'Контр-террорист',
-      emoji: '🛡️',
-      mascotEmojis: { sick: '💀', sad: '😰', neutral: '🛡️', happy: '😎', thriving: '🏆' },
-    },
-    {
-      id: 'csgo-t',
-      name: 'Террорист',
-      emoji: '💣',
-      mascotEmojis: { sick: '💀', sad: '😤', neutral: '💣', happy: '🔥', thriving: '⚡' },
-    },
-    {
-      id: 'csgo-awp',
-      name: 'AWPер',
-      emoji: '🎯',
-      mascotEmojis: { sick: '💀', sad: '😓', neutral: '🎯', happy: '🔫', thriving: '👑' },
-    },
-    {
-      id: 'csgo-spec',
-      name: 'Спецназ',
-      emoji: '⚔️',
-      mascotEmojis: { sick: '💀', sad: '😣', neutral: '⚔️', happy: '💪', thriving: '🦾' },
-    },
-  ],
   colors: {
     primary: '#E87B35',
     secondary: '#F5A623',
@@ -376,32 +194,6 @@ const gotTheme: AppTheme = {
   emoji: '🐉',
   ageGroup: 'senior',
   backgroundEmojis: ['🐉', '⚔️', '🛡️', '👑', '🏰', '🗡️'],
-  characters: [
-    {
-      id: 'got-dragon',
-      name: 'Дрогон',
-      emoji: '🐉',
-      mascotEmojis: { sick: '🥀', sad: '😔', neutral: '🐉', happy: '🔥', thriving: '👑' },
-    },
-    {
-      id: 'got-wolf',
-      name: 'Волк',
-      emoji: '🐺',
-      mascotEmojis: { sick: '🤕', sad: '🌧️', neutral: '🐺', happy: '🌙', thriving: '❄️' },
-    },
-    {
-      id: 'got-lion',
-      name: 'Лев',
-      emoji: '🦁',
-      mascotEmojis: { sick: '😵', sad: '😠', neutral: '🦁', happy: '💰', thriving: '⚔️' },
-    },
-    {
-      id: 'got-raven',
-      name: 'Трёхглазый',
-      emoji: '🐦‍⬛',
-      mascotEmojis: { sick: '💀', sad: '🌑', neutral: '🐦‍⬛', happy: '🔮', thriving: '👁️' },
-    },
-  ],
   colors: {
     primary: '#C9A84C',
     secondary: '#E8D282',
@@ -428,32 +220,6 @@ const twilightTheme: AppTheme = {
   emoji: '🧛',
   ageGroup: 'senior',
   backgroundEmojis: ['🧛', '🐺', '🌙', '🦇', '🩸', '🔮'],
-  characters: [
-    {
-      id: 'tw-vampire',
-      name: 'Вампир',
-      emoji: '🧛',
-      mascotEmojis: { sick: '💀', sad: '🌑', neutral: '🧛', happy: '🩸', thriving: '⚡' },
-    },
-    {
-      id: 'tw-werewolf',
-      name: 'Оборотень',
-      emoji: '🐺',
-      mascotEmojis: { sick: '🤒', sad: '😢', neutral: '🐺', happy: '🌕', thriving: '💪' },
-    },
-    {
-      id: 'tw-shewolf',
-      name: 'Волчица',
-      emoji: '🌙',
-      mascotEmojis: { sick: '😷', sad: '😿', neutral: '🌙', happy: '✨', thriving: '🌟' },
-    },
-    {
-      id: 'tw-mystic',
-      name: 'Мистик',
-      emoji: '🔮',
-      mascotEmojis: { sick: '😵‍💫', sad: '😶‍🌫️', neutral: '🔮', happy: '🌌', thriving: '🌠' },
-    },
-  ],
   colors: {
     primary: '#8B0A1A',
     secondary: '#C0C0C0',
@@ -480,32 +246,6 @@ const gagarinTheme: AppTheme = {
   emoji: '🚀',
   ageGroup: 'senior',
   backgroundEmojis: ['🚀', '🪐', '⭐', '🌌', '🛸', '☄️'],
-  characters: [
-    {
-      id: 'gg-cosmonaut',
-      name: 'Космонавт',
-      emoji: '🧑‍🚀',
-      mascotEmojis: { sick: '😵‍💫', sad: '😰', neutral: '🧑‍🚀', happy: '🚀', thriving: '🌟' },
-    },
-    {
-      id: 'gg-rocket',
-      name: 'Ракета',
-      emoji: '🚀',
-      mascotEmojis: { sick: '💨', sad: '😔', neutral: '🚀', happy: '🔥', thriving: '⭐' },
-    },
-    {
-      id: 'gg-alien',
-      name: 'Инопланетянин',
-      emoji: '👽',
-      mascotEmojis: { sick: '🤢', sad: '😕', neutral: '👽', happy: '🛸', thriving: '🌌' },
-    },
-    {
-      id: 'gg-star',
-      name: 'Звездочёт',
-      emoji: '🔭',
-      mascotEmojis: { sick: '😷', sad: '🌑', neutral: '🔭', happy: '🪐', thriving: '☄️' },
-    },
-  ],
   colors: {
     primary: '#6C5CE7',
     secondary: '#A29BFE',
@@ -532,32 +272,6 @@ const witcherTheme: AppTheme = {
   emoji: '🐺',
   ageGroup: 'senior',
   backgroundEmojis: ['🐺', '⚔️', '🧪', '🔮', '🏰', '🌲'],
-  characters: [
-    {
-      id: 'wt-geralt',
-      name: 'Ведьмак',
-      emoji: '🐺',
-      mascotEmojis: { sick: '🤕', sad: '😑', neutral: '🐺', happy: '⚔️', thriving: '🏆' },
-    },
-    {
-      id: 'wt-sorceress',
-      name: 'Чародейка',
-      emoji: '🔮',
-      mascotEmojis: { sick: '😵‍💫', sad: '😢', neutral: '🔮', happy: '✨', thriving: '💎' },
-    },
-    {
-      id: 'wt-bard',
-      name: 'Бард',
-      emoji: '🎵',
-      mascotEmojis: { sick: '😷', sad: '😔', neutral: '🎵', happy: '🎶', thriving: '🌟' },
-    },
-    {
-      id: 'wt-monster',
-      name: 'Чудовище',
-      emoji: '👹',
-      mascotEmojis: { sick: '💀', sad: '😤', neutral: '👹', happy: '🔥', thriving: '⚡' },
-    },
-  ],
   colors: {
     primary: '#C0A060',
     secondary: '#E0C888',
@@ -584,32 +298,6 @@ const aotTheme: AppTheme = {
   emoji: '⚔️',
   ageGroup: 'senior',
   backgroundEmojis: ['⚔️', '🛡️', '🏰', '💥', '🔥', '🦅'],
-  characters: [
-    {
-      id: 'aot-eren',
-      name: 'Эрен',
-      emoji: '🗡️',
-      mascotEmojis: { sick: '💀', sad: '😤', neutral: '🗡️', happy: '🔥', thriving: '⚡' },
-    },
-    {
-      id: 'aot-mikasa',
-      name: 'Микаса',
-      emoji: '⚔️',
-      mascotEmojis: { sick: '🤕', sad: '😢', neutral: '⚔️', happy: '💪', thriving: '🌟' },
-    },
-    {
-      id: 'aot-levi',
-      name: 'Леви',
-      emoji: '🦅',
-      mascotEmojis: { sick: '😷', sad: '😑', neutral: '🦅', happy: '⚔️', thriving: '👑' },
-    },
-    {
-      id: 'aot-armin',
-      name: 'Армин',
-      emoji: '📖',
-      mascotEmojis: { sick: '😵', sad: '😔', neutral: '📖', happy: '🌊', thriving: '🏆' },
-    },
-  ],
   colors: {
     primary: '#8B4513',
     secondary: '#C08050',
@@ -636,32 +324,6 @@ const valorantTheme: AppTheme = {
   emoji: '🎯',
   ageGroup: 'senior',
   backgroundEmojis: ['🎯', '💨', '👁️', '📡', '🔥', '⚡'],
-  characters: [
-    {
-      id: 'vl-jett',
-      name: 'Джетт',
-      emoji: '💨',
-      mascotEmojis: { sick: '😵', sad: '😤', neutral: '💨', happy: '⚡', thriving: '🌪️' },
-    },
-    {
-      id: 'vl-reyna',
-      name: 'Рейна',
-      emoji: '👁️',
-      mascotEmojis: { sick: '💀', sad: '😈', neutral: '👁️', happy: '🔥', thriving: '👑' },
-    },
-    {
-      id: 'vl-cypher',
-      name: 'Сайфер',
-      emoji: '📡',
-      mascotEmojis: { sick: '😷', sad: '😶', neutral: '📡', happy: '🎯', thriving: '💎' },
-    },
-    {
-      id: 'vl-phoenix',
-      name: 'Феникс',
-      emoji: '🔥',
-      mascotEmojis: { sick: '😮‍💨', sad: '😔', neutral: '🔥', happy: '☀️', thriving: '🌟' },
-    },
-  ],
   colors: {
     primary: '#FF4655',
     secondary: '#FF8090',
@@ -688,32 +350,6 @@ const lotrTheme: AppTheme = {
   emoji: '💍',
   ageGroup: 'senior',
   backgroundEmojis: ['💍', '🧙', '🏹', '⛏️', '🌳', '🦅'],
-  characters: [
-    {
-      id: 'lr-hobbit',
-      name: 'Хоббит',
-      emoji: '🍃',
-      mascotEmojis: { sick: '🤒', sad: '😢', neutral: '🍃', happy: '🥧', thriving: '💍' },
-    },
-    {
-      id: 'lr-wizard',
-      name: 'Маг',
-      emoji: '🧙',
-      mascotEmojis: { sick: '😵', sad: '😔', neutral: '🧙', happy: '✨', thriving: '⚡' },
-    },
-    {
-      id: 'lr-elf',
-      name: 'Эльф',
-      emoji: '🏹',
-      mascotEmojis: { sick: '😷', sad: '😥', neutral: '🏹', happy: '🌿', thriving: '🌟' },
-    },
-    {
-      id: 'lr-dwarf',
-      name: 'Гном',
-      emoji: '⛏️',
-      mascotEmojis: { sick: '🤕', sad: '😤', neutral: '⛏️', happy: '💎', thriving: '👑' },
-    },
-  ],
   colors: {
     primary: '#C9A84C',
     secondary: '#A0C878',
@@ -744,32 +380,6 @@ const frozenTheme: AppTheme = {
   emoji: '❄️',
   ageGroup: 'junior',
   backgroundEmojis: ['❄️', '⛄', '🌨️', '💎', '✨', '👸'],
-  characters: [
-    {
-      id: 'fz-elsa',
-      name: 'Эльза',
-      emoji: '👸',
-      mascotEmojis: { sick: '🥶', sad: '😢', neutral: '👸', happy: '❄️', thriving: '✨' },
-    },
-    {
-      id: 'fz-olaf',
-      name: 'Олаф',
-      emoji: '⛄',
-      mascotEmojis: { sick: '🫠', sad: '😥', neutral: '⛄', happy: '☀️', thriving: '🤗' },
-    },
-    {
-      id: 'fz-anna',
-      name: 'Анна',
-      emoji: '👧',
-      mascotEmojis: { sick: '🤒', sad: '😟', neutral: '👧', happy: '💕', thriving: '🌸' },
-    },
-    {
-      id: 'fz-sven',
-      name: 'Свен',
-      emoji: '🦌',
-      mascotEmojis: { sick: '🤕', sad: '😔', neutral: '🦌', happy: '🥕', thriving: '🎉' },
-    },
-  ],
   colors: {
     primary: '#5BA4CF',
     secondary: '#A3D5F7',
@@ -796,32 +406,6 @@ const minionsTheme: AppTheme = {
   emoji: '🍌',
   ageGroup: 'junior',
   backgroundEmojis: ['🍌', '😄', '🔧', '🧪', '🎸', '🦹'],
-  characters: [
-    {
-      id: 'mn-bob',
-      name: 'Боб',
-      emoji: '🧸',
-      mascotEmojis: { sick: '🤒', sad: '🥺', neutral: '🧸', happy: '😄', thriving: '🥳' },
-    },
-    {
-      id: 'mn-kevin',
-      name: 'Кевин',
-      emoji: '🍌',
-      mascotEmojis: { sick: '😷', sad: '😣', neutral: '🍌', happy: '😁', thriving: '🦸' },
-    },
-    {
-      id: 'mn-stuart',
-      name: 'Стюарт',
-      emoji: '🎸',
-      mascotEmojis: { sick: '🤕', sad: '😴', neutral: '🎸', happy: '🎶', thriving: '🤘' },
-    },
-    {
-      id: 'mn-gru',
-      name: 'Грю',
-      emoji: '🦹',
-      mascotEmojis: { sick: '😵', sad: '😤', neutral: '🦹', happy: '😏', thriving: '💎' },
-    },
-  ],
   colors: {
     primary: '#FFD02E',
     secondary: '#FEE680',
@@ -848,32 +432,6 @@ const pokemonTheme: AppTheme = {
   emoji: '⚡',
   ageGroup: 'junior',
   backgroundEmojis: ['⚡', '🔥', '💧', '🌿', '⭐', '🎯'],
-  characters: [
-    {
-      id: 'pk-pikachu',
-      name: 'Пикачу',
-      emoji: '⚡',
-      mascotEmojis: { sick: '😷', sad: '😢', neutral: '⚡', happy: '😊', thriving: '🌟' },
-    },
-    {
-      id: 'pk-charmander',
-      name: 'Чармандер',
-      emoji: '🔥',
-      mascotEmojis: { sick: '😮‍💨', sad: '😥', neutral: '🔥', happy: '😤', thriving: '🐉' },
-    },
-    {
-      id: 'pk-squirtle',
-      name: 'Сквиртл',
-      emoji: '🐢',
-      mascotEmojis: { sick: '🤒', sad: '😿', neutral: '🐢', happy: '💧', thriving: '🌊' },
-    },
-    {
-      id: 'pk-bulbasaur',
-      name: 'Бульбазавр',
-      emoji: '🌿',
-      mascotEmojis: { sick: '🥀', sad: '😔', neutral: '🌿', happy: '🌱', thriving: '🌺' },
-    },
-  ],
   colors: {
     primary: '#E3350D',
     secondary: '#FF6B6B',
@@ -900,32 +458,6 @@ const minecraftTheme: AppTheme = {
   emoji: '⛏️',
   ageGroup: 'junior',
   backgroundEmojis: ['⛏️', '🟫', '🌳', '🧨', '🐷', '💎'],
-  characters: [
-    {
-      id: 'mc-steve',
-      name: 'Стив',
-      emoji: '⛏️',
-      mascotEmojis: { sick: '💀', sad: '😥', neutral: '⛏️', happy: '💎', thriving: '🏆' },
-    },
-    {
-      id: 'mc-creeper',
-      name: 'Крипер',
-      emoji: '🧨',
-      mascotEmojis: { sick: '😵', sad: '😔', neutral: '🧨', happy: '💥', thriving: '⚡' },
-    },
-    {
-      id: 'mc-enderman',
-      name: 'Эндермен',
-      emoji: '👾',
-      mascotEmojis: { sick: '😷', sad: '😶', neutral: '👾', happy: '🌀', thriving: '🌟' },
-    },
-    {
-      id: 'mc-pig',
-      name: 'Свинка',
-      emoji: '🐷',
-      mascotEmojis: { sick: '🤒', sad: '😿', neutral: '🐷', happy: '🥕', thriving: '🎉' },
-    },
-  ],
   colors: {
     primary: '#5D8C3E',
     secondary: '#8BC34A',
@@ -952,32 +484,6 @@ const spongebobTheme: AppTheme = {
   emoji: '🧽',
   ageGroup: 'junior',
   backgroundEmojis: ['🧽', '⭐', '🎵', '🐿️', '🦑', '🍔'],
-  characters: [
-    {
-      id: 'sb-spongebob',
-      name: 'Губка Боб',
-      emoji: '🧽',
-      mascotEmojis: { sick: '🤒', sad: '😢', neutral: '🧽', happy: '😄', thriving: '🥳' },
-    },
-    {
-      id: 'sb-patrick',
-      name: 'Патрик',
-      emoji: '⭐',
-      mascotEmojis: { sick: '😵', sad: '😥', neutral: '⭐', happy: '😁', thriving: '🎉' },
-    },
-    {
-      id: 'sb-squidward',
-      name: 'Сквидвард',
-      emoji: '🎵',
-      mascotEmojis: { sick: '😷', sad: '😤', neutral: '🎵', happy: '🎶', thriving: '✨' },
-    },
-    {
-      id: 'sb-sandy',
-      name: 'Сэнди',
-      emoji: '🐿️',
-      mascotEmojis: { sick: '🤕', sad: '😔', neutral: '🐿️', happy: '💪', thriving: '🏆' },
-    },
-  ],
   colors: {
     primary: '#FFD700',
     secondary: '#FFEB60',
@@ -1004,32 +510,6 @@ const marioTheme: AppTheme = {
   emoji: '🍄',
   ageGroup: 'junior',
   backgroundEmojis: ['🍄', '⭐', '💚', '👑', '🔥', '🐢'],
-  characters: [
-    {
-      id: 'mr-mario',
-      name: 'Марио',
-      emoji: '🍄',
-      mascotEmojis: { sick: '😵', sad: '😥', neutral: '🍄', happy: '⭐', thriving: '🌟' },
-    },
-    {
-      id: 'mr-luigi',
-      name: 'Луиджи',
-      emoji: '💚',
-      mascotEmojis: { sick: '🤒', sad: '😨', neutral: '💚', happy: '🎉', thriving: '👑' },
-    },
-    {
-      id: 'mr-toad',
-      name: 'Тоад',
-      emoji: '🍄',
-      mascotEmojis: { sick: '😷', sad: '😢', neutral: '🍄', happy: '😄', thriving: '✨' },
-    },
-    {
-      id: 'mr-peach',
-      name: 'Пич',
-      emoji: '👑',
-      mascotEmojis: { sick: '🤕', sad: '😔', neutral: '👑', happy: '💕', thriving: '🌸' },
-    },
-  ],
   colors: {
     primary: '#E03020',
     secondary: '#FF6050',
@@ -1056,32 +536,6 @@ const robloxTheme: AppTheme = {
   emoji: '🟩',
   ageGroup: 'junior',
   backgroundEmojis: ['🟩', '🔨', '👑', '🤖', '⭐', '🎮'],
-  characters: [
-    {
-      id: 'rb-noob',
-      name: 'Нуб',
-      emoji: '🟩',
-      mascotEmojis: { sick: '😵', sad: '😥', neutral: '🟩', happy: '😄', thriving: '⭐' },
-    },
-    {
-      id: 'rb-builder',
-      name: 'Билдер',
-      emoji: '🔨',
-      mascotEmojis: { sick: '🤕', sad: '😔', neutral: '🔨', happy: '🏗️', thriving: '🏆' },
-    },
-    {
-      id: 'rb-pro',
-      name: 'Про',
-      emoji: '👑',
-      mascotEmojis: { sick: '😷', sad: '😤', neutral: '👑', happy: '💎', thriving: '🌟' },
-    },
-    {
-      id: 'rb-robot',
-      name: 'Робот',
-      emoji: '🤖',
-      mascotEmojis: { sick: '⚙️', sad: '😶', neutral: '🤖', happy: '⚡', thriving: '🔥' },
-    },
-  ],
   colors: {
     primary: '#E04040',
     secondary: '#FF7070',
@@ -1108,32 +562,6 @@ const sonicTheme: AppTheme = {
   emoji: '🦔',
   ageGroup: 'junior',
   backgroundEmojis: ['🦔', '💍', '⭐', '🦊', '💨', '🌀'],
-  characters: [
-    {
-      id: 'sn-sonic',
-      name: 'Соник',
-      emoji: '🦔',
-      mascotEmojis: { sick: '😵', sad: '😤', neutral: '🦔', happy: '💨', thriving: '⚡' },
-    },
-    {
-      id: 'sn-tails',
-      name: 'Тейлз',
-      emoji: '🦊',
-      mascotEmojis: { sick: '🤒', sad: '😢', neutral: '🦊', happy: '🔧', thriving: '✨' },
-    },
-    {
-      id: 'sn-knuckles',
-      name: 'Наклз',
-      emoji: '👊',
-      mascotEmojis: { sick: '🤕', sad: '😠', neutral: '👊', happy: '💪', thriving: '🔥' },
-    },
-    {
-      id: 'sn-amy',
-      name: 'Эми',
-      emoji: '🌹',
-      mascotEmojis: { sick: '😷', sad: '😔', neutral: '🌹', happy: '💕', thriving: '🌟' },
-    },
-  ],
   colors: {
     primary: '#1870D0',
     secondary: '#50A0F0',
@@ -1162,32 +590,6 @@ const clashRoyaleTheme: AppTheme = {
   emoji: '🏰',
   ageGroup: 'junior',
   backgroundEmojis: ['👑', '🏰', '⚔️', '🏹', '🐲', '⚡'],
-  characters: [
-    {
-      id: 'cr-king',
-      name: 'Король',
-      emoji: '👑',
-      mascotEmojis: { sick: '😵', sad: '😠', neutral: '👑', happy: '😤', thriving: '🏆' },
-    },
-    {
-      id: 'cr-princess',
-      name: 'Принцесса',
-      emoji: '🏹',
-      mascotEmojis: { sick: '🤕', sad: '😢', neutral: '🏹', happy: '🎯', thriving: '💫' },
-    },
-    {
-      id: 'cr-knight',
-      name: 'Рыцарь',
-      emoji: '⚔️',
-      mascotEmojis: { sick: '🩹', sad: '😔', neutral: '⚔️', happy: '🛡️', thriving: '💪' },
-    },
-    {
-      id: 'cr-dragon',
-      name: 'Малыш-Дракон',
-      emoji: '🐲',
-      mascotEmojis: { sick: '😮‍💨', sad: '😕', neutral: '🐲', happy: '🔥', thriving: '⭐' },
-    },
-  ],
   colors: {
     primary: '#4A6FE0',
     secondary: '#7B9EF5',
@@ -1214,32 +616,6 @@ const brawlTheme: AppTheme = {
   emoji: '💥',
   ageGroup: 'junior',
   backgroundEmojis: ['💥', '🌵', '🏆', '⭐', '💣', '🔥'],
-  characters: [
-    {
-      id: 'bw-shelly',
-      name: 'Шелли',
-      emoji: '💥',
-      mascotEmojis: { sick: '💀', sad: '😤', neutral: '💥', happy: '🔥', thriving: '🏆' },
-    },
-    {
-      id: 'bw-colt',
-      name: 'Кольт',
-      emoji: '🔫',
-      mascotEmojis: { sick: '🤕', sad: '😒', neutral: '🔫', happy: '😎', thriving: '⭐' },
-    },
-    {
-      id: 'bw-spike',
-      name: 'Спайк',
-      emoji: '🌵',
-      mascotEmojis: { sick: '🥀', sad: '😢', neutral: '🌵', happy: '😄', thriving: '🌟' },
-    },
-    {
-      id: 'bw-crow',
-      name: 'Кроу',
-      emoji: '🐦‍⬛',
-      mascotEmojis: { sick: '😵', sad: '😔', neutral: '🐦‍⬛', happy: '🗡️', thriving: '💎' },
-    },
-  ],
   colors: {
     primary: '#9B59B6',
     secondary: '#F1C40F',
@@ -1266,32 +642,6 @@ const hogwartsTheme: AppTheme = {
   emoji: '🧙',
   ageGroup: 'junior',
   backgroundEmojis: ['🧙', '🏰', '🦉', '🌙', '⚡', '📜'],
-  characters: [
-    {
-      id: 'hw-wizard',
-      name: 'Волшебник',
-      emoji: '🧙',
-      mascotEmojis: { sick: '🤒', sad: '😔', neutral: '🧙', happy: '⚡', thriving: '🌟' },
-    },
-    {
-      id: 'hw-owl',
-      name: 'Сова',
-      emoji: '🦉',
-      mascotEmojis: { sick: '😷', sad: '😿', neutral: '🦉', happy: '📜', thriving: '✨' },
-    },
-    {
-      id: 'hw-witch',
-      name: 'Ведьма',
-      emoji: '🧹',
-      mascotEmojis: { sick: '🥀', sad: '😢', neutral: '🧹', happy: '🔮', thriving: '💫' },
-    },
-    {
-      id: 'hw-phoenix',
-      name: 'Фоукс',
-      emoji: '🔥',
-      mascotEmojis: { sick: '💀', sad: '😥', neutral: '🔥', happy: '🦅', thriving: '👑' },
-    },
-  ],
   colors: {
     primary: '#8B1A1A',
     secondary: '#D4A843',
@@ -1318,32 +668,6 @@ const amongusTheme: AppTheme = {
   emoji: '👨‍🚀',
   ageGroup: 'junior',
   backgroundEmojis: ['👨‍🚀', '🛸', '🌍', '⭐', '🔧', '🗡️'],
-  characters: [
-    {
-      id: 'au-red',
-      name: 'Красный',
-      emoji: '🔴',
-      mascotEmojis: { sick: '💀', sad: '😰', neutral: '🔴', happy: '😎', thriving: '👑' },
-    },
-    {
-      id: 'au-blue',
-      name: 'Синий',
-      emoji: '🔵',
-      mascotEmojis: { sick: '😵', sad: '😢', neutral: '🔵', happy: '🔧', thriving: '⭐' },
-    },
-    {
-      id: 'au-impostor',
-      name: 'Импостор',
-      emoji: '🗡️',
-      mascotEmojis: { sick: '😷', sad: '😈', neutral: '🗡️', happy: '🔪', thriving: '💀' },
-    },
-    {
-      id: 'au-green',
-      name: 'Зелёный',
-      emoji: '🟢',
-      mascotEmojis: { sick: '🤒', sad: '😔', neutral: '🟢', happy: '🛸', thriving: '🌟' },
-    },
-  ],
   colors: {
     primary: '#C51111',
     secondary: '#4A4A6A',
@@ -1370,32 +694,6 @@ const gravityfallsTheme: AppTheme = {
   emoji: '📖',
   ageGroup: 'junior',
   backgroundEmojis: ['📖', '🔺', '🌲', '🌟', '🎩', '👁️'],
-  characters: [
-    {
-      id: 'gf-dipper',
-      name: 'Диппер',
-      emoji: '📖',
-      mascotEmojis: { sick: '🤒', sad: '😰', neutral: '📖', happy: '🔍', thriving: '🌟' },
-    },
-    {
-      id: 'gf-mabel',
-      name: 'Мэйбл',
-      emoji: '🌟',
-      mascotEmojis: { sick: '😷', sad: '😢', neutral: '🌟', happy: '🎉', thriving: '✨' },
-    },
-    {
-      id: 'gf-stan',
-      name: 'Стэн',
-      emoji: '🎩',
-      mascotEmojis: { sick: '😵', sad: '😤', neutral: '🎩', happy: '💰', thriving: '💎' },
-    },
-    {
-      id: 'gf-bill',
-      name: 'Билл',
-      emoji: '🔺',
-      mascotEmojis: { sick: '😵‍💫', sad: '😈', neutral: '🔺', happy: '🔥', thriving: '👁️' },
-    },
-  ],
   colors: {
     primary: '#3AA850',
     secondary: '#60C870',
@@ -1422,32 +720,6 @@ const fortniteTheme: AppTheme = {
   emoji: '🪂',
   ageGroup: 'junior',
   backgroundEmojis: ['🪂', '🏆', '⚡', '🔫', '🌀', '🎯'],
-  characters: [
-    {
-      id: 'fn-jonesy',
-      name: 'Джонси',
-      emoji: '🎖️',
-      mascotEmojis: { sick: '💀', sad: '😤', neutral: '🎖️', happy: '💪', thriving: '🏆' },
-    },
-    {
-      id: 'fn-peely',
-      name: 'Пили',
-      emoji: '🍌',
-      mascotEmojis: { sick: '🤕', sad: '😢', neutral: '🍌', happy: '😄', thriving: '🥳' },
-    },
-    {
-      id: 'fn-raven',
-      name: 'Рейвен',
-      emoji: '🦅',
-      mascotEmojis: { sick: '😵', sad: '😶', neutral: '🦅', happy: '⚡', thriving: '🌟' },
-    },
-    {
-      id: 'fn-shimmer',
-      name: 'Шиммер',
-      emoji: '✨',
-      mascotEmojis: { sick: '😷', sad: '😔', neutral: '✨', happy: '💎', thriving: '👑' },
-    },
-  ],
   colors: {
     primary: '#9D4DFF',
     secondary: '#C080FF',
@@ -1508,6 +780,31 @@ export const themes: AppTheme[] = [
 export const seniorThemes = themes.filter((t) => t.ageGroup === 'senior');
 export const juniorThemes = themes.filter((t) => t.ageGroup === 'junior');
 
-export const allCharacters: import('../types').ThemeCharacter[] = themes.flatMap((t) => t.characters);
+export const allCharacters: import('../types').ThemeCharacter[] = [
+  // cat
+  { id: 'pk-pikachu', name: 'Пикачу', emoji: '⚡', mascotEmojis: { sick: '😷', sad: '😢', neutral: '⚡', happy: '😊', thriving: '🌟' } },
+  // warrior
+  { id: 'sk-samurai', name: 'Самурай', emoji: '⚔️', mascotEmojis: { sick: '🤕', sad: '😔', neutral: '⚔️', happy: '🎌', thriving: '🏯' } },
+  // fox
+  { id: 'sk-kitsune', name: 'Кицунэ', emoji: '🦊', mascotEmojis: { sick: '😵', sad: '😥', neutral: '🦊', happy: '🔮', thriving: '🌙' } },
+  // wizard
+  { id: 'hw-wizard', name: 'Волшебник', emoji: '🧙', mascotEmojis: { sick: '🤒', sad: '😔', neutral: '🧙', happy: '⚡', thriving: '🌟' } },
+  // dragon
+  { id: 'got-dragon', name: 'Дрогон', emoji: '🐉', mascotEmojis: { sick: '🥀', sad: '😔', neutral: '🐉', happy: '🔥', thriving: '👑' } },
+  // ninja
+  { id: 'anime-naruto', name: 'Наруто', emoji: '🍥', mascotEmojis: { sick: '😵', sad: '😤', neutral: '🍥', happy: '💪', thriving: '🌀' } },
+  // critter
+  { id: 'gs-paimon', name: 'Паймон', emoji: '🌟', mascotEmojis: { sick: '😷', sad: '🥺', neutral: '🌟', happy: '🍖', thriving: '👑' } },
+  // robot
+  { id: 'mv-ironman', name: 'Железный человек', emoji: '🤖', mascotEmojis: { sick: '⚙️', sad: '😤', neutral: '🤖', happy: '🔥', thriving: '💎' } },
+  // bear
+  { id: 'op-chopper', name: 'Чоппер', emoji: '🦌', mascotEmojis: { sick: '🤒', sad: '😿', neutral: '🦌', happy: '💊', thriving: '⭐' } },
+  // ghost
+  { id: 'au-impostor', name: 'Импостор', emoji: '🗡️', mascotEmojis: { sick: '😷', sad: '😈', neutral: '🗡️', happy: '🔪', thriving: '💀' } },
+  // alien
+  { id: 'mc-enderman', name: 'Эндермен', emoji: '👾', mascotEmojis: { sick: '😷', sad: '😶', neutral: '👾', happy: '🌀', thriving: '🌟' } },
+  // owl
+  { id: 'hw-owl', name: 'Сова', emoji: '🦉', mascotEmojis: { sick: '😷', sad: '😿', neutral: '🦉', happy: '📜', thriving: '✨' } },
+];
 
 export const defaultTheme: AppTheme = genshinTheme;

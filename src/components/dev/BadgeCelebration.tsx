@@ -26,6 +26,8 @@ interface CategoryTheme {
   confettiEmoji: string[];
   sparkTrail: string[];
   bgEmoji: string;
+  /** Animation style unique to this category */
+  animation: 'confetti_rain' | 'rocket_launch' | 'sword_clash' | 'star_spiral' | 'shockwave_burst';
 }
 
 const CATEGORY_THEMES: Record<AchievementCategory, CategoryTheme> = {
@@ -35,6 +37,7 @@ const CATEGORY_THEMES: Record<AchievementCategory, CategoryTheme> = {
     confettiEmoji: ['📝', '✏️', '📖', '🅰️', '💯'],
     sparkTrail: ['✨', '💫', '⭐'],
     bgEmoji: '📚',
+    animation: 'confetti_rain',
   },
   early_streak: {
     label: 'РАННЯЯ СДАЧА',
@@ -42,6 +45,7 @@ const CATEGORY_THEMES: Record<AchievementCategory, CategoryTheme> = {
     confettiEmoji: ['🚀', '🚀', '⏱️', '⚡', '🎯'],
     sparkTrail: ['🚀', '💫', '✨'],
     bgEmoji: '🚀',
+    animation: 'rocket_launch',
   },
   duel: {
     label: 'ДУЭЛЬ',
@@ -49,6 +53,7 @@ const CATEGORY_THEMES: Record<AchievementCategory, CategoryTheme> = {
     confettiEmoji: ['⚔️', '🛡️', '🗡️', '💪', '🏅'],
     sparkTrail: ['⚡', '💫', '✨'],
     bgEmoji: '⚔️',
+    animation: 'sword_clash',
   },
   team_quest: {
     label: 'КВЕСТ',
@@ -56,6 +61,7 @@ const CATEGORY_THEMES: Record<AchievementCategory, CategoryTheme> = {
     confettiEmoji: ['🤝', '🏆', '🎯', '🧩', '🌟'],
     sparkTrail: ['🌟', '✨', '💫'],
     bgEmoji: '🏆',
+    animation: 'star_spiral',
   },
   challenge: {
     label: 'ИСПЫТАНИЕ',
@@ -63,6 +69,7 @@ const CATEGORY_THEMES: Record<AchievementCategory, CategoryTheme> = {
     confettiEmoji: ['🏋️', '💎', '🎖️', '⚡', '🌀'],
     sparkTrail: ['💎', '✨', '💫'],
     bgEmoji: '💎',
+    animation: 'shockwave_burst',
   },
 };
 
@@ -117,7 +124,7 @@ const RARITY_THEMES: Record<AchievementRarity, RarityTheme> = {
   },
 };
 
-// ── Particle types ──────────────────────────────────────────────
+// ── Shared particle types ───────────────────────────────────────
 
 interface ConfettiPiece {
   id: number;
@@ -140,31 +147,50 @@ interface EmojiParticle {
   fallDuration: number;
 }
 
-interface FireworkBurst {
+// ── Category-specific particle types ────────────────────────────
+
+interface RocketParticle {
   id: number;
-  cx: number;
-  cy: number;
+  emoji: string;
+  x: number;
   delay: number;
-  sparks: FireworkSpark[];
+  size: number;
+  speed: number;
 }
 
-interface FireworkSpark {
+interface ClashSpark {
   id: number;
   angle: number;
   distance: number;
   color: string;
   size: number;
+  delay: number;
 }
 
-interface SparkTrailItem {
+interface SpiralStar {
   id: number;
   emoji: string;
-  startX: number;
-  startY: number;
-  endX: number;
-  endY: number;
+  angle: number;
+  radius: number;
   delay: number;
   size: number;
+}
+
+interface ShockwaveRing {
+  id: number;
+  delay: number;
+  color: string;
+  maxRadius: number;
+}
+
+interface GroundBurstParticle {
+  id: number;
+  x: number;
+  color: string;
+  size: number;
+  angle: number;
+  distance: number;
+  delay: number;
 }
 
 // ── Generators ──────────────────────────────────────────────────
@@ -203,47 +229,89 @@ function generateEmoji(catTheme: CategoryTheme, count: number): EmojiParticle[] 
   return particles;
 }
 
-function generateFireworks(rarity: RarityTheme): FireworkBurst[] {
-  const bursts: FireworkBurst[] = [];
-  for (let b = 0; b < rarity.fireworkBursts; b++) {
-    const cx = SW * 0.2 + Math.random() * SW * 0.6;
-    const cy = 60 + Math.random() * 180;
-    const sparkCount = 12 + Math.floor(Math.random() * 8);
-    const sparks: FireworkSpark[] = [];
-    for (let s = 0; s < sparkCount; s++) {
-      sparks.push({
-        id: s,
-        angle: (s / sparkCount) * Math.PI * 2,
-        distance: 40 + Math.random() * 60,
-        color: rarity.colors[s % rarity.colors.length],
-        size: 4 + Math.random() * 4,
-      });
-    }
-    bursts.push({ id: b, cx, cy, delay: 400 + b * 700, sparks });
-  }
-  return bursts;
-}
-
-function generateSparkTrail(catTheme: CategoryTheme, count: number): SparkTrailItem[] {
-  const items: SparkTrailItem[] = [];
+// Rocket launch: emoji rockets shooting upward
+function generateRockets(catTheme: CategoryTheme, count: number): RocketParticle[] {
+  const rockets: RocketParticle[] = [];
   for (let i = 0; i < count; i++) {
-    const side = i % 2 === 0 ? -1 : 1;
-    items.push({
+    rockets.push({
       id: i,
-      emoji: catTheme.sparkTrail[i % catTheme.sparkTrail.length],
-      startX: SW / 2,
-      startY: 120,
-      endX: SW / 2 + side * (60 + Math.random() * 100),
-      endY: 40 + Math.random() * 200,
-      delay: 100 + i * 80,
-      size: 14 + Math.random() * 10,
+      emoji: catTheme.confettiEmoji[i % catTheme.confettiEmoji.length],
+      x: SW * 0.1 + Math.random() * SW * 0.8,
+      delay: Math.random() * 1200,
+      size: 18 + Math.random() * 14,
+      speed: 1200 + Math.random() * 800,
     });
   }
-  return items;
+  return rockets;
+}
+
+// Sword clash: sparks flying radially from center
+function generateClashSparks(rarity: RarityTheme, count: number): ClashSpark[] {
+  const sparks: ClashSpark[] = [];
+  for (let i = 0; i < count; i++) {
+    sparks.push({
+      id: i,
+      angle: (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.3,
+      distance: 60 + Math.random() * 100,
+      color: rarity.colors[i % rarity.colors.length],
+      size: 4 + Math.random() * 5,
+      delay: Math.random() * 200,
+    });
+  }
+  return sparks;
+}
+
+// Star spiral: stars orbiting inward
+function generateSpiralStars(catTheme: CategoryTheme, count: number): SpiralStar[] {
+  const stars: SpiralStar[] = [];
+  for (let i = 0; i < count; i++) {
+    stars.push({
+      id: i,
+      emoji: catTheme.confettiEmoji[i % catTheme.confettiEmoji.length],
+      angle: (i / count) * Math.PI * 2,
+      radius: 80 + Math.random() * 60,
+      delay: i * 60,
+      size: 14 + Math.random() * 12,
+    });
+  }
+  return stars;
+}
+
+// Shockwave: expanding rings
+function generateShockwaves(rarity: RarityTheme): ShockwaveRing[] {
+  const rings: ShockwaveRing[] = [];
+  const count = 2 + rarity.fireworkBursts;
+  for (let i = 0; i < count; i++) {
+    rings.push({
+      id: i,
+      delay: i * 350,
+      color: rarity.colors[i % rarity.colors.length],
+      maxRadius: 100 + i * 30,
+    });
+  }
+  return rings;
+}
+
+// Ground burst: particles shooting upward from bottom
+function generateGroundBurst(rarity: RarityTheme, count: number): GroundBurstParticle[] {
+  const particles: GroundBurstParticle[] = [];
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      id: i,
+      x: SW * 0.2 + Math.random() * SW * 0.6,
+      color: rarity.colors[i % rarity.colors.length],
+      size: 5 + Math.random() * 6,
+      angle: -Math.PI / 2 + (Math.random() - 0.5) * 1.2,
+      distance: 150 + Math.random() * 200,
+      delay: Math.random() * 400,
+    });
+  }
+  return particles;
 }
 
 // ── Animated sub-components ─────────────────────────────────────
 
+// === SHARED: Confetti rain ===
 function ConfettiView({ piece }: { piece: ConfettiPiece }) {
   const translateY = useSharedValue(-30);
   const translateX = useSharedValue(piece.x);
@@ -290,6 +358,7 @@ function ConfettiView({ piece }: { piece: ConfettiPiece }) {
   return <Animated.View style={style} />;
 }
 
+// === SHARED: Emoji falling ===
 function EmojiView({ particle }: { particle: EmojiParticle }) {
   const translateY = useSharedValue(-40);
   const opacity = useSharedValue(0);
@@ -323,16 +392,115 @@ function EmojiView({ particle }: { particle: EmojiParticle }) {
   );
 }
 
-function FireworkSparkView({ spark, cx, cy, delay }: { spark: FireworkSpark; cx: number; cy: number; delay: number }) {
+// === ROCKET LAUNCH: emoji shooting upward with exhaust trail ===
+function RocketView({ rocket }: { rocket: RocketParticle }) {
+  const translateY = useSharedValue(420);
+  const opacity = useSharedValue(0);
+  const scale = useSharedValue(0.5);
+
+  useEffect(() => {
+    opacity.value = withDelay(rocket.delay, withTiming(1, { duration: 100 }));
+    translateY.value = withDelay(
+      rocket.delay,
+      withTiming(-60, { duration: rocket.speed, easing: Easing.out(Easing.cubic) }),
+    );
+    scale.value = withDelay(rocket.delay, withSequence(
+      withSpring(1.3, { damping: 4 }),
+      withTiming(0.8, { duration: rocket.speed * 0.5 }),
+    ));
+    opacity.value = withDelay(rocket.delay + rocket.speed * 0.7, withTiming(0, { duration: 300 }));
+  }, []);
+
+  const style = useAnimatedStyle(() => ({
+    position: 'absolute' as const,
+    left: rocket.x - rocket.size / 2,
+    top: translateY.value,
+    opacity: opacity.value,
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.Text style={[style, { fontSize: rocket.size }]}>
+      {rocket.emoji}
+    </Animated.Text>
+  );
+}
+
+// Exhaust trail for rockets
+function ExhaustTrail({ x, delay }: { x: number; delay: number }) {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(380);
+  const scaleX = useSharedValue(1);
+
+  useEffect(() => {
+    opacity.value = withDelay(delay, withSequence(
+      withTiming(0.6, { duration: 100 }),
+      withTiming(0, { duration: 600 }),
+    ));
+    translateY.value = withDelay(delay, withTiming(200, { duration: 600, easing: Easing.out(Easing.quad) }));
+    scaleX.value = withDelay(delay, withSequence(
+      withTiming(1.5, { duration: 300 }),
+      withTiming(0.3, { duration: 300 }),
+    ));
+  }, []);
+
+  const style = useAnimatedStyle(() => ({
+    position: 'absolute' as const,
+    left: x - 3,
+    top: translateY.value,
+    width: 6,
+    height: 40,
+    borderRadius: 3,
+    backgroundColor: '#FFA500',
+    opacity: opacity.value,
+    transform: [{ scaleX: scaleX.value }],
+  }));
+
+  return <Animated.View style={style} />;
+}
+
+// Speed lines for rocket launch effect
+function SpeedLine({ index, delay }: { index: number; delay: number }) {
+  const x = SW * 0.1 + Math.random() * SW * 0.8;
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(50 + Math.random() * 300);
+  const height = 20 + Math.random() * 40;
+
+  useEffect(() => {
+    opacity.value = withDelay(delay + index * 40, withSequence(
+      withTiming(0.3, { duration: 80 }),
+      withTiming(0, { duration: 200 }),
+    ));
+    translateY.value = withDelay(delay + index * 40,
+      withTiming(translateY.value + 60, { duration: 250, easing: Easing.in(Easing.quad) }),
+    );
+  }, []);
+
+  const style = useAnimatedStyle(() => ({
+    position: 'absolute' as const,
+    left: x,
+    top: translateY.value,
+    width: 2,
+    height,
+    borderRadius: 1,
+    backgroundColor: '#FFFFFF',
+    opacity: opacity.value,
+  }));
+
+  return <Animated.View style={style} />;
+}
+
+// === SWORD CLASH: sparks radiating from center impact ===
+function ClashSparkView({ spark, cx, cy }: { spark: ClashSpark; cx: number; cy: number }) {
   const progress = useSharedValue(0);
   const opacity = useSharedValue(0);
 
   useEffect(() => {
-    opacity.value = withDelay(delay, withSequence(
-      withTiming(1, { duration: 100 }),
-      withDelay(400, withTiming(0, { duration: 300 })),
+    opacity.value = withDelay(spark.delay, withSequence(
+      withTiming(1, { duration: 60 }),
+      withDelay(300, withTiming(0, { duration: 250 })),
     ));
-    progress.value = withDelay(delay, withTiming(1, { duration: 500, easing: Easing.out(Easing.cubic) }));
+    progress.value = withDelay(spark.delay, withTiming(1, { duration: 400, easing: Easing.out(Easing.cubic) }));
   }, []);
 
   const style = useAnimatedStyle(() => ({
@@ -349,66 +517,325 @@ function FireworkSparkView({ spark, cx, cy, delay }: { spark: FireworkSpark; cx:
   return <Animated.View style={style} />;
 }
 
-function FireworkBurstView({ burst }: { burst: FireworkBurst }) {
-  // Initial flash
-  const flashOpacity = useSharedValue(0);
-  useEffect(() => {
-    flashOpacity.value = withDelay(burst.delay, withSequence(
-      withTiming(0.8, { duration: 60 }),
-      withTiming(0, { duration: 200 }),
-    ));
-  }, []);
-
-  const flashStyle = useAnimatedStyle(() => ({
-    position: 'absolute' as const,
-    left: burst.cx - 30,
-    top: burst.cy - 30,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#FFFFFF',
-    opacity: flashOpacity.value,
-  }));
-
-  return (
-    <>
-      <Animated.View style={flashStyle} />
-      {burst.sparks.map((s) => (
-        <FireworkSparkView key={s.id} spark={s} cx={burst.cx} cy={burst.cy} delay={burst.delay} />
-      ))}
-    </>
-  );
-}
-
-function SparkTrailView({ item }: { item: SparkTrailItem }) {
-  const progress = useSharedValue(0);
+// Clash flash in center
+function ClashFlash({ cx, cy, delay, color }: { cx: number; cy: number; delay: number; color: string }) {
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.3);
 
   useEffect(() => {
-    opacity.value = withDelay(item.delay, withSequence(
-      withTiming(1, { duration: 150 }),
-      withDelay(500, withTiming(0, { duration: 300 })),
+    opacity.value = withDelay(delay, withSequence(
+      withTiming(0.9, { duration: 50 }),
+      withTiming(0, { duration: 300 }),
     ));
-    progress.value = withDelay(item.delay, withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) }));
-    scale.value = withDelay(item.delay, withSequence(
-      withSpring(1.2, { damping: 6 }),
-      withTiming(0.6, { duration: 400 }),
+    scale.value = withDelay(delay, withSpring(1.5, { damping: 6 }));
+  }, []);
+
+  const style = useAnimatedStyle(() => ({
+    position: 'absolute' as const,
+    left: cx - 35,
+    top: cy - 35,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: color,
+    opacity: opacity.value,
+    transform: [{ scale: scale.value }],
+  }));
+
+  return <Animated.View style={style} />;
+}
+
+// Crossed swords appearing
+function SwordCrossView({ cx, cy }: { cx: number; cy: number }) {
+  const opacity = useSharedValue(0);
+  const scale = useSharedValue(0.2);
+  const rotate = useSharedValue(-30);
+
+  useEffect(() => {
+    opacity.value = withDelay(50, withSequence(
+      withTiming(1, { duration: 150 }),
+      withDelay(600, withTiming(0, { duration: 400 })),
+    ));
+    scale.value = withDelay(50, withSpring(1, { damping: 5, stiffness: 150 }));
+    rotate.value = withDelay(50, withSpring(0, { damping: 8 }));
+  }, []);
+
+  const style = useAnimatedStyle(() => ({
+    position: 'absolute' as const,
+    left: cx - 25,
+    top: cy - 25,
+    opacity: opacity.value,
+    transform: [{ scale: scale.value }, { rotate: `${rotate.value}deg` }],
+  }));
+
+  return <Animated.Text style={[style, { fontSize: 50 }]}>⚔️</Animated.Text>;
+}
+
+// Lightning bolts for duel
+function LightningBolt({ index, color, delay }: { index: number; color: string; delay: number }) {
+  const x = SW * 0.15 + (index / 6) * SW * 0.7;
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    opacity.value = withDelay(delay + index * 100, withSequence(
+      withTiming(0.8, { duration: 40 }),
+      withTiming(0, { duration: 150 }),
+      withTiming(0.5, { duration: 40 }),
+      withTiming(0, { duration: 200 }),
     ));
   }, []);
 
   const style = useAnimatedStyle(() => ({
     position: 'absolute' as const,
-    left: item.startX + (item.endX - item.startX) * progress.value - item.size / 2,
-    top: item.startY + (item.endY - item.startY) * progress.value - item.size / 2,
+    left: x,
+    top: 20 + Math.random() * 80,
+    opacity: opacity.value,
+  }));
+
+  return <Animated.Text style={[style, { fontSize: 30, color }]}>⚡</Animated.Text>;
+}
+
+// === STAR SPIRAL: stars orbiting inward ===
+function SpiralStarView({ star, cx, cy }: { star: SpiralStar; cx: number; cy: number }) {
+  const progress = useSharedValue(0);
+  const opacity = useSharedValue(0);
+  const starScale = useSharedValue(0.3);
+
+  useEffect(() => {
+    opacity.value = withDelay(star.delay, withSequence(
+      withTiming(1, { duration: 200 }),
+      withDelay(800, withTiming(0, { duration: 400 })),
+    ));
+    progress.value = withDelay(star.delay, withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.cubic) }));
+    starScale.value = withDelay(star.delay, withSequence(
+      withSpring(1.2, { damping: 5 }),
+      withTiming(0.4, { duration: 800 }),
+    ));
+  }, []);
+
+  const style = useAnimatedStyle(() => {
+    const currentAngle = star.angle + progress.value * Math.PI * 3;
+    const currentRadius = star.radius * (1 - progress.value * 0.85);
+    return {
+      position: 'absolute' as const,
+      left: cx + Math.cos(currentAngle) * currentRadius - star.size / 2,
+      top: cy + Math.sin(currentAngle) * currentRadius - star.size / 2,
+      opacity: opacity.value,
+      transform: [{ scale: starScale.value }],
+    };
+  });
+
+  return (
+    <Animated.Text style={[style, { fontSize: star.size }]}>
+      {star.emoji}
+    </Animated.Text>
+  );
+}
+
+// Glow pulse at center for team_quest
+function GlowPulse({ cx, cy, color, delay }: { cx: number; cy: number; color: string; delay: number }) {
+  const scale = useSharedValue(0.5);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    opacity.value = withDelay(delay, withRepeat(
+      withSequence(
+        withTiming(0.25, { duration: 500 }),
+        withTiming(0.05, { duration: 500 }),
+      ),
+      3,
+    ));
+    scale.value = withDelay(delay, withRepeat(
+      withSequence(
+        withTiming(1.3, { duration: 500, easing: Easing.out(Easing.quad) }),
+        withTiming(0.8, { duration: 500, easing: Easing.in(Easing.quad) }),
+      ),
+      3,
+    ));
+  }, []);
+
+  const style = useAnimatedStyle(() => ({
+    position: 'absolute' as const,
+    left: cx - 60,
+    top: cy - 60,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: color,
     opacity: opacity.value,
     transform: [{ scale: scale.value }],
   }));
 
+  return <Animated.View style={style} />;
+}
+
+// === SHOCKWAVE BURST: expanding rings + upward ground burst ===
+function ShockwaveRingView({ ring, cx, cy }: { ring: ShockwaveRing; cx: number; cy: number }) {
+  const scale = useSharedValue(0);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    opacity.value = withDelay(ring.delay, withSequence(
+      withTiming(0.7, { duration: 100 }),
+      withTiming(0, { duration: 600 }),
+    ));
+    scale.value = withDelay(ring.delay, withTiming(1, { duration: 700, easing: Easing.out(Easing.cubic) }));
+  }, []);
+
+  const style = useAnimatedStyle(() => ({
+    position: 'absolute' as const,
+    left: cx - ring.maxRadius,
+    top: cy - ring.maxRadius,
+    width: ring.maxRadius * 2,
+    height: ring.maxRadius * 2,
+    borderRadius: ring.maxRadius,
+    borderWidth: 3,
+    borderColor: ring.color,
+    opacity: opacity.value,
+    transform: [{ scale: scale.value }],
+  }));
+
+  return <Animated.View style={style} />;
+}
+
+function GroundBurstView({ particle }: { particle: GroundBurstParticle }) {
+  const progress = useSharedValue(0);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    opacity.value = withDelay(particle.delay, withSequence(
+      withTiming(1, { duration: 80 }),
+      withDelay(400, withTiming(0, { duration: 300 })),
+    ));
+    progress.value = withDelay(particle.delay, withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) }));
+  }, []);
+
+  const style = useAnimatedStyle(() => {
+    const dx = Math.cos(particle.angle) * particle.distance * progress.value;
+    const dy = Math.sin(particle.angle) * particle.distance * progress.value;
+    return {
+      position: 'absolute' as const,
+      left: particle.x + dx - particle.size / 2,
+      top: 380 + dy - particle.size / 2,
+      width: particle.size,
+      height: particle.size,
+      borderRadius: particle.size / 2,
+      backgroundColor: particle.color,
+      opacity: opacity.value,
+    };
+  });
+
+  return <Animated.View style={style} />;
+}
+
+// Central burst flash for challenge
+function CentralFlash({ cx, cy, delay, color }: { cx: number; cy: number; delay: number; color: string }) {
+  const scale = useSharedValue(0.1);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    opacity.value = withDelay(delay, withSequence(
+      withTiming(0.6, { duration: 80 }),
+      withTiming(0, { duration: 400 }),
+    ));
+    scale.value = withDelay(delay, withTiming(2.5, { duration: 500, easing: Easing.out(Easing.cubic) }));
+  }, []);
+
+  const style = useAnimatedStyle(() => ({
+    position: 'absolute' as const,
+    left: cx - 40,
+    top: cy - 40,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: color,
+    opacity: opacity.value,
+    transform: [{ scale: scale.value }],
+  }));
+
+  return <Animated.View style={style} />;
+}
+
+// ── Category-specific particle layers ───────────────────────────
+
+function HomeworkParticles({ rarity, catTheme }: { rarity: RarityTheme; catTheme: CategoryTheme }) {
+  const emojiCount = Math.round(rarity.confettiCount * 0.3);
+  const confetti = useMemo(() => generateConfetti(rarity), []);
+  const emojis = useMemo(() => generateEmoji(catTheme, emojiCount), []);
   return (
-    <Animated.Text style={[style, { fontSize: item.size }]}>
-      {item.emoji}
-    </Animated.Text>
+    <>
+      {confetti.map((p) => <ConfettiView key={`c${p.id}`} piece={p} />)}
+      {emojis.map((p) => <EmojiView key={`e${p.id}`} particle={p} />)}
+    </>
+  );
+}
+
+function RocketParticles({ rarity, catTheme }: { rarity: RarityTheme; catTheme: CategoryTheme }) {
+  const count = Math.round(rarity.confettiCount * 0.4);
+  const rockets = useMemo(() => generateRockets(catTheme, count), []);
+  const speedLineCount = Math.round(rarity.confettiCount * 0.3);
+  return (
+    <>
+      {Array.from({ length: speedLineCount }, (_, i) => (
+        <SpeedLine key={`sl${i}`} index={i} delay={200} />
+      ))}
+      {rockets.map((r) => (
+        <React.Fragment key={`r${r.id}`}>
+          <ExhaustTrail x={r.x} delay={r.delay} />
+          <RocketView rocket={r} />
+        </React.Fragment>
+      ))}
+    </>
+  );
+}
+
+function DuelParticles({ rarity }: { rarity: RarityTheme }) {
+  const cx = SW / 2;
+  const cy = 140;
+  const sparkCount = rarity.confettiCount;
+  const sparks = useMemo(() => generateClashSparks(rarity, sparkCount), []);
+  const boltCount = Math.min(6, 2 + rarity.fireworkBursts * 2);
+  return (
+    <>
+      <ClashFlash cx={cx} cy={cy} delay={0} color={rarity.glow} />
+      <ClashFlash cx={cx} cy={cy} delay={500} color={rarity.colors[1] ?? rarity.glow} />
+      <SwordCrossView cx={cx} cy={cy} />
+      {sparks.map((s) => <ClashSparkView key={`cs${s.id}`} spark={s} cx={cx} cy={cy} />)}
+      {Array.from({ length: boltCount }, (_, i) => (
+        <LightningBolt key={`lb${i}`} index={i} color={rarity.glow} delay={100} />
+      ))}
+    </>
+  );
+}
+
+function QuestParticles({ rarity, catTheme }: { rarity: RarityTheme; catTheme: CategoryTheme }) {
+  const cx = SW / 2;
+  const cy = 140;
+  const starCount = Math.round(rarity.confettiCount * 0.4);
+  const stars = useMemo(() => generateSpiralStars(catTheme, starCount), []);
+  return (
+    <>
+      <GlowPulse cx={cx} cy={cy} color={rarity.glow} delay={0} />
+      {stars.map((s) => <SpiralStarView key={`ss${s.id}`} star={s} cx={cx} cy={cy} />)}
+    </>
+  );
+}
+
+function ChallengeParticles({ rarity, catTheme }: { rarity: RarityTheme; catTheme: CategoryTheme }) {
+  const cx = SW / 2;
+  const cy = 160;
+  const shockwaves = useMemo(() => generateShockwaves(rarity), []);
+  const burstCount = Math.round(rarity.confettiCount * 0.5);
+  const groundBurst = useMemo(() => generateGroundBurst(rarity, burstCount), []);
+  const emojiCount = Math.round(rarity.confettiCount * 0.2);
+  const emojis = useMemo(() => generateEmoji(catTheme, emojiCount), []);
+  return (
+    <>
+      <CentralFlash cx={cx} cy={cy} delay={0} color={rarity.glow} />
+      {shockwaves.map((r) => <ShockwaveRingView key={`sw${r.id}`} ring={r} cx={cx} cy={cy} />)}
+      {groundBurst.map((p) => <GroundBurstView key={`gb${p.id}`} particle={p} />)}
+      {emojis.map((p) => <EmojiView key={`e${p.id}`} particle={p} />)}
+    </>
   );
 }
 
@@ -431,13 +858,6 @@ export default function BadgeCelebration({ badge, onDismiss }: BadgeCelebrationP
   const rarityTheme = RARITY_THEMES[badge.rarity];
   const catTheme = CATEGORY_THEMES[badge.category ?? 'homework'];
 
-  const emojiCount = Math.round(rarityTheme.confettiCount * 0.3);
-
-  const confetti = useMemo(() => generateConfetti(rarityTheme), [badge.rarity]);
-  const emojis = useMemo(() => generateEmoji(catTheme, emojiCount), [badge.category, badge.rarity]);
-  const fireworks = useMemo(() => generateFireworks(rarityTheme), [badge.rarity]);
-  const sparks = useMemo(() => generateSparkTrail(catTheme, rarityTheme.sparkCount), [badge.category, badge.rarity]);
-
   const iconScale = useSharedValue(0);
   const shimmer = useSharedValue(0);
   const bgEmojiOpacity = useSharedValue(0);
@@ -449,14 +869,11 @@ export default function BadgeCelebration({ badge, onDismiss }: BadgeCelebrationP
       withTiming(1, { duration: 400 }),
       withTiming(0.6, { duration: 600 }),
     ));
-    // Big background emoji flash
     bgEmojiOpacity.value = withDelay(100, withSequence(
       withTiming(0.15, { duration: 300 }),
       withTiming(0.04, { duration: 800 }),
     ));
-    bgEmojiScale.value = withDelay(100, withSequence(
-      withSpring(1, { damping: 10 }),
-    ));
+    bgEmojiScale.value = withDelay(100, withSpring(1, { damping: 10 }));
 
     const timer = setTimeout(onDismiss, rarityTheme.duration);
     return () => clearTimeout(timer);
@@ -475,6 +892,22 @@ export default function BadgeCelebration({ badge, onDismiss }: BadgeCelebrationP
     transform: [{ scale: bgEmojiScale.value }],
   }));
 
+  function renderParticles() {
+    switch (catTheme.animation) {
+      case 'rocket_launch':
+        return <RocketParticles rarity={rarityTheme} catTheme={catTheme} />;
+      case 'sword_clash':
+        return <DuelParticles rarity={rarityTheme} />;
+      case 'star_spiral':
+        return <QuestParticles rarity={rarityTheme} catTheme={catTheme} />;
+      case 'shockwave_burst':
+        return <ChallengeParticles rarity={rarityTheme} catTheme={catTheme} />;
+      case 'confetti_rain':
+      default:
+        return <HomeworkParticles rarity={rarityTheme} catTheme={catTheme} />;
+    }
+  }
+
   return (
     <View style={[styles.wrapper, { top: insets.top }]} pointerEvents="box-none">
       {/* Giant background emoji */}
@@ -484,10 +917,7 @@ export default function BadgeCelebration({ badge, onDismiss }: BadgeCelebrationP
 
       {/* Particle layers */}
       <View style={styles.particleContainer} pointerEvents="none">
-        {confetti.map((p) => <ConfettiView key={`c${p.id}`} piece={p} />)}
-        {emojis.map((p) => <EmojiView key={`e${p.id}`} particle={p} />)}
-        {fireworks.map((b) => <FireworkBurstView key={`f${b.id}`} burst={b} />)}
-        {sparks.map((s) => <SparkTrailView key={`s${s.id}`} item={s} />)}
+        {renderParticles()}
       </View>
 
       {/* Banner card */}

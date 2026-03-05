@@ -7,64 +7,20 @@ export type CharacterArchetype =
   | 'wizard' | 'dragon' | 'ninja' | 'critter'
   | 'robot' | 'bear' | 'ghost' | 'alien' | 'owl';
 
-/** Maps every character ID to its visual archetype */
+/** Maps every character ID to its visual archetype (1:1) */
 export const CHARACTER_ARCHETYPE: Record<string, CharacterArchetype> = {
-  // CS:GO
-  'csgo-ct': 'warrior', 'csgo-t': 'ninja', 'csgo-awp': 'fox', 'csgo-spec': 'robot',
-  // Game of Thrones
-  'got-dragon': 'dragon', 'got-wolf': 'bear', 'got-lion': 'cat', 'got-raven': 'owl',
-  // Twilight
-  'tw-vampire': 'ghost', 'tw-werewolf': 'bear', 'tw-shewolf': 'cat', 'tw-mystic': 'wizard',
-  // Anime
-  'anime-naruto': 'ninja', 'anime-ninja': 'warrior', 'anime-sakura': 'cat', 'anime-sensei': 'wizard',
-  // Sakura
-  'sk-hanami': 'cat', 'sk-samurai': 'warrior', 'sk-geisha': 'wizard', 'sk-kitsune': 'fox',
-  // Gagarin
-  'gg-cosmonaut': 'robot', 'gg-rocket': 'fox', 'gg-alien': 'alien', 'gg-star': 'wizard',
-  // Marvel
-  'mv-ironman': 'robot', 'mv-spider': 'ninja', 'mv-captain': 'warrior', 'mv-thor': 'dragon',
-  // One Piece
-  'op-luffy': 'warrior', 'op-zoro': 'ninja', 'op-nami': 'cat', 'op-chopper': 'bear',
-  // Frozen
-  'fz-elsa': 'wizard', 'fz-olaf': 'critter', 'fz-anna': 'cat', 'fz-sven': 'bear',
-  // Minions
-  'mn-bob': 'critter', 'mn-kevin': 'bear', 'mn-stuart': 'fox', 'mn-gru': 'robot',
-  // Clash Royale
-  'cr-king': 'warrior', 'cr-princess': 'wizard', 'cr-knight': 'ninja', 'cr-dragon': 'dragon',
-  // Pokemon
-  'pk-pikachu': 'cat', 'pk-charmander': 'dragon', 'pk-squirtle': 'bear', 'pk-bulbasaur': 'critter',
-  // Minecraft
-  'mc-steve': 'warrior', 'mc-creeper': 'ghost', 'mc-enderman': 'alien', 'mc-pig': 'bear',
-  // Brawl Stars
-  'bw-shelly': 'warrior', 'bw-colt': 'ninja', 'bw-spike': 'critter', 'bw-crow': 'owl',
-  // Hogwarts
-  'hw-wizard': 'wizard', 'hw-owl': 'owl', 'hw-witch': 'cat', 'hw-phoenix': 'dragon',
-  // Among Us
-  'au-red': 'alien', 'au-blue': 'robot', 'au-impostor': 'ghost', 'au-green': 'fox',
-  // K-Pop
-  'kp-idol': 'cat', 'kp-dancer': 'ninja', 'kp-rapper': 'fox', 'kp-producer': 'robot',
-  // Genshin Impact
-  'gs-traveler': 'warrior', 'gs-paimon': 'critter', 'gs-archon': 'wizard', 'gs-adeptus': 'dragon',
-  // Witcher
-  'wt-geralt': 'warrior', 'wt-sorceress': 'wizard', 'wt-bard': 'fox', 'wt-monster': 'dragon',
-  // Attack on Titan
-  'aot-eren': 'warrior', 'aot-mikasa': 'ninja', 'aot-levi': 'fox', 'aot-armin': 'owl',
-  // Valorant
-  'vl-jett': 'ninja', 'vl-reyna': 'ghost', 'vl-cypher': 'robot', 'vl-phoenix': 'dragon',
-  // Lord of the Rings
-  'lr-hobbit': 'critter', 'lr-wizard': 'wizard', 'lr-elf': 'fox', 'lr-dwarf': 'bear',
-  // SpongeBob
-  'sb-spongebob': 'critter', 'sb-patrick': 'bear', 'sb-squidward': 'alien', 'sb-sandy': 'ninja',
-  // Mario
-  'mr-mario': 'warrior', 'mr-luigi': 'fox', 'mr-toad': 'critter', 'mr-peach': 'cat',
-  // Roblox
-  'rb-noob': 'critter', 'rb-builder': 'warrior', 'rb-pro': 'ninja', 'rb-robot': 'robot',
-  // Sonic
-  'sn-sonic': 'ninja', 'sn-tails': 'fox', 'sn-knuckles': 'warrior', 'sn-amy': 'cat',
-  // Gravity Falls
-  'gf-dipper': 'owl', 'gf-mabel': 'cat', 'gf-stan': 'bear', 'gf-bill': 'ghost',
-  // Fortnite
-  'fn-jonesy': 'warrior', 'fn-peely': 'critter', 'fn-raven': 'ghost', 'fn-shimmer': 'wizard',
+  'pk-pikachu': 'cat',
+  'sk-samurai': 'warrior',
+  'sk-kitsune': 'fox',
+  'hw-wizard': 'wizard',
+  'got-dragon': 'dragon',
+  'anime-naruto': 'ninja',
+  'gs-paimon': 'critter',
+  'mv-ironman': 'robot',
+  'op-chopper': 'bear',
+  'au-impostor': 'ghost',
+  'mc-enderman': 'alien',
+  'hw-owl': 'owl',
 };
 
 // ─── Lottie sources (one file per archetype from LottieFiles) ────

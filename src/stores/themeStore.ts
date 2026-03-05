@@ -19,7 +19,7 @@ export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
       themeId: defaultTheme.id,
-      characterId: 'sk-kitsune',
+      characterId: 'pk-pikachu',
       ageGroup: 'senior' as AgeGroup,
 
       setTheme: (id) => {

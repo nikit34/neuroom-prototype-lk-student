@@ -35,12 +35,11 @@ export default function OnboardingScreen() {
 
   useEffect(() => {
     setThemeId(defaultTheme.id);
-    setCharacterId('sk-kitsune');
+    setCharacterId('pk-pikachu');
   }, []);
 
   const [step, setStep] = useState(0);
   const [selectedGender, setSelectedGender] = useState<'male' | 'female'>(student.gender);
-  const [showAllCharacters, setShowAllCharacters] = useState(true);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const selectedTheme = themes.find((t) => t.id === themeId) || themes[0];
@@ -215,14 +214,11 @@ export default function OnboardingScreen() {
               Выбери персонажа
             </Text>
             <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-              {showAllCharacters
-                ? 'Выбери любого персонажа'
-                : `Персонажи темы «${selectedTheme.name}»`}
+              Выбери любого персонажа
             </Text>
 
             <View style={styles.charactersGrid}>
-              {(showAllCharacters ? allCharacters : selectedTheme.characters).map(
-                (char: ThemeCharacter) => {
+              {allCharacters.map((char: ThemeCharacter) => {
                   const isSelected = char.id === characterId;
                   return (
                     <TouchableOpacity
@@ -273,15 +269,6 @@ export default function OnboardingScreen() {
               )}
             </View>
 
-            <TouchableOpacity
-              onPress={() => setShowAllCharacters(!showAllCharacters)}
-              style={[styles.showAllBtn, { borderColor: theme.colors.border }]}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.showAllText, { color: theme.colors.primary }]}>
-                {showAllCharacters ? 'Только из текущей темы' : 'Все персонажи'}
-              </Text>
-            </TouchableOpacity>
           </View>
         );
 
@@ -592,18 +579,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
-  showAllBtn: {
-    marginTop: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  showAllText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-
   // Bottom
   bottomBar: {
     flexDirection: 'row',

@@ -127,7 +127,6 @@ export interface AppTheme {
   name: string;
   emoji: string;
   ageGroup: 'junior' | 'senior';
-  characters: ThemeCharacter[];
   backgroundEmojis: string[];
   colors: {
     primary: string;
