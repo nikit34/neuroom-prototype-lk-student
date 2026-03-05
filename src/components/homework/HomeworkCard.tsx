@@ -14,7 +14,6 @@ import { getGradeColor, getGradeEmoji } from '@/src/utils/gradeHelpers';
 import Card from '@/src/components/ui/Card';
 import StatusChip from '@/src/components/ui/StatusChip';
 import DeadlineIndicator from './DeadlineIndicator';
-import BonusTimer from './BonusTimer';
 
 interface HomeworkCardProps {
   homework: HomeworkAssignment;
@@ -44,7 +43,6 @@ function getSubjectEmoji(subject: string): string {
 export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
   const theme = useAppTheme();
   const overdue = isOverdue(homework.deadline) && homework.status === 'pending';
-  const showXp = homework.status === 'pending' || homework.status === 'resubmit';
 
   const pulseValue = useSharedValue(1);
 
@@ -71,10 +69,10 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
         <View style={styles.header}>
           <View style={styles.headerText}>
             <Text style={[styles.title, { color: theme.colors.text }]} numberOfLines={1}>
-              {homework.title}
+              {homework.subject}
             </Text>
-            <Text style={[styles.teacher, { color: theme.colors.textSecondary }]}>
-              {homework.teacher.lastName} {homework.teacher.firstName[0]}.
+            <Text style={[styles.subject, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+              {homework.description.split('\n')[0]}
             </Text>
           </View>
           <StatusChip status={homework.status} />
@@ -83,9 +81,6 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
         <View style={styles.footer}>
           <DeadlineIndicator deadline={homework.deadline} />
           <View style={styles.footerRight}>
-            {showXp && (
-              <BonusTimer homework={homework} />
-            )}
             {homework.classmateSubmittedCount != null && homework.totalClassmates != null && (
               <Text style={[styles.classmateCount, { color: theme.colors.textSecondary }]}>
                 👥 {homework.classmateSubmittedCount} из {homework.totalClassmates}
@@ -140,7 +135,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 2,
   },
-  teacher: {
+  subject: {
     fontSize: 13,
   },
   footer: {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
-import { isOverdue, getTimeRemaining, formatDateTimeRu } from '@/src/utils/dateHelpers';
+import { isOverdue, getTimeRemaining, formatDateRu } from '@/src/utils/dateHelpers';
 import { differenceInHours, isPast } from 'date-fns';
 
 interface DeadlineIndicatorProps {
@@ -27,7 +27,7 @@ export default function DeadlineIndicator({ deadline }: DeadlineIndicatorProps) 
           {getTimeRemaining(deadline)}
         </Text>
         <Text style={[styles.date, { color: theme.colors.textSecondary }]}>
-          {formatDateTimeRu(deadline)}
+          {formatDateRu(deadline)}
         </Text>
       </View>
     </View>

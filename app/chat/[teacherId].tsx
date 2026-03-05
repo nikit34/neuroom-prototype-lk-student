@@ -15,7 +15,7 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useChatStore } from '@/src/stores/chatStore';
 import { mockTeachers } from '@/src/data/mockData';
 import { ChatMessage } from '@/src/types';
-import { formatTimeRu } from '@/src/utils/dateHelpers';
+import { formatDateRu } from '@/src/utils/dateHelpers';
 
 export default function ChatScreen() {
   const { teacherId, dispute, hwTitle, grade } = useLocalSearchParams<{
@@ -99,7 +99,7 @@ export default function ChatScreen() {
               },
             ]}
           >
-            {formatTimeRu(item.timestamp)}
+            {formatDateRu(item.timestamp)}
           </Text>
         </View>
       </View>

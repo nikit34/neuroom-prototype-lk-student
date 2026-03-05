@@ -10,7 +10,6 @@ import Mascot from '@/src/components/mascot/Mascot';
 import Card from '@/src/components/ui/Card';
 import DeadlineIndicator from '@/src/components/homework/DeadlineIndicator';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
-import BonusTimer from '@/src/components/homework/BonusTimer';
 import MascotHealthBar from '@/src/components/mascot/MascotHealthBar';
 import type { Achievement, HomeworkAssignment } from '@/src/types';
 
@@ -96,6 +95,9 @@ export default function HomeScreen() {
                 ×{student.xpMultiplier} Здоровье
               </Text>
             )}
+            <Text style={[styles.streakHint, { color: theme.colors.textSecondary }]}>
+              Выполни ДЗ вовремя и получи +Здоровье
+            </Text>
           </Card>
           <View style={[styles.mascotContainer, { width: topBlockHeight, height: topBlockHeight }]}>
             <Mascot health={student.mascotHealth} showHealthBar={false} size={Math.round(topBlockHeight / 1.8)} compact />
@@ -149,12 +151,9 @@ export default function HomeScreen() {
                     <Text style={[styles.hwTitle, { color: theme.colors.text }]} numberOfLines={1}>
                       {hw.subject}
                     </Text>
-                    <View style={styles.hwSubRow}>
-                      <Text style={[styles.hwSubject, { color: theme.colors.textSecondary }]} numberOfLines={1}>
-                        {hw.title}
-                      </Text>
-                      <BonusTimer homework={hw} />
-                    </View>
+                    <Text style={[styles.hwSubject, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+                      {hw.description.split('\n')[0]}
+                    </Text>
                     {linked && (
                       <TouchableOpacity
                         style={[styles.linkedBadge, { backgroundColor: theme.colors.surface }]}
@@ -162,11 +161,8 @@ export default function HomeScreen() {
                         activeOpacity={0.7}
                       >
                         <Text style={styles.linkedBadgeIcon}>{linked.icon}</Text>
-                        <Text style={[styles.linkedBadgeText, { color: theme.colors.text }]} numberOfLines={1}>
-                          {linked.title}
-                        </Text>
-                        <Text style={[styles.linkedBadgeProgress, { color: theme.colors.primary }]}>
-                          {linked.progress}%
+                        <Text style={[styles.linkedBadgeText, { color: theme.colors.text }]} numberOfLines={2}>
+                          Выполни это ДЗ и получи {linked.progress}% награды «{linked.title}»
                         </Text>
                       </TouchableOpacity>
                     )}
@@ -243,6 +239,12 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     marginTop: 3,
+  },
+  streakHint: {
+    fontSize: 9,
+    textAlign: 'center',
+    marginTop: 4,
+    paddingHorizontal: 4,
   },
   // ── Achievement banner ──
   achievementBanner: {

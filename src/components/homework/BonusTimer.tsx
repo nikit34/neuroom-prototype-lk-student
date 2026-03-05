@@ -62,7 +62,7 @@ export default function BonusTimer({ homework }: BonusTimerProps) {
   if (currentXp <= 50) {
     return (
       <Text style={[styles.text, { color: theme.colors.textSecondary }]}>
-        +{currentXp} Здоровье
+        Сдай и получи +{currentXp} Здоровье
       </Text>
     );
   }
@@ -71,7 +71,7 @@ export default function BonusTimer({ homework }: BonusTimerProps) {
 
   return (
     <Text style={[styles.text, { color: theme.colors.primary }]}>
-      +{currentXp} Здоровье{countdown ? ` · ${countdown}` : ''}
+      Сдай сейчас — +{currentXp} Здоровье{countdown ? ` · ${countdown}` : ''}
     </Text>
   );
 }

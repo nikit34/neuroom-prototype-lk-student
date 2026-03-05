@@ -1,28 +1,20 @@
-import { format, formatDistanceToNowStrict, isPast, differenceInMinutes, differenceInHours, differenceInDays } from 'date-fns';
+import { format, formatDistanceToNowStrict, isPast, differenceInDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
 /**
  * Форматирует дату в читаемый вид на русском языке.
- * Пример: «15 марта 2026»
+ * Пример: «15 марта»
  */
 export function formatDateRu(date: Date): string {
-  return format(date, 'd MMMM yyyy', { locale: ru });
+  return format(date, 'd MMMM', { locale: ru });
 }
 
 /**
- * Форматирует дату и время на русском языке.
- * Пример: «15 марта, 14:30»
+ * Форматирует дату на русском языке (без времени).
+ * Пример: «15 марта»
  */
 export function formatDateTimeRu(date: Date): string {
-  return format(date, 'd MMMM, HH:mm', { locale: ru });
-}
-
-/**
- * Форматирует только время.
- * Пример: «14:30»
- */
-export function formatTimeRu(date: Date): string {
-  return format(date, 'HH:mm', { locale: ru });
+  return format(date, 'd MMMM', { locale: ru });
 }
 
 /**
@@ -43,35 +35,15 @@ export function isOverdue(deadline: Date): boolean {
  * Возвращает человекочитаемую строку «Осталось ...» или «Просрочено ...» на русском.
  */
 export function getTimeRemaining(deadline: Date): string {
-  const now = new Date();
-
   if (isPast(deadline)) {
-    return `Просрочено ${formatDistanceToNowStrict(deadline, { locale: ru })}`;
+    const days = differenceInDays(new Date(), deadline);
+    if (days === 0) return 'Просрочено сегодня';
+    return `Просрочено ${pluralizeDays(days)}`;
   }
 
-  const minutes = differenceInMinutes(deadline, now);
-  const hours = differenceInHours(deadline, now);
-  const days = differenceInDays(deadline, now);
+  const days = differenceInDays(deadline, new Date());
 
-  if (minutes < 60) {
-    return `Осталось ${pluralizeMinutes(minutes)}`;
-  }
-
-  if (hours < 24) {
-    const remainingMinutes = minutes % 60;
-    if (remainingMinutes === 0) {
-      return `Осталось ${pluralizeHours(hours)}`;
-    }
-    return `Осталось ${pluralizeHours(hours)} ${pluralizeMinutes(remainingMinutes)}`;
-  }
-
-  if (days < 7) {
-    const remainingHours = hours % 24;
-    if (remainingHours === 0) {
-      return `Осталось ${pluralizeDays(days)}`;
-    }
-    return `Осталось ${pluralizeDays(days)} ${pluralizeHours(remainingHours)}`;
-  }
+  if (days === 0) return 'Осталось меньше дня';
 
   return `Осталось ${pluralizeDays(days)}`;
 }
@@ -88,14 +60,14 @@ export function getDeadlineLabel(deadline: Date): string {
   }
 
   if (days === 0) {
-    return `Сегодня, ${formatTimeRu(deadline)}`;
+    return 'Сегодня';
   }
 
   if (days === 1) {
-    return `Завтра, ${formatTimeRu(deadline)}`;
+    return 'Завтра';
   }
 
-  return formatDateTimeRu(deadline);
+  return formatDateRu(deadline);
 }
 
 // ---------------------------------------------------------------------------
@@ -119,14 +91,6 @@ function pluralize(n: number, one: string, few: string, many: string): string {
   }
 
   return `${n} ${many}`;
-}
-
-function pluralizeMinutes(n: number): string {
-  return pluralize(n, 'минута', 'минуты', 'минут');
-}
-
-function pluralizeHours(n: number): string {
-  return pluralize(n, 'час', 'часа', 'часов');
 }
 
 function pluralizeDays(n: number): string {
