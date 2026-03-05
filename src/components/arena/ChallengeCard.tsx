@@ -54,7 +54,7 @@ export default function ChallengeCard({ challenge, onPress, onStart }: Challenge
 
       <View style={styles.bottomRow}>
         <View style={styles.rewardRow}>
-          <Text style={[styles.xp, { color: theme.colors.accent }]}>+{challenge.reward.xp} XP</Text>
+          <Text style={[styles.xp, { color: theme.colors.accent }]}>+{challenge.reward.xp} опыта</Text>
           {challenge.reward.badge && (
             <Text style={styles.badge}>{challenge.reward.badge.icon}</Text>
           )}

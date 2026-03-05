@@ -14,8 +14,10 @@ import { seniorThemes, juniorThemes } from '@/src/theme/themes';
 import { useMemo } from 'react';
 import Mascot from '@/src/components/mascot/Mascot';
 import Card from '@/src/components/ui/Card';
+import ProgressBar from '@/src/components/ui/ProgressBar';
 import { AppTheme } from '@/src/types';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
+import { getLevel } from '@/src/utils/levelHelpers';
 
 export default function ProfileScreen() {
   const theme = useAppTheme();
@@ -30,6 +32,7 @@ export default function ProfileScreen() {
     [ageGroup],
   );
   const ageLabel = ageGroup === 'senior' ? '8–11 класс' : '5–7 класс';
+  const { level, currentLevelXp, xpForNextLevel, rank } = getLevel(student.totalPoints);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
@@ -74,12 +77,22 @@ export default function ProfileScreen() {
             <View style={[styles.statDivider, { backgroundColor: theme.colors.border }]} />
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: theme.colors.accent }]}>
-                ⭐ {student.totalPoints}
+                {rank.emoji} {rank.title}
               </Text>
               <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
-                Очки XP
+                Уровень {level} · {student.totalPoints} очков
               </Text>
             </View>
+          </View>
+          <View style={styles.levelProgressRow}>
+            <ProgressBar
+              progress={(currentLevelXp / xpForNextLevel) * 100}
+              color={theme.colors.primary}
+              height={6}
+            />
+            <Text style={[styles.levelProgressLabel, { color: theme.colors.textSecondary }]}>
+              {currentLevelXp} / {xpForNextLevel} до уровня {level + 1}
+            </Text>
           </View>
         </Card>
 
@@ -218,6 +231,16 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 40,
+  },
+  levelProgressRow: {
+    width: '100%',
+    marginTop: 16,
+    paddingHorizontal: 8,
+  },
+  levelProgressLabel: {
+    fontSize: 11,
+    textAlign: 'center',
+    marginTop: 4,
   },
   sectionTitle: {
     fontSize: 20,

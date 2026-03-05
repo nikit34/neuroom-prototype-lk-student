@@ -5,10 +5,13 @@ import { useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
+import { useAchievementStore } from '@/src/stores/achievementStore';
 import Mascot from '@/src/components/mascot/Mascot';
 import Card from '@/src/components/ui/Card';
+import ProgressBar from '@/src/components/ui/ProgressBar';
 import DeadlineIndicator from '@/src/components/homework/DeadlineIndicator';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
+import { getLevel, HOMEWORK_XP_REWARD } from '@/src/utils/levelHelpers';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -22,6 +25,15 @@ export default function HomeScreen() {
   const router = useRouter();
   const student = useStudentStore((s) => s.student);
   const assignments = useHomeworkStore((s) => s.assignments);
+  const achievements = useAchievementStore((s) => s.achievements);
+
+  const { level, currentLevelXp, xpForNextLevel, rank } = getLevel(student.totalPoints);
+
+  const nearestAchievement = useMemo(() => {
+    return achievements
+      .filter((a) => a.isLocked && a.progress > 0)
+      .sort((a, b) => b.progress - a.progress)[0] ?? null;
+  }, [achievements]);
 
   const upcomingDeadlines = useMemo(() => {
     const now = new Date();
@@ -46,9 +58,55 @@ export default function HomeScreen() {
         <Text style={[styles.greeting, { color: theme.colors.text }]}>
           {getGreeting()}, {student.firstName}! 👋
         </Text>
-        <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-          Серия: {student.currentStreak} дней 🔥 | {student.totalPoints} XP
-        </Text>
+
+        <Card style={styles.statsCard}>
+          <View style={styles.statsTopRow}>
+            <View style={styles.statChip}>
+              <Text style={styles.statChipEmoji}>🔥</Text>
+              <Text style={[styles.statChipValue, { color: theme.colors.text }]}>
+                {student.currentStreak}
+              </Text>
+              <Text style={[styles.statChipLabel, { color: theme.colors.textSecondary }]}>
+                дней
+              </Text>
+            </View>
+            <View style={[styles.statChipDivider, { backgroundColor: theme.colors.border }]} />
+            <View style={styles.statChip}>
+              <Text style={styles.statChipEmoji}>{rank.emoji}</Text>
+              <Text style={[styles.statChipValue, { color: theme.colors.text }]}>
+                {rank.title}
+              </Text>
+              <Text style={[styles.statChipLabel, { color: theme.colors.textSecondary }]}>
+                Уровень {level} · {currentLevelXp}/{xpForNextLevel}
+              </Text>
+            </View>
+          </View>
+          <ProgressBar
+            progress={(currentLevelXp / xpForNextLevel) * 100}
+            color={theme.colors.primary}
+            height={6}
+          />
+          {nearestAchievement && (
+            <TouchableOpacity
+              style={styles.nearestAchievement}
+              onPress={() => router.push(`/achievements/${nearestAchievement.id}`)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.nearestAchievementIcon}>{nearestAchievement.icon}</Text>
+              <View style={styles.nearestAchievementInfo}>
+                <Text style={[styles.nearestAchievementTitle, { color: theme.colors.text }]} numberOfLines={1}>
+                  {nearestAchievement.title}
+                </Text>
+                <Text style={[styles.nearestAchievementDesc, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+                  {nearestAchievement.description}
+                </Text>
+              </View>
+              <Text style={[styles.nearestAchievementProgress, { color: theme.colors.primary }]}>
+                {nearestAchievement.progress}%
+              </Text>
+            </TouchableOpacity>
+          )}
+        </Card>
 
         <Mascot health={student.mascotHealth} />
 
@@ -74,9 +132,14 @@ export default function HomeScreen() {
                   <Text style={[styles.hwTitle, { color: theme.colors.text }]} numberOfLines={1}>
                     {hw.title}
                   </Text>
-                  <Text style={[styles.hwSubject, { color: theme.colors.textSecondary }]}>
-                    {hw.subject}
-                  </Text>
+                  <View style={styles.hwSubRow}>
+                    <Text style={[styles.hwSubject, { color: theme.colors.textSecondary }]}>
+                      {hw.subject}
+                    </Text>
+                    <Text style={[styles.hwXp, { color: theme.colors.primary }]}>
+                      +{HOMEWORK_XP_REWARD} опыта
+                    </Text>
+                  </View>
                   <DeadlineIndicator deadline={hw.deadline} />
                 </View>
               </TouchableOpacity>
@@ -112,11 +175,63 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: '700',
     marginTop: 8,
+    marginBottom: 12,
   },
-  subtitle: {
-    fontSize: 14,
-    marginTop: 4,
-    marginBottom: 8,
+  statsCard: {
+    marginBottom: 4,
+  },
+  statsTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  statChip: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statChipEmoji: {
+    fontSize: 20,
+    marginBottom: 2,
+  },
+  statChipValue: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  statChipLabel: {
+    fontSize: 11,
+    marginTop: 1,
+  },
+  statChipDivider: {
+    width: 1,
+    height: 36,
+  },
+  nearestAchievement: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(128,128,128,0.2)',
+  },
+  nearestAchievementIcon: {
+    fontSize: 24,
+    marginRight: 10,
+  },
+  nearestAchievementInfo: {
+    flex: 1,
+  },
+  nearestAchievementTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  nearestAchievementDesc: {
+    fontSize: 11,
+    marginTop: 1,
+  },
+  nearestAchievementProgress: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginLeft: 8,
   },
   sectionTitle: {
     fontSize: 20,
@@ -140,9 +255,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 2,
   },
+  hwSubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
   hwSubject: {
     fontSize: 13,
-    marginBottom: 8,
+  },
+  hwXp: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   emptyText: {
     fontSize: 15,

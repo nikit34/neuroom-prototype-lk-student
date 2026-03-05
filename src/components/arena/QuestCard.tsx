@@ -61,7 +61,7 @@ export default function QuestCard({ quest, onPress }: QuestCardProps) {
               {daysLeft} дн.
             </Text>
           )}
-          <Text style={[styles.xp, { color: theme.colors.textSecondary }]}>+{quest.xpReward} XP</Text>
+          <Text style={[styles.xp, { color: theme.colors.textSecondary }]}>+{quest.xpReward} опыта</Text>
         </View>
       </View>
     </Card>

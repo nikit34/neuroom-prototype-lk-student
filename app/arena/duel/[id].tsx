@@ -55,7 +55,7 @@ export default function DuelDetailScreen() {
               Предмет: {duel.subject}
             </Text>
             <Text style={[styles.challengeQuestions, { color: theme.colors.textSecondary }]}>
-              {duel.questions.length} вопросов · +{duel.xpReward} XP
+              {duel.questions.length} вопросов · +{duel.xpReward} опыта
             </Text>
           </Card>
           {duel.isIncoming && (

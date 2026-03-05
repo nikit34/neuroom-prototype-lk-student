@@ -45,7 +45,7 @@ export default function DuelResultView({ duel }: DuelResultViewProps) {
       </View>
 
       <Text style={[styles.xpReward, { color: theme.colors.success }]}>
-        +{duel.result === 'won' ? duel.xpReward : duel.result === 'draw' ? Math.floor(duel.xpReward / 2) : Math.floor(duel.xpReward / 4)} XP
+        +{duel.result === 'won' ? duel.xpReward : duel.result === 'draw' ? Math.floor(duel.xpReward / 2) : Math.floor(duel.xpReward / 4)} опыта
       </Text>
 
       <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Разбор вопросов</Text>

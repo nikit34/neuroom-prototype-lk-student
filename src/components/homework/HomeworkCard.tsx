@@ -14,6 +14,7 @@ import { getGradeColor, getGradeEmoji } from '@/src/utils/gradeHelpers';
 import Card from '@/src/components/ui/Card';
 import StatusChip from '@/src/components/ui/StatusChip';
 import DeadlineIndicator from './DeadlineIndicator';
+import { HOMEWORK_XP_REWARD } from '@/src/utils/levelHelpers';
 
 interface HomeworkCardProps {
   homework: HomeworkAssignment;
@@ -43,6 +44,7 @@ function getSubjectEmoji(subject: string): string {
 export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
   const theme = useAppTheme();
   const overdue = isOverdue(homework.deadline) && homework.status === 'pending';
+  const showXp = homework.status === 'pending' || homework.status === 'resubmit';
 
   const pulseValue = useSharedValue(1);
 
@@ -82,6 +84,11 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
         <View style={styles.footer}>
           <DeadlineIndicator deadline={homework.deadline} />
           <View style={styles.footerRight}>
+            {showXp && (
+              <Text style={[styles.xpLabel, { color: theme.colors.primary }]}>
+                +{HOMEWORK_XP_REWARD} опыта
+              </Text>
+            )}
             {homework.classmateSubmittedCount != null && homework.totalClassmates != null && (
               <Text style={[styles.classmateCount, { color: theme.colors.textSecondary }]}>
                 👥 {homework.classmateSubmittedCount} из {homework.totalClassmates}
@@ -148,6 +155,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+  },
+  xpLabel: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   classmateCount: {
     fontSize: 12,

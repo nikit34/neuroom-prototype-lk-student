@@ -4,42 +4,43 @@ import { MascotState, MascotEmotion } from '../types';
 
 export type CharacterArchetype =
   | 'cat' | 'warrior' | 'king' | 'astronaut'
-  | 'wizard' | 'dragon' | 'ninja' | 'critter';
+  | 'wizard' | 'dragon' | 'ninja' | 'critter'
+  | 'robot' | 'bear' | 'ghost' | 'alien' | 'owl';
 
 /** Maps every character ID to its visual archetype */
 export const CHARACTER_ARCHETYPE: Record<string, CharacterArchetype> = {
   // CS:GO → warrior
-  'csgo-ct': 'warrior', 'csgo-t': 'warrior', 'csgo-awp': 'warrior', 'csgo-spec': 'warrior',
+  'csgo-ct': 'warrior', 'csgo-t': 'warrior', 'csgo-awp': 'warrior', 'csgo-spec': 'robot',
   // Game of Thrones
-  'got-dragon': 'dragon', 'got-wolf': 'cat', 'got-lion': 'cat', 'got-raven': 'cat',
+  'got-dragon': 'dragon', 'got-wolf': 'cat', 'got-lion': 'cat', 'got-raven': 'owl',
   // Twilight
-  'tw-vampire': 'wizard', 'tw-werewolf': 'cat', 'tw-shewolf': 'cat', 'tw-mystic': 'wizard',
+  'tw-vampire': 'ghost', 'tw-werewolf': 'cat', 'tw-shewolf': 'cat', 'tw-mystic': 'wizard',
   // Anime
   'anime-naruto': 'ninja', 'anime-ninja': 'ninja', 'anime-sakura': 'ninja', 'anime-sensei': 'wizard',
   // Sakura
   'sk-hanami': 'king', 'sk-samurai': 'warrior', 'sk-geisha': 'king', 'sk-kitsune': 'cat',
   // Gagarin
-  'gg-cosmonaut': 'astronaut', 'gg-rocket': 'astronaut', 'gg-alien': 'astronaut', 'gg-star': 'astronaut',
+  'gg-cosmonaut': 'astronaut', 'gg-rocket': 'astronaut', 'gg-alien': 'alien', 'gg-star': 'astronaut',
   // Marvel
-  'mv-ironman': 'warrior', 'mv-spider': 'ninja', 'mv-captain': 'warrior', 'mv-thor': 'warrior',
+  'mv-ironman': 'robot', 'mv-spider': 'ninja', 'mv-captain': 'warrior', 'mv-thor': 'warrior',
   // One Piece
-  'op-luffy': 'ninja', 'op-zoro': 'warrior', 'op-nami': 'ninja', 'op-chopper': 'cat',
+  'op-luffy': 'ninja', 'op-zoro': 'warrior', 'op-nami': 'ninja', 'op-chopper': 'bear',
   // Frozen
-  'fz-elsa': 'king', 'fz-olaf': 'critter', 'fz-anna': 'king', 'fz-sven': 'cat',
+  'fz-elsa': 'king', 'fz-olaf': 'critter', 'fz-anna': 'king', 'fz-sven': 'bear',
   // Minions
-  'mn-bob': 'critter', 'mn-kevin': 'critter', 'mn-stuart': 'critter', 'mn-gru': 'critter',
+  'mn-bob': 'critter', 'mn-kevin': 'critter', 'mn-stuart': 'critter', 'mn-gru': 'robot',
   // Clash Royale
   'cr-king': 'king', 'cr-princess': 'king', 'cr-knight': 'warrior', 'cr-dragon': 'dragon',
   // Pokemon
-  'pk-pikachu': 'cat', 'pk-charmander': 'cat', 'pk-squirtle': 'cat', 'pk-bulbasaur': 'cat',
+  'pk-pikachu': 'cat', 'pk-charmander': 'dragon', 'pk-squirtle': 'bear', 'pk-bulbasaur': 'critter',
   // Minecraft
-  'mc-steve': 'warrior', 'mc-creeper': 'critter', 'mc-enderman': 'dragon', 'mc-pig': 'cat',
+  'mc-steve': 'warrior', 'mc-creeper': 'ghost', 'mc-enderman': 'alien', 'mc-pig': 'bear',
   // Brawl Stars
-  'bw-shelly': 'warrior', 'bw-colt': 'warrior', 'bw-spike': 'critter', 'bw-crow': 'cat',
+  'bw-shelly': 'warrior', 'bw-colt': 'warrior', 'bw-spike': 'critter', 'bw-crow': 'owl',
   // Hogwarts
-  'hw-wizard': 'wizard', 'hw-owl': 'cat', 'hw-witch': 'wizard', 'hw-phoenix': 'dragon',
+  'hw-wizard': 'wizard', 'hw-owl': 'owl', 'hw-witch': 'wizard', 'hw-phoenix': 'dragon',
   // Among Us
-  'au-red': 'astronaut', 'au-blue': 'astronaut', 'au-impostor': 'astronaut', 'au-green': 'astronaut',
+  'au-red': 'alien', 'au-blue': 'alien', 'au-impostor': 'ghost', 'au-green': 'astronaut',
 };
 
 // ─── Rive source (single file for all archetypes) ──────────────
@@ -57,6 +58,11 @@ export const MASCOT_LOTTIE_SOURCES: Record<CharacterArchetype, any> = {
   dragon: require('../../assets/animations/mascot/mascot-dragon.json'),
   ninja: require('../../assets/animations/mascot/mascot-ninja.json'),
   critter: require('../../assets/animations/mascot/mascot-critter.json'),
+  robot: require('../../assets/animations/mascot/mascot-robot.json'),
+  bear: require('../../assets/animations/mascot/mascot-bear.json'),
+  ghost: require('../../assets/animations/mascot/mascot-ghost.json'),
+  alien: require('../../assets/animations/mascot/mascot-alien.json'),
+  owl: require('../../assets/animations/mascot/mascot-owl.json'),
 };
 
 export const DEFAULT_ARCHETYPE: CharacterArchetype = 'critter';

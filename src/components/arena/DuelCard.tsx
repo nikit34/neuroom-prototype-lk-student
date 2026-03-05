@@ -89,7 +89,7 @@ export default function DuelCard({ duel, onPress, onAccept, onDecline }: DuelCar
         </View>
       )}
 
-      <Text style={[styles.xp, { color: theme.colors.textSecondary }]}>+{duel.xpReward} XP</Text>
+      <Text style={[styles.xp, { color: theme.colors.textSecondary }]}>+{duel.xpReward} опыта</Text>
     </Card>
   );
 }

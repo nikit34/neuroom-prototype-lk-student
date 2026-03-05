@@ -85,7 +85,7 @@ export default function ChallengeDetailScreen() {
         {/* Reward */}
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Награда</Text>
         <Card style={styles.rewardCard}>
-          <Text style={[styles.rewardXp, { color: theme.colors.accent }]}>+{challenge.reward.xp} XP</Text>
+          <Text style={[styles.rewardXp, { color: theme.colors.accent }]}>+{challenge.reward.xp} опыта</Text>
           {challenge.reward.badge && (
             <View style={styles.badgeRow}>
               <Text style={styles.badgeIcon}>{challenge.reward.badge.icon}</Text>

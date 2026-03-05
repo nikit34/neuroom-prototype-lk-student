@@ -44,7 +44,7 @@ export default function QuestDetailScreen() {
             </View>
           )}
           <View style={[styles.metaBadge, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
-            <Text style={[styles.metaText, { color: theme.colors.accent }]}>+{quest.xpReward} XP</Text>
+            <Text style={[styles.metaText, { color: theme.colors.accent }]}>+{quest.xpReward} опыта</Text>
           </View>
         </View>
 
