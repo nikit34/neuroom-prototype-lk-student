@@ -13,22 +13,26 @@ import ThemeBackground from '@/src/components/theme/ThemeBackground';
 import MascotHealthBar from '@/src/components/mascot/MascotHealthBar';
 import type { Achievement, HomeworkAssignment } from '@/src/types';
 
-/** Achievement IDs linked to homework subjects */
-const SUBJECT_ACHIEVEMENT_IDS: Record<string, string[]> = {
-  'Математика': ['ach-12'],
-  'Русский язык': ['ach-13'],
-  'Английский язык': ['ach-14'],
-  'Физика': ['ach-15'],
-  'История': ['ach-16'],
+/** Achievement IDs linked to homework subjects + how much each HW contributes */
+const SUBJECT_ACHIEVEMENT_MAP: Record<string, { ids: string[]; contribution: number }> = {
+  'Математика': { ids: ['ach-12'], contribution: 20 },
+  'Русский язык': { ids: ['ach-13'], contribution: 20 },
+  'Английский язык': { ids: ['ach-14'], contribution: 33 },
+  'Физика': { ids: ['ach-15'], contribution: 25 },
+  'История': { ids: ['ach-16'], contribution: 20 },
 };
 
-function getLinkedAchievement(
+type LinkedReward = { achievement: Achievement; contribution: number };
+
+function getLinkedReward(
   hw: HomeworkAssignment,
   achievements: Achievement[],
-): Achievement | null {
-  const ids = SUBJECT_ACHIEVEMENT_IDS[hw.subject];
-  if (!ids) return null;
-  return achievements.find((a) => ids.includes(a.id) && a.isLocked && a.progress > 0) ?? null;
+): LinkedReward | null {
+  const entry = SUBJECT_ACHIEVEMENT_MAP[hw.subject];
+  if (!entry) return null;
+  const achievement = achievements.find((a) => entry.ids.includes(a.id) && a.isLocked && a.progress > 0) ?? null;
+  if (!achievement) return null;
+  return { achievement, contribution: entry.contribution };
 }
 
 function getGreeting(): string {
@@ -81,50 +85,34 @@ export default function HomeScreen() {
         {/* ── Mascot + Health row ── */}
         <View style={[styles.topRow, { height: topBlockHeight }]}>
           <Card style={styles.streakCard}>
-            <Text style={[styles.streakValue, { color: theme.colors.text }]}>
-              {student.earlyStreak}
-            </Text>
-            <Text style={[styles.streakLabel, { color: theme.colors.textSecondary }]}>
-              ДЗ вовремя подряд
-            </Text>
-            <View style={styles.streakHealthRow}>
+            <View style={styles.healthSection}>
               <MascotHealthBar health={student.mascotHealth} />
-            </View>
-            {student.xpMultiplier > 1 && (
-              <Text style={[styles.streakBonus, { color: theme.colors.success }]}>
-                ×{student.xpMultiplier} Здоровье
+              <Text style={[styles.healthLabel, { color: theme.colors.textSecondary }]}>
+                Здоровье: {student.mascotHealth}%
               </Text>
+            </View>
+            {nearestAchievement && (
+              <TouchableOpacity
+                style={[styles.nearestReward, { backgroundColor: theme.colors.surface }]}
+                onPress={() => router.push(`/achievements/${nearestAchievement.id}`)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.nearestRewardIcon}>{nearestAchievement.icon}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.nearestRewardTitle, { color: theme.colors.text }]} numberOfLines={1}>
+                    {nearestAchievement.title}
+                  </Text>
+                  <Text style={[styles.nearestRewardProgress, { color: theme.colors.primary }]}>
+                    {nearestAchievement.progress}%
+                  </Text>
+                </View>
+              </TouchableOpacity>
             )}
-            <Text style={[styles.streakHint, { color: theme.colors.textSecondary }]}>
-              Выполни ДЗ вовремя и получи +Здоровье
-            </Text>
           </Card>
           <View style={[styles.mascotContainer, { width: topBlockHeight, height: topBlockHeight }]}>
             <Mascot health={student.mascotHealth} showHealthBar={false} size={Math.round(topBlockHeight / 1.8)} compact />
           </View>
         </View>
-
-        {/* ── Nearest Achievement ── */}
-        {nearestAchievement && (
-          <TouchableOpacity
-            style={[styles.achievementBanner, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}
-            onPress={() => router.push(`/achievements/${nearestAchievement.id}`)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.achievementIcon}>{nearestAchievement.icon}</Text>
-            <View style={styles.achievementInfo}>
-              <Text style={[styles.achievementTitle, { color: theme.colors.text }]} numberOfLines={1}>
-                {nearestAchievement.title}
-              </Text>
-              <Text style={[styles.achievementDesc, { color: theme.colors.textSecondary }]} numberOfLines={1}>
-                {nearestAchievement.description}
-              </Text>
-            </View>
-            <Text style={[styles.achievementProgress, { color: theme.colors.primary }]}>
-              {nearestAchievement.progress}%
-            </Text>
-          </TouchableOpacity>
-        )}
 
         {/* ── Deadlines ── */}
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -139,7 +127,8 @@ export default function HomeScreen() {
           </Card>
         ) : (
           upcomingDeadlines.map((hw) => {
-            const linked = getLinkedAchievement(hw, achievements);
+            const reward = getLinkedReward(hw, achievements);
+            const willComplete = reward && (reward.achievement.progress + reward.contribution >= 100);
             return (
               <Card key={hw.id} style={styles.deadlineCard}>
                 <TouchableOpacity
@@ -151,20 +140,48 @@ export default function HomeScreen() {
                     <Text style={[styles.hwTitle, { color: theme.colors.text }]} numberOfLines={1}>
                       {hw.subject}
                     </Text>
-                    <Text style={[styles.hwSubject, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+                    <Text style={[styles.hwSubject, { color: theme.colors.textSecondary }]} numberOfLines={2}>
                       {hw.description.split('\n')[0]}
                     </Text>
-                    {linked && (
+                    {reward ? (
                       <TouchableOpacity
-                        style={[styles.linkedBadge, { backgroundColor: theme.colors.surface }]}
-                        onPress={() => router.push(`/achievements/${linked.id}`)}
+                        style={[styles.rewardHint, { backgroundColor: theme.colors.primary + '10', borderColor: theme.colors.primary + '40' }]}
+                        onPress={() => router.push(`/achievements/${reward.achievement.id}`)}
                         activeOpacity={0.7}
                       >
-                        <Text style={styles.linkedBadgeIcon}>{linked.icon}</Text>
-                        <Text style={[styles.linkedBadgeText, { color: theme.colors.text }]} numberOfLines={2}>
-                          Выполни это ДЗ и получи {linked.progress}% награды «{linked.title}»
-                        </Text>
+                        <Text style={styles.rewardHintIcon}>{reward.achievement.icon}</Text>
+                        <View style={styles.rewardHintBody}>
+                          <Text style={[styles.rewardHintText, { color: theme.colors.primary }]} numberOfLines={1}>
+                            {willComplete
+                              ? `Выполни и получи награду «${reward.achievement.title}»!`
+                              : `+${reward.contribution}% к награде «${reward.achievement.title}»`}
+                          </Text>
+                          <View style={[styles.rewardBar, { backgroundColor: theme.colors.border }]}>
+                            <View
+                              style={[styles.rewardBarFill, {
+                                width: `${reward.achievement.progress}%`,
+                                backgroundColor: theme.colors.primary,
+                              }]}
+                            />
+                            <View
+                              style={[styles.rewardBarGain, {
+                                width: `${Math.min(reward.contribution, 100 - reward.achievement.progress)}%`,
+                                backgroundColor: theme.colors.primary + '50',
+                              }]}
+                            />
+                          </View>
+                          <Text style={[styles.rewardBarLabel, { color: theme.colors.textSecondary }]}>
+                            {reward.achievement.progress}% → {Math.min(reward.achievement.progress + reward.contribution, 100)}%
+                          </Text>
+                        </View>
                       </TouchableOpacity>
+                    ) : (
+                      <View style={[styles.rewardHint, { backgroundColor: theme.colors.success + '10', borderColor: theme.colors.success + '40' }]}>
+                        <Text style={styles.rewardHintIcon}>💚</Text>
+                        <Text style={[styles.rewardHintText, { color: theme.colors.success }]} numberOfLines={2}>
+                          Сдай вовремя и получи +Здоровье маскоту
+                        </Text>
+                      </View>
                     )}
                     <DeadlineIndicator deadline={hw.deadline} />
                   </View>
@@ -214,7 +231,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
   },
   mascotContainer: {
     alignItems: 'center',
@@ -222,60 +239,35 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderRadius: 16,
   },
-  streakValue: {
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  streakLabel: {
-    fontSize: 10,
-    marginTop: 1,
-  },
-  streakHealthRow: {
+  healthSection: {
     width: '100%',
-    marginTop: 4,
     paddingHorizontal: 4,
+    marginBottom: 6,
   },
-  streakBonus: {
+  healthLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    textAlign: 'center',
     marginTop: 3,
   },
-  streakHint: {
-    fontSize: 9,
-    textAlign: 'center',
-    marginTop: 4,
-    paddingHorizontal: 4,
-  },
-  // ── Achievement banner ──
-  achievementBanner: {
+  nearestReward: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 4,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
+    width: '100%',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 10,
+    gap: 6,
   },
-  achievementIcon: {
-    fontSize: 24,
-    marginRight: 10,
+  nearestRewardIcon: {
+    fontSize: 18,
   },
-  achievementInfo: {
-    flex: 1,
-  },
-  achievementTitle: {
-    fontSize: 13,
+  nearestRewardTitle: {
+    fontSize: 10,
     fontWeight: '600',
   },
-  achievementDesc: {
-    fontSize: 11,
-    marginTop: 1,
-  },
-  achievementProgress: {
-    fontSize: 13,
+  nearestRewardProgress: {
+    fontSize: 10,
     fontWeight: '700',
-    marginLeft: 8,
   },
   sectionTitle: {
     fontSize: 20,
@@ -313,26 +305,43 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
-  linkedBadge: {
+  rewardHint: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 6,
     borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 6,
     marginBottom: 6,
-    gap: 4,
+    gap: 6,
   },
-  linkedBadgeIcon: {
+  rewardHintIcon: {
     fontSize: 14,
   },
-  linkedBadgeText: {
+  rewardHintBody: {
+    flex: 1,
+  },
+  rewardHintText: {
     fontSize: 11,
     fontWeight: '600',
   },
-  linkedBadgeProgress: {
-    fontSize: 11,
-    fontWeight: '700',
+  rewardBar: {
+    height: 6,
+    borderRadius: 3,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    marginTop: 4,
+  },
+  rewardBarFill: {
+    height: 6,
+  },
+  rewardBarGain: {
+    height: 6,
+  },
+  rewardBarLabel: {
+    fontSize: 9,
+    marginTop: 2,
   },
   emptyText: {
     fontSize: 15,
