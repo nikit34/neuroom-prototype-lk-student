@@ -15,6 +15,8 @@ try {
   // rive-react-native not available (Expo Go) — will use fallback
 }
 
+export { hasNativeModule as hasRive };
+
 export interface RivePlayerRef {
   setBoolean: (name: string, value: boolean) => void;
   setNumber: (name: string, value: number) => void;

@@ -1,10 +1,12 @@
 import React, { memo, useRef, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, PanResponder } from 'react-native';
-import RivePlayer, { RivePlayerRef } from './RivePlayer';
+import RivePlayer, { RivePlayerRef, hasRive } from './RivePlayer';
+import LottiePlayer, { LottiePlayerRef } from './LottiePlayer';
 import { useAppTheme, useCurrentCharacter } from '@/src/hooks/useAppTheme';
 import { getMascotState, getMascotStateLabel } from '@/src/utils/gradeHelpers';
 import { RIVE_CONFIG } from '@/src/mascot/riveConfig';
-import { MASCOT_RIVE_SOURCE } from '@/src/mascot/mascotAnimations';
+import { MASCOT_RIVE_SOURCE, MASCOT_LOTTIE_SOURCES, getArchetype, STATE_SPEED, emotionToAnimationState } from '@/src/mascot/mascotAnimations';
+import { stateToEmotion } from '@/src/mascot/mascotConfig';
 import MascotHealthBar from './MascotHealthBar';
 import { MascotState } from '@/src/types';
 
@@ -17,8 +19,7 @@ interface MascotProps {
 
 const { inputs } = RIVE_CONFIG;
 
-function applyState(ref: RivePlayerRef, state: MascotState) {
-  // Reset all booleans first
+function applyRiveState(ref: RivePlayerRef, state: MascotState) {
   ref.setBoolean(inputs.isChecking, false);
   ref.setBoolean(inputs.isHandsUp, false);
 
@@ -31,7 +32,6 @@ function applyState(ref: RivePlayerRef, state: MascotState) {
       ref.setBoolean(inputs.isChecking, true);
       break;
     case 'neutral':
-      // defaults — all off
       break;
     case 'happy':
       ref.fire(inputs.trigSuccess);
@@ -43,36 +43,27 @@ function applyState(ref: RivePlayerRef, state: MascotState) {
   }
 }
 
-function Mascot({ health, size = 120, showHealthBar, label }: MascotProps) {
-  const theme = useAppTheme();
-  const character = useCurrentCharacter();
+// ─── Rive mascot (dev build) ────────────────────────────────────
+
+function RiveMascot({ size, state }: { size: number; state: MascotState }) {
   const riveRef = useRef<RivePlayerRef>(null);
   const prevStateRef = useRef<MascotState | null>(null);
 
-  const state: MascotState = health != null ? getMascotState(health) : 'neutral';
-  const stateLabel = label ?? (health != null ? getMascotStateLabel(state) : undefined);
-  const shouldShowHealthBar = showHealthBar ?? (health != null);
-
-  // Apply Rive state when health changes
   useEffect(() => {
     if (!riveRef.current) return;
     if (prevStateRef.current === state) return;
     prevStateRef.current = state;
-    applyState(riveRef.current, state);
+    applyRiveState(riveRef.current, state);
   }, [state]);
 
-  // Visible area for the cropped mascot
   const visibleWidth = size * 1.5;
   const visibleHeight = size * 1.8;
-  // Rive canvas is larger so we can crop out the background
   const canvasScale = 2.2;
   const canvasWidth = visibleWidth * canvasScale;
   const canvasHeight = visibleHeight * canvasScale;
-  // Offset to center the character within the crop
   const offsetX = (canvasWidth - visibleWidth) / -2;
   const offsetY = (canvasHeight - visibleHeight) / -2.5;
 
-  // Touch tracking → numLook
   const panResponder = useMemo(
     () =>
       PanResponder.create({
@@ -83,38 +74,80 @@ function Mascot({ health, size = 120, showHealthBar, label }: MascotProps) {
           const normalized = Math.max(0, Math.min(100, (locationX / visibleWidth) * 100));
           riveRef.current?.setNumber(inputs.numLook, normalized);
         },
-        onPanResponderRelease: () => {
-          riveRef.current?.setNumber(inputs.numLook, 50);
-        },
-        onPanResponderTerminate: () => {
-          riveRef.current?.setNumber(inputs.numLook, 50);
-        },
+        onPanResponderRelease: () => riveRef.current?.setNumber(inputs.numLook, 50),
+        onPanResponderTerminate: () => riveRef.current?.setNumber(inputs.numLook, 50),
       }),
     [visibleWidth],
   );
 
   return (
+    <View
+      {...panResponder.panHandlers}
+      style={{ width: visibleWidth, height: visibleHeight, overflow: 'hidden', borderRadius: 16 }}
+    >
+      <RivePlayer
+        ref={riveRef}
+        source={MASCOT_RIVE_SOURCE}
+        style={{ width: canvasWidth, height: canvasHeight, marginLeft: offsetX, marginTop: offsetY }}
+      />
+    </View>
+  );
+}
+
+// ─── Lottie mascot (Expo Go fallback) ───────────────────────────
+
+function LottieMascot({ size, state, characterId, themeColor }: {
+  size: number;
+  state: MascotState;
+  characterId: string;
+  themeColor: string;
+}) {
+  const lottieRef = useRef<LottiePlayerRef>(null);
+  const archetype = getArchetype(characterId);
+  const emotion = stateToEmotion(state);
+  const animState = emotionToAnimationState(emotion);
+  const speed = STATE_SPEED[animState];
+
+  useEffect(() => {
+    lottieRef.current?.reset();
+    lottieRef.current?.play();
+  }, [animState, archetype]);
+
+  return (
+    <LottiePlayer
+      ref={lottieRef}
+      source={MASCOT_LOTTIE_SOURCES[archetype]}
+      autoPlay
+      loop
+      speed={speed}
+      style={{ width: size * 1.5, height: size * 1.8 }}
+      colorFilters={[{ keypath: 'body', color: themeColor }]}
+    />
+  );
+}
+
+// ─── Main Mascot component ──────────────────────────────────────
+
+function Mascot({ health, size = 120, showHealthBar, label }: MascotProps) {
+  const theme = useAppTheme();
+  const character = useCurrentCharacter();
+
+  const state: MascotState = health != null ? getMascotState(health) : 'neutral';
+  const stateLabel = label ?? (health != null ? getMascotStateLabel(state) : undefined);
+  const shouldShowHealthBar = showHealthBar ?? (health != null);
+
+  return (
     <View style={styles.container}>
-      <View
-        {...panResponder.panHandlers}
-        style={{
-          width: visibleWidth,
-          height: visibleHeight,
-          overflow: 'hidden',
-          borderRadius: 16,
-        }}
-      >
-        <RivePlayer
-          ref={riveRef}
-          source={MASCOT_RIVE_SOURCE}
-          style={{
-            width: canvasWidth,
-            height: canvasHeight,
-            marginLeft: offsetX,
-            marginTop: offsetY,
-          }}
+      {hasRive ? (
+        <RiveMascot size={size} state={state} />
+      ) : (
+        <LottieMascot
+          size={size}
+          state={state}
+          characterId={character.id}
+          themeColor={theme.colors.primary}
         />
-      </View>
+      )}
       <Text style={[styles.characterName, { color: theme.colors.text }]}>
         {character.name}
       </Text>
