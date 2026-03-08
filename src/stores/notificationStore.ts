@@ -19,11 +19,11 @@ const mockNotifications: AppNotification[] = [
     id: 'notif-2',
     type: 'duel_challenge',
     title: 'Вызов на дуэль!',
-    message: 'Мария Иванова — Математика',
+    message: 'Артём Федоров — История',
     icon: '⚔️',
     isRead: false,
     createdAt: new Date(now - MINUTE * 12),
-    route: '/(tabs)/arena',
+    route: '/arena/duel/arena-duel-6',
   },
   {
     id: 'notif-3',
@@ -53,7 +53,7 @@ const mockNotifications: AppNotification[] = [
     icon: '🏆',
     isRead: true,
     createdAt: new Date(now - MINUTE * 120),
-    route: '/(tabs)/arena',
+    route: '/arena/duel/arena-duel-3',
   },
 ];
 
