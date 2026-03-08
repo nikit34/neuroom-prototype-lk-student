@@ -21,6 +21,14 @@ export const CHARACTER_ARCHETYPE: Record<string, CharacterArchetype> = {
   'au-impostor': 'ghost',
   'mc-enderman': 'alien',
   'hw-owl': 'owl',
+  // Roblox
+  'rb-noob': 'robot',
+  // Stranger Things
+  'st-eleven': 'wizard',
+  'st-demogorgon': 'dragon',
+  // Fortnite
+  'fn-drift': 'ninja',
+  'fn-peely': 'critter',
 };
 
 // ─── Lottie sources (one file per archetype from LottieFiles) ────

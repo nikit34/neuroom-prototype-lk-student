@@ -196,6 +196,14 @@ const SCENES: Record<string, ThemeScene> = {
       { type: 'buildingsNear', color: '#060614', opacity: 0.75, height: 0.2 },
     ],
   },
+  strangerthings: {
+    sky: ['#0A0005', '#1A0810', '#0A0508'],
+    layers: [
+      { type: 'mountains', color: '#180510', opacity: 0.35, height: 0.35 },
+      { type: 'forest',    color: '#10040A', opacity: 0.55, height: 0.25 },
+      { type: 'bushes',    color: '#080206', opacity: 0.75, height: 0.15 },
+    ],
+  },
   lotr: {
     sky: ['#0A0A10', '#151520', '#0D0D15'],
     layers: [

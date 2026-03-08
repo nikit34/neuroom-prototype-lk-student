@@ -344,6 +344,32 @@ const valorantTheme: AppTheme = {
   },
 };
 
+const strangerthingsTheme: AppTheme = {
+  id: 'strangerthings',
+  name: 'Странные дела',
+  emoji: '🔦',
+  ageGroup: 'senior',
+  backgroundEmojis: ['🔦', '👾', '🎄', '🧇', '🚲', '🔮'],
+  colors: {
+    primary: '#C41E3A',
+    secondary: '#E85050',
+    accent: '#FF4040',
+    background: '#0A0508',
+    surface: '#1A0E14',
+    text: '#F0E0E0',
+    textSecondary: '#A08088',
+    overdue: '#EF4444',
+    success: '#10B981',
+    warning: '#F59E0B',
+    gradient: ['#C41E3A', '#3A0A18'],
+    tabBar: '#0E080C',
+    tabBarActive: '#C41E3A',
+    tabBarInactive: '#6A4858',
+    card: '#221420',
+    border: '#3A1828',
+  },
+};
+
 const lotrTheme: AppTheme = {
   id: 'lotr',
   name: 'Властелин Колец',
@@ -758,6 +784,7 @@ export const themes: AppTheme[] = [
   witcherTheme,
   aotTheme,
   valorantTheme,
+  strangerthingsTheme,
   lotrTheme,
   // Младшие — светлые первыми
   frozenTheme,
@@ -805,6 +832,14 @@ export const allCharacters: import('../types').ThemeCharacter[] = [
   { id: 'mc-enderman', name: 'Эндермен', emoji: '👾', mascotEmojis: { sick: '😷', sad: '😶', neutral: '👾', happy: '🌀', thriving: '🌟' } },
   // owl
   { id: 'hw-owl', name: 'Сова', emoji: '🦉', mascotEmojis: { sick: '😷', sad: '😿', neutral: '🦉', happy: '📜', thriving: '✨' } },
+  // ── Roblox ──
+  { id: 'rb-noob', name: 'Нубик', emoji: '🟨', mascotEmojis: { sick: '😵', sad: '😢', neutral: '🟨', happy: '🔨', thriving: '👑' } },
+  // ── Stranger Things ──
+  { id: 'st-eleven', name: 'Одиннадцать', emoji: '🔮', mascotEmojis: { sick: '🩸', sad: '😢', neutral: '🔮', happy: '🧇', thriving: '⚡' } },
+  { id: 'st-demogorgon', name: 'Демогоргон', emoji: '👾', mascotEmojis: { sick: '🥀', sad: '😶', neutral: '👾', happy: '🔥', thriving: '💀' } },
+  // ── Fortnite ──
+  { id: 'fn-drift', name: 'Дрифт', emoji: '🦊', mascotEmojis: { sick: '😵', sad: '😔', neutral: '🦊', happy: '⚡', thriving: '🌀' } },
+  { id: 'fn-peely', name: 'Пили', emoji: '🍌', mascotEmojis: { sick: '🤢', sad: '😢', neutral: '🍌', happy: '🎉', thriving: '🌟' } },
 ];
 
 export const defaultTheme: AppTheme = sakuraTheme;
