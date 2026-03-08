@@ -270,6 +270,29 @@ export interface LootChestResult {
   amount: number;
 }
 
+// ─── Appeals ────────────────────────────────────────────────────
+export type AppealStatus = 'default' | 'pending' | 'accepted' | 'rejected' | 'mixed' | 'expired';
+
+export interface AppealTaskResponse {
+  taskLabel: string;
+  decision: 'agree' | 'disagree';
+  teacherComment?: string;
+}
+
+export interface Appeal {
+  homeworkId: string;
+  status: AppealStatus;
+  disagreementPoints: string[];
+  reviewType: 'whole' | 'specific';
+  comment: string;
+  submittedAt: Date;
+  oldGrade?: number;
+  newGrade?: number;
+  teacherComment?: string;
+  teacherTaskResponses?: AppealTaskResponse[];
+  decisionDate?: string;
+}
+
 // ─── Notifications ──────────────────────────────────────────────
 export type NotificationType = 'chat_reply' | 'duel_challenge' | 'homework_graded' | 'duel_result';
 

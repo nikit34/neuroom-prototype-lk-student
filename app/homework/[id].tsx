@@ -14,12 +14,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
+import { useAppealStore } from '@/src/stores/appealStore';
 import { deepAnalysis } from '@/src/services/aiService';
 import Card from '@/src/components/ui/Card';
 import Button from '@/src/components/ui/Button';
 import StatusChip from '@/src/components/ui/StatusChip';
 import DeadlineIndicator from '@/src/components/homework/DeadlineIndicator';
 import FeedbackBubble from '@/src/components/homework/FeedbackBubble';
+import AppealBottomSheet from '@/src/components/homework/AppealBottomSheet';
+import AppealStatusCard from '@/src/components/homework/AppealStatusCard';
 import { getGradeColor, getGradeEmoji, getGradeLabel } from '@/src/utils/gradeHelpers';
 import { formatDateRu } from '@/src/utils/dateHelpers';
 
@@ -29,8 +32,11 @@ export default function HomeworkDetailScreen() {
   const router = useRouter();
   const assignments = useHomeworkStore((s) => s.assignments);
   const homework = assignments.find((a) => a.id === id);
+  const appeal = useAppealStore((s) => s.getAppeal(id!));
+  const submitAppeal = useAppealStore((s) => s.submitAppeal);
   const [analyzing, setAnalyzing] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [appealSheetVisible, setAppealSheetVisible] = useState(false);
 
   if (!homework) {
     return (
@@ -175,30 +181,54 @@ export default function HomeworkDetailScreen() {
               />
             )}
 
-            {/* Dispute + Deep analysis */}
-            <View style={styles.actions}>
-              <Button
-                title="Оспорить оценку"
-                icon="💬"
-                variant="outline"
-                onPress={() =>
-                  router.push(
-                    `/chat/${homework.teacher.id}?dispute=true&hwTitle=${encodeURIComponent(homework.subject)}&grade=${homework.grade}/${homework.maxGrade}`,
-                  )
-                }
-              />
-              {(homework.aiFeedback || homework.teacherFeedback) && (
-                <View style={styles.actionGap}>
-                  <Button
-                    title="Разобрать ошибки"
-                    icon="🔍"
-                    variant="secondary"
-                    onPress={handleDeepAnalysis}
-                    loading={analyzing}
-                  />
-                </View>
-              )}
-            </View>
+            {/* Appeal status or dispute button */}
+            {appeal ? (
+              <View style={styles.actions}>
+                <AppealStatusCard appeal={appeal} />
+              </View>
+            ) : (
+              <View style={styles.actions}>
+                <Button
+                  title="Оспорить оценку"
+                  icon="💬"
+                  variant="outline"
+                  onPress={() => setAppealSheetVisible(true)}
+                />
+              </View>
+            )}
+
+            {/* Deep analysis */}
+            {(homework.aiFeedback || homework.teacherFeedback) && (
+              <View style={{ marginBottom: 16 }}>
+                <Button
+                  title="Разобрать ошибки"
+                  icon="🔍"
+                  variant="secondary"
+                  onPress={handleDeepAnalysis}
+                  loading={analyzing}
+                />
+              </View>
+            )}
+
+            {/* Appeal bottom sheet */}
+            <AppealBottomSheet
+              visible={appealSheetVisible}
+              onClose={() => setAppealSheetVisible(false)}
+              onSubmit={(data) => {
+                submitAppeal({
+                  homeworkId: homework.id,
+                  disagreementPoints: data.disagreementPoints,
+                  reviewType: data.reviewType,
+                  comment: data.comment,
+                  oldGrade: homework.grade ?? 0,
+                });
+                setAppealSheetVisible(false);
+                Alert.alert(
+                  'Запрос отправлен',
+                  'Мы уведомим тебя, когда учитель примет решение',
+                );
+              }}
+            />
 
             {/* Submissions */}
             {homework.submissions.length > 0 && (
