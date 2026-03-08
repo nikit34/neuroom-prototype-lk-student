@@ -58,6 +58,7 @@ interface ChatState {
   messages: Record<string, ChatMessage[]>;
   sendMessage: (teacherId: string, text: string, topic?: string) => void;
   getMessages: (teacherId: string) => ChatMessage[];
+  setMessages: (messages: Record<string, ChatMessage[]>) => void;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -107,4 +108,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
   getMessages: (teacherId) => {
     return get().messages[teacherId] ?? [];
   },
+
+  setMessages: (messages) => set({ messages }),
 }));

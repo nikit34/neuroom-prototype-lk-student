@@ -86,7 +86,7 @@ export default function HomeScreen() {
         </Text>
 
         {/* ── Mascot + Health row ── */}
-        <View style={[styles.topRow, { height: topBlockHeight }]}>
+        <View style={[styles.topRow, { minHeight: recentNotifications.length > 0 ? topBlockHeight : undefined }]}>
           <Card style={styles.notifCard}>
             <View style={styles.notifHeader}>
               <Text style={[styles.notifTitle, { color: theme.colors.text }]}>
@@ -100,7 +100,7 @@ export default function HomeScreen() {
             </View>
             {recentNotifications.length === 0 ? (
               <Text style={[styles.notifEmpty, { color: theme.colors.textSecondary }]}>
-                Нет новых уведомлений
+                Всё прочитано
               </Text>
             ) : (
               recentNotifications.map((notif) => (

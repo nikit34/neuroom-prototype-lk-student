@@ -13,8 +13,10 @@ import { useStudentStore } from '@/src/stores/studentStore';
 import { useThemeStore } from '@/src/stores/themeStore';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
 import { useArenaStore } from '@/src/stores/arenaStore';
+import { useNotificationStore } from '@/src/stores/notificationStore';
+import { useChatStore } from '@/src/stores/chatStore';
 import { getMascotState, getMascotStateLabel } from '@/src/utils/gradeHelpers';
-import { AchievementRarity } from '@/src/types';
+import { AchievementRarity, AppNotification, ChatMessage } from '@/src/types';
 
 const HEALTH_PRESETS = [0, 10, 25, 50, 75, 100];
 
@@ -250,75 +252,178 @@ function RestartOnboardingButton({ onClose }: { onClose?: () => void }) {
   );
 }
 
+const MINUTE = 60_000;
+
+function makeNotif(id: string, type: AppNotification['type'], title: string, message: string, icon: string, route: string, minutesAgo: number): AppNotification {
+  return { id, type, title, message, icon, isRead: false, createdAt: new Date(Date.now() - MINUTE * minutesAgo), route };
+}
+
+function makeChatMsg(senderId: string, senderName: string, text: string, isStudent: boolean, minutesAgo: number): ChatMessage {
+  return {
+    id: `dev-msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    senderId,
+    senderName,
+    text,
+    timestamp: new Date(Date.now() - MINUTE * minutesAgo),
+    isStudent,
+  };
+}
+
+type NotifPreset = { label: string; emoji: string; description: string };
+
+const NOTIF_PRESETS: NotifPreset[] = [
+  { label: 'Чисто', emoji: '🧹', description: 'Нет уведомлений и сообщений' },
+  { label: 'Полный', emoji: '🔔', description: '3 сообщения + 2 дуэли + 2 оценки' },
+];
+
+function NotificationPresets() {
+  const theme = useAppTheme();
+  const setNotifications = useNotificationStore((s) => s.setNotifications);
+  const setChatMessages = useChatStore((s) => s.setMessages);
+
+  const applyPreset = useCallback((index: number) => {
+    if (index === 0) {
+      setNotifications([]);
+      setChatMessages({});
+    } else {
+      setNotifications([
+        // 3 сообщения
+        makeNotif('dev-n1', 'chat_reply', 'Ольга Смирнова', 'Проверила вашу работу, есть замечания', '💬', '/chat/teacher-1', 2),
+        makeNotif('dev-n2', 'chat_reply', 'Наталья Козлова', 'Напоминаю про сочинение', '💬', '/chat/teacher-2', 5),
+        makeNotif('dev-n3', 'chat_reply', 'Игорь Волков', 'Ответил на ваш вопрос', '💬', '/chat/teacher-3', 12),
+        // 2 дуэли
+        makeNotif('dev-n4', 'duel_challenge', 'Вызов на дуэль!', 'Артём Федоров — История', '⚔️', '/arena/duel/arena-duel-6', 8),
+        makeNotif('dev-n5', 'duel_challenge', 'Вызов на дуэль!', 'Мария Иванова — Математика', '⚔️', '/arena/duel/arena-duel-1', 15),
+        // 2 оценки
+        makeNotif('dev-n6', 'homework_graded', 'Работа оценена', 'Физика — Законы Ньютона: 4/5', '📝', '/homework/hw-3', 20),
+        makeNotif('dev-n7', 'homework_graded', 'Работа оценена', 'Математика — Квадратные уравнения: 5/5', '📝', '/homework/hw-1', 35),
+      ]);
+      setChatMessages({
+        'teacher-1': [
+          makeChatMsg('student-1', 'Алексей Петров', 'Проверьте, пожалуйста, мою работу.', true, 30),
+          makeChatMsg('teacher-1', 'Ольга Смирнова', 'Проверила вашу работу. Хорошо, но задача 5 решена неверно.', false, 2),
+        ],
+        'teacher-2': [
+          makeChatMsg('teacher-2', 'Наталья Козлова', 'Напоминаю, что сочинение нужно сдать до пятницы. Не забудьте!', false, 5),
+        ],
+        'teacher-3': [
+          makeChatMsg('student-1', 'Алексей Петров', 'Как решить задачу на силу тяжести?', true, 40),
+          makeChatMsg('teacher-3', 'Игорь Волков', 'Используйте формулу F = mg. g = 9.8 м/с². Подставьте массу.', false, 12),
+        ],
+      });
+    }
+  }, [setNotifications, setChatMessages]);
+
+  return (
+    <View style={styles.toggleSection}>
+      {NOTIF_PRESETS.map((preset, i) => (
+        <TouchableOpacity
+          key={preset.label}
+          style={[styles.toggleRow, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]}
+          onPress={() => applyPreset(i)}
+          activeOpacity={0.7}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.toggleLabel, { color: theme.colors.text }]}>
+              {preset.emoji} {preset.label}
+            </Text>
+            <Text style={{ fontSize: 11, color: theme.colors.textSecondary, marginTop: 2 }}>
+              {preset.description}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+
+function ScreenGroup({ title, emoji, children }: { title: string; emoji: string; children: React.ReactNode }) {
+  const theme = useAppTheme();
+  return (
+    <View style={styles.screenGroup}>
+      <View style={[styles.screenGroupHeader, { borderBottomColor: theme.colors.border }]}>
+        <Text style={styles.screenGroupEmoji}>{emoji}</Text>
+        <Text style={[styles.screenGroupTitle, { color: theme.colors.text }]}>{title}</Text>
+      </View>
+      <View style={styles.screenGroupContent}>{children}</View>
+    </View>
+  );
+}
+
 export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAwardBadgeSeries, onClose }: DevModePanelProps) {
   const theme = useAppTheme();
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
-      {/* LK Mode Switch */}
-      <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
-        РЕЖИМ ЛК
-      </Text>
-      <AgeGroupSwitch />
+      {/* ── Общее ── */}
+      <ScreenGroup title="Общее" emoji="⚙️">
+        <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
+          РЕЖИМ ЛК
+        </Text>
+        <AgeGroupSwitch />
 
-      {/* Health Slider */}
-      <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 20 }]}>
-        ЗДОРОВЬЕ МАСКОТА
-      </Text>
-      <HealthSlider />
+        <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
+          ОНБОРДИНГ
+        </Text>
+        <RestartOnboardingButton onClose={onClose} />
+      </ScreenGroup>
 
-      {/* Badge Awards */}
-      <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 20 }]}>
-        ВЫДАТЬ БЕЙДЖ
-      </Text>
+      {/* ── Главная ── */}
+      <ScreenGroup title="Главная" emoji="🏠">
+        <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
+          ЗДОРОВЬЕ МАСКОТА
+        </Text>
+        <HealthSlider />
 
-      <View style={styles.badgeGrid}>
-        {BADGE_SAMPLES.map((b) => (
+        <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
+          УВЕДОМЛЕНИЯ И СООБЩЕНИЯ
+        </Text>
+        <NotificationPresets />
+      </ScreenGroup>
+
+      {/* ── Арена ── */}
+      <ScreenGroup title="Арена" emoji="⚔️">
+        <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
+          МЕХАНИКИ
+        </Text>
+        <ArenaFeatureToggles />
+
+        <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
+          ВЫДАТЬ БЕЙДЖ
+        </Text>
+        <View style={styles.badgeGrid}>
+          {BADGE_SAMPLES.map((b) => (
+            <TouchableOpacity
+              key={b.rarity}
+              style={[styles.badgeBtn, { backgroundColor: b.color + '20', borderColor: b.color }]}
+              onPress={() => onAwardBadge(b.rarity)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.badgeBtnText, { color: b.color }]}>{b.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <View style={styles.specialRow}>
           <TouchableOpacity
-            key={b.rarity}
-            style={[styles.badgeBtn, { backgroundColor: b.color + '20', borderColor: b.color }]}
-            onPress={() => onAwardBadge(b.rarity)}
+            style={[styles.specialBtn, { backgroundColor: theme.colors.primary + '20', borderColor: theme.colors.primary }]}
+            onPress={onAwardRandomBadge}
             activeOpacity={0.7}
           >
-            <Text style={[styles.badgeBtnText, { color: b.color }]}>{b.label}</Text>
+            <Text style={[styles.specialBtnText, { color: theme.colors.primary }]}>
+              🎲 Случайный
+            </Text>
           </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Special actions */}
-      <View style={styles.specialRow}>
-        <TouchableOpacity
-          style={[styles.specialBtn, { backgroundColor: theme.colors.primary + '20', borderColor: theme.colors.primary }]}
-          onPress={onAwardRandomBadge}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.specialBtnText, { color: theme.colors.primary }]}>
-            🎲 Случайный
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.specialBtn, { backgroundColor: '#F59E0B20', borderColor: '#F59E0B' }]}
-          onPress={onAwardBadgeSeries}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.specialBtnText, { color: '#F59E0B' }]}>
-            🔥 Серия x3
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Arena features */}
-      <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 20 }]}>
-        МЕХАНИКИ АРЕНЫ
-      </Text>
-      <ArenaFeatureToggles />
-
-      {/* Onboarding */}
-      <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 20 }]}>
-        НАВИГАЦИЯ
-      </Text>
-      <RestartOnboardingButton onClose={onClose} />
+          <TouchableOpacity
+            style={[styles.specialBtn, { backgroundColor: '#F59E0B20', borderColor: '#F59E0B' }]}
+            onPress={onAwardBadgeSeries}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.specialBtnText, { color: '#F59E0B' }]}>
+              🔥 Серия x3
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScreenGroup>
     </View>
   );
 }
@@ -346,6 +451,26 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginLeft: 8,
   },
+
+  screenGroup: {
+    marginBottom: 16,
+  },
+  screenGroupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingBottom: 10,
+    marginBottom: 14,
+    borderBottomWidth: 1,
+  },
+  screenGroupEmoji: {
+    fontSize: 18,
+  },
+  screenGroupTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  screenGroupContent: {},
 
   sectionLabel: {
     fontSize: 11,
