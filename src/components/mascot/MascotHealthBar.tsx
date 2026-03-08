@@ -56,9 +56,14 @@ export default function MascotHealthBar({ health }: MascotHealthBarProps) {
         activeOpacity={0.7}
       >
         <View style={styles.labelRow}>
-          <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
-            Здоровье
-          </Text>
+          <View style={styles.labelLeft}>
+            <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
+              Здоровье
+            </Text>
+            <View style={[styles.infoIcon, { backgroundColor: theme.colors.primary + '20' }]}>
+              <Text style={[styles.infoIconText, { color: theme.colors.primary }]}>i</Text>
+            </View>
+          </View>
           <Text style={[styles.value, { color }]}>
             {Math.round(clamped)}%
           </Text>
@@ -113,9 +118,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 3,
   },
+  labelLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   label: {
     fontSize: 10,
     fontWeight: '500',
+  },
+  infoIcon: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoIconText: {
+    fontSize: 8,
+    fontWeight: '800',
+    fontStyle: 'italic',
   },
   value: {
     fontSize: 11,
