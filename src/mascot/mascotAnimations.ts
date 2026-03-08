@@ -22,12 +22,12 @@ export const CHARACTER_ARCHETYPE: Record<string, CharacterArchetype> = {
   'mc-enderman': 'alien',
   'hw-owl': 'owl',
   // Roblox
-  'rb-noob': 'robot',
+  'rb-noob': 'bear',
   // Stranger Things
   'st-eleven': 'wizard',
   'st-demogorgon': 'dragon',
   // Fortnite
-  'fn-drift': 'ninja',
+  'fn-drift': 'fox',
   'fn-peely': 'critter',
 };
 

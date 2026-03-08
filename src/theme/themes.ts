@@ -833,12 +833,12 @@ export const allCharacters: import('../types').ThemeCharacter[] = [
   // owl
   { id: 'hw-owl', name: 'Сова', emoji: '🦉', mascotEmojis: { sick: '😷', sad: '😿', neutral: '🦉', happy: '📜', thriving: '✨' } },
   // ── Roblox ──
-  { id: 'rb-noob', name: 'Нубик', emoji: '🟨', mascotEmojis: { sick: '😵', sad: '😢', neutral: '🟨', happy: '🔨', thriving: '👑' } },
+  { id: 'rb-noob', name: 'Нубик', emoji: '🎮', mascotEmojis: { sick: '😵', sad: '😢', neutral: '🎮', happy: '🔨', thriving: '👑' } },
   // ── Stranger Things ──
   { id: 'st-eleven', name: 'Одиннадцать', emoji: '🔮', mascotEmojis: { sick: '🩸', sad: '😢', neutral: '🔮', happy: '🧇', thriving: '⚡' } },
   { id: 'st-demogorgon', name: 'Демогоргон', emoji: '👾', mascotEmojis: { sick: '🥀', sad: '😶', neutral: '👾', happy: '🔥', thriving: '💀' } },
   // ── Fortnite ──
-  { id: 'fn-drift', name: 'Дрифт', emoji: '🦊', mascotEmojis: { sick: '😵', sad: '😔', neutral: '🦊', happy: '⚡', thriving: '🌀' } },
+  { id: 'fn-drift', name: 'Дрифт', emoji: '🎭', mascotEmojis: { sick: '😵', sad: '😔', neutral: '🎭', happy: '⚡', thriving: '🌀' } },
   { id: 'fn-peely', name: 'Пили', emoji: '🍌', mascotEmojis: { sick: '🤢', sad: '😢', neutral: '🍌', happy: '🎉', thriving: '🌟' } },
 ];
 
