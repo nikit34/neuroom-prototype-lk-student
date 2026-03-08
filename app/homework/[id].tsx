@@ -278,6 +278,53 @@ export default function HomeworkDetailScreen() {
         {/* Non-graded flow */}
         {!isGraded && (
           <>
+            {/* Resubmit reason */}
+            {homework.status === 'resubmit' && (
+              <>
+                {homework.grade !== undefined && (
+                  <Card style={styles.gradeCard}>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.text, marginTop: 0 }]}>
+                      Оценка
+                    </Text>
+                    <View style={styles.gradeRow}>
+                      <Text style={styles.gradeEmoji}>
+                        {getGradeEmoji(homework.grade, homework.maxGrade)}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.gradeValue,
+                          { color: getGradeColor(homework.grade, homework.maxGrade) },
+                        ]}
+                      >
+                        {homework.grade}/{homework.maxGrade}
+                      </Text>
+                    </View>
+                  </Card>
+                )}
+                {homework.comparisonItems && homework.comparisonItems.length > 0 && (
+                  <ComparisonBlock items={homework.comparisonItems} />
+                )}
+                {homework.aiFeedback && (
+                  <FeedbackBubble
+                    text={homework.aiFeedback}
+                    type="ai"
+                    timestamp={
+                      homework.submissions.length > 0
+                        ? homework.submissions[homework.submissions.length - 1].submittedAt
+                        : homework.createdAt
+                    }
+                  />
+                )}
+                {homework.teacherFeedback && (
+                  <FeedbackBubble
+                    text={homework.teacherFeedback}
+                    type="teacher"
+                    timestamp={homework.createdAt}
+                  />
+                )}
+              </>
+            )}
+
             {/* Actions */}
             <View style={styles.actions}>
               {canSubmit && (
