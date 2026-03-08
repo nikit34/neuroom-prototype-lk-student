@@ -63,6 +63,7 @@ export interface HomeworkAttachment {
 
 export interface ComparisonItem {
   label: string;
+  description?: string;
   studentVersion: { type: 'image' | 'text'; content: string };
   correctVersion: { type: 'image' | 'text'; content: string };
 }

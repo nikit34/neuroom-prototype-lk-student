@@ -1,6 +1,4 @@
 import { useStudentStore } from '../stores/studentStore';
-import { useHomeworkStore } from '../stores/homeworkStore';
-import { useArenaStore } from '../stores/arenaStore';
 import { useAchievementStore } from '../stores/achievementStore';
 import { useRewardStore } from '../stores/rewardStore';
 import { Duel, Quest, Challenge, HomeworkAssignment, LootChestResult } from '../types';
@@ -116,6 +114,9 @@ const ACHIEVEMENT_RULES: Record<string, AchievementRule> = {
 // ─── Helper: build achievement context ───────────────────────────
 function buildAchievementContext(): AchievementContext {
   const student = useStudentStore.getState().student;
+  // Lazy imports to break require cycles
+  const { useHomeworkStore } = require('../stores/homeworkStore') as typeof import('../stores/homeworkStore');
+  const { useArenaStore } = require('../stores/arenaStore') as typeof import('../stores/arenaStore');
   const assignments = useHomeworkStore.getState().assignments;
   const { duels, quests } = useArenaStore.getState();
 

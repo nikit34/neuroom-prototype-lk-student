@@ -297,33 +297,34 @@ export default function HomeworkDetailScreen() {
               <DeadlineIndicator deadline={homework.deadline} />
             </Card>
 
-            {/* Submissions */}
-            {homework.submissions.length > 0 && (
-              <>
-                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-                  Мои ответы ({homework.submissions.length})
-                </Text>
-                {homework.submissions.map((sub) => (
-                  <Card key={sub.id} style={styles.submissionCard}>
-                    <View style={styles.submissionRow}>
-                      <Text style={styles.submissionIcon}>
-                        {sub.files.some((f) => f.type === 'photo') ? '📸' : '📄'}
-                      </Text>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.submissionType, { color: theme.colors.text }]}>
-                          {sub.files.length === 1
-                            ? sub.files[0].type === 'photo' ? 'Фотография' : 'Документ'
-                            : `${sub.files.length} ${sub.files.length < 5 ? 'файла' : 'файлов'}`}
-                        </Text>
-                        <Text style={[styles.submissionDate, { color: theme.colors.textSecondary }]}>
-                          {formatDateRu(sub.submittedAt)}
-                        </Text>
-                      </View>
-                    </View>
-                  </Card>
-                ))}
-              </>
-            )}
+            {/* Submissions — photo thumbnails */}
+            {homework.submissions.length > 0 && (() => {
+              const photos = homework.submissions.flatMap((sub) =>
+                sub.files.filter((f) => f.type === 'photo').map((f) => f.uri)
+              );
+              return photos.length > 0 ? (
+                <>
+                  <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                    Фото решения
+                  </Text>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.attachmentsScroll}
+                    contentContainerStyle={styles.attachmentsContainer}
+                  >
+                    {photos.map((uri, index) => (
+                      <Pressable key={index} onPress={() => setPreviewImage(uri)}>
+                        <Image
+                          source={{ uri }}
+                          style={[styles.attachmentThumb, { borderColor: theme.colors.border }]}
+                        />
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                </>
+              ) : null;
+            })()}
           </>
         )}
 

@@ -55,9 +55,7 @@ export default function HomeScreen() {
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const markAsRead = useNotificationStore((s) => s.markAsRead);
 
-  const recentNotifications = useMemo(() => {
-    return notifications.slice(0, 3);
-  }, [notifications]);
+  const recentNotifications = notifications;
 
   const { height: screenHeight } = useWindowDimensions();
   const topBlockHeight = Math.round(screenHeight / 5);
@@ -103,42 +101,48 @@ export default function HomeScreen() {
                 Всё прочитано
               </Text>
             ) : (
-              recentNotifications.map((notif) => (
-                <TouchableOpacity
-                  key={notif.id}
-                  style={[
-                    styles.notifItem,
-                    { backgroundColor: notif.isRead ? 'transparent' : theme.colors.primary + '10' },
-                  ]}
-                  onPress={() => {
-                    markAsRead(notif.id);
-                    if (notif.route) router.push(notif.route as any);
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.notifIcon}>{notif.icon}</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={[
-                        styles.notifItemTitle,
-                        { color: theme.colors.text, fontWeight: notif.isRead ? '500' : '700' },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {notif.title}
-                    </Text>
-                    <Text
-                      style={[styles.notifItemMsg, { color: theme.colors.textSecondary }]}
-                      numberOfLines={1}
-                    >
-                      {notif.message}
-                    </Text>
-                  </View>
-                  {!notif.isRead && (
-                    <View style={[styles.notifDot, { backgroundColor: theme.colors.primary }]} />
-                  )}
-                </TouchableOpacity>
-              ))
+              <ScrollView
+                nestedScrollEnabled
+                showsVerticalScrollIndicator={recentNotifications.length > 3}
+                style={recentNotifications.length > 3 ? styles.notifScroll : undefined}
+              >
+                {recentNotifications.map((notif) => (
+                  <TouchableOpacity
+                    key={notif.id}
+                    style={[
+                      styles.notifItem,
+                      { backgroundColor: notif.isRead ? 'transparent' : theme.colors.primary + '10' },
+                    ]}
+                    onPress={() => {
+                      markAsRead(notif.id);
+                      if (notif.route) router.push(notif.route as any);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.notifIcon}>{notif.icon}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={[
+                          styles.notifItemTitle,
+                          { color: theme.colors.text, fontWeight: notif.isRead ? '500' : '700' },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {notif.title}
+                      </Text>
+                      <Text
+                        style={[styles.notifItemMsg, { color: theme.colors.textSecondary }]}
+                        numberOfLines={1}
+                      >
+                        {notif.message}
+                      </Text>
+                    </View>
+                    {!notif.isRead && (
+                      <View style={[styles.notifDot, { backgroundColor: theme.colors.primary }]} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             )}
           </Card>
           <View style={[styles.mascotColumn, { width: topBlockHeight }]}>
@@ -291,6 +295,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 10,
     fontWeight: '700',
+  },
+  notifScroll: {
+    maxHeight: 100,
   },
   notifEmpty: {
     fontSize: 11,

@@ -13,49 +13,63 @@ export default function ComparisonBlock({ items }: ComparisonBlockProps) {
 
   return (
     <View style={styles.wrapper}>
+      {/* Section header */}
+      <View style={styles.headerRow}>
+        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Разбор ошибок</Text>
+        <View style={[styles.badge, { backgroundColor: theme.colors.overdue + '20' }]}>
+          <Text style={[styles.badgeText, { color: theme.colors.overdue }]}>
+            Ошибок: {items.length}
+          </Text>
+        </View>
+      </View>
+
       {items.map((item, index) => (
-        <View key={index} style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
-          <Text style={[styles.label, { color: theme.colors.text }]}>{item.label}</Text>
+        <View key={index} style={styles.itemContainer}>
+          {/* Error title */}
+          <Text style={[styles.itemTitle, { color: theme.colors.text }]}>
+            {index + 1}. {item.label}
+          </Text>
 
-          <View style={styles.columns}>
-            {/* Student version */}
-            <View style={styles.column}>
-              <Text style={[styles.columnTitle, { color: theme.colors.overdue }]}>Как у тебя</Text>
-              {item.studentVersion.type === 'image' ? (
-                <Pressable onPress={() => setPreviewUri(item.studentVersion.content)}>
-                  <Image
-                    source={{ uri: item.studentVersion.content }}
-                    style={[styles.image, { borderColor: theme.colors.border }]}
-                  />
-                </Pressable>
-              ) : (
-                <View style={[styles.textBox, { backgroundColor: theme.colors.overdue + '15', borderColor: theme.colors.overdue + '40' }]}>
-                  <Text style={[styles.versionText, { color: theme.colors.text }]}>
-                    {item.studentVersion.content}
-                  </Text>
-                </View>
-              )}
-            </View>
+          {/* Description */}
+          {item.description && (
+            <Text style={[styles.itemDescription, { color: theme.colors.textSecondary }]}>
+              {item.description}
+            </Text>
+          )}
 
-            {/* Correct version */}
-            <View style={styles.column}>
-              <Text style={[styles.columnTitle, { color: theme.colors.success }]}>Как надо</Text>
-              {item.correctVersion.type === 'image' ? (
-                <Pressable onPress={() => setPreviewUri(item.correctVersion.content)}>
-                  <Image
-                    source={{ uri: item.correctVersion.content }}
-                    style={[styles.image, { borderColor: theme.colors.border }]}
-                  />
-                </Pressable>
-              ) : (
-                <View style={[styles.textBox, { backgroundColor: theme.colors.success + '15', borderColor: theme.colors.success + '40' }]}>
-                  <Text style={[styles.versionText, { color: theme.colors.text }]}>
-                    {item.correctVersion.content}
-                  </Text>
-                </View>
-              )}
+          {/* Student version */}
+          <Text style={[styles.blockLabel, { color: theme.colors.overdue }]}>Ошибка ученика</Text>
+          {item.studentVersion.type === 'image' ? (
+            <Pressable onPress={() => setPreviewUri(item.studentVersion.content)}>
+              <Image
+                source={{ uri: item.studentVersion.content }}
+                style={[styles.image, { borderColor: theme.colors.border }]}
+              />
+            </Pressable>
+          ) : (
+            <View style={[styles.textBox, { backgroundColor: theme.colors.overdue + '12', borderColor: theme.colors.overdue + '30' }]}>
+              <Text style={[styles.versionText, { color: theme.colors.text }]}>
+                {item.studentVersion.content}
+              </Text>
             </View>
-          </View>
+          )}
+
+          {/* Correct version */}
+          <Text style={[styles.blockLabel, { color: theme.colors.success, marginTop: 12 }]}>Правильный ответ</Text>
+          {item.correctVersion.type === 'image' ? (
+            <Pressable onPress={() => setPreviewUri(item.correctVersion.content)}>
+              <Image
+                source={{ uri: item.correctVersion.content }}
+                style={[styles.image, { borderColor: theme.colors.border }]}
+              />
+            </Pressable>
+          ) : (
+            <View style={[styles.textBox, { backgroundColor: theme.colors.success + '12', borderColor: theme.colors.success + '30' }]}>
+              <Text style={[styles.versionText, { color: theme.colors.text }]}>
+                {item.correctVersion.content}
+              </Text>
+            </View>
+          )}
         </View>
       ))}
 
@@ -78,35 +92,49 @@ export default function ComparisonBlock({ items }: ComparisonBlockProps) {
 
 const styles = StyleSheet.create({
   wrapper: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  card: {
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 14,
-    marginBottom: 10,
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: '700',
-    marginBottom: 10,
-  },
-  columns: {
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
     gap: 10,
   },
-  column: {
-  },
-  columnTitle: {
-    fontSize: 12,
+  headerTitle: {
+    fontSize: 18,
     fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  },
+  badge: {
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  badgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  itemContainer: {
+    marginBottom: 20,
+  },
+  itemTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  itemDescription: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 10,
+  },
+  blockLabel: {
+    fontSize: 13,
+    fontWeight: '600',
     marginBottom: 6,
   },
   textBox: {
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
-    padding: 10,
+    padding: 12,
   },
   versionText: {
     fontSize: 14,
@@ -115,7 +143,7 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     aspectRatio: 4 / 3,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     backgroundColor: '#f0f0f0',
   },

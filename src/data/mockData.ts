@@ -157,7 +157,7 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-4-1',
         homeworkId: 'hw-4',
-        files: [{ uri: 'file:///presentation_1812.pptx', type: 'document' }],
+        files: [{ uri: 'https://picsum.photos/seed/hw4sol/800/1000', type: 'photo' }],
         submittedAt: new Date(now - DAY * 4),
       },
     ],
@@ -178,12 +178,26 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-5-1',
         homeworkId: 'hw-5',
-        files: [{ uri: 'file:///english_hw.jpg', type: 'photo' }],
+        files: [{ uri: 'https://picsum.photos/seed/hw5sol/800/1000', type: 'photo' }],
         submittedAt: new Date(now - HOUR * 6),
       },
     ],
     aiFeedback:
       'Большинство упражнений выполнены верно. Обратите внимание на упражнение 3: в двух предложениях перепутан порядок слов. Перевод хороший, но есть неточность в третьем абзаце.',
+    comparisonItems: [
+      {
+        label: 'Порядок слов: упражнение 3, предложение 1',
+        description: 'В Past Perfect вспомогательный глагол had ставится перед подлежащим в вопросах.',
+        studentVersion: { type: 'text', content: 'She had gone before he arrived?' },
+        correctVersion: { type: 'text', content: 'Had she gone before he arrived?' },
+      },
+      {
+        label: 'Порядок слов: упражнение 3, предложение 4',
+        description: 'В утвердительном предложении порядок: подлежащее + had + V3.',
+        studentVersion: { type: 'text', content: 'Had they already finished the work.' },
+        correctVersion: { type: 'text', content: 'They had already finished the work.' },
+      },
+    ],
     maxGrade: 5,
     classmateSubmittedCount: 9,
     totalClassmates: 15,
@@ -204,7 +218,7 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-6-1',
         homeworkId: 'hw-6',
-        files: [{ uri: 'file:///math_systems.jpg', type: 'photo' }],
+        files: [{ uri: 'https://picsum.photos/seed/hw6sol/800/1000', type: 'photo' }],
         submittedAt: new Date(now - DAY * 6),
       },
     ],
@@ -236,12 +250,14 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-7-1',
         homeworkId: 'hw-7',
-        files: [{ uri: 'file:///dictant.jpg', type: 'photo' }],
+        files: [{ uri: 'https://picsum.photos/seed/hw7sol/800/1000', type: 'photo' }],
         submittedAt: new Date(now - DAY * 3),
       },
     ],
     grade: 4,
     maxGrade: 5,
+    aiFeedback:
+      'Диктант написан грамотно. Обнаружены 3 ошибки в словах с суффиксами -онн- и -енн-. Рекомендую повторить правило: в прилагательных с этими суффиксами всегда пишется НН.',
     teacherFeedback:
       'Хорошо, но допущены 3 ошибки в словах с суффиксами -онн- и -енн-.',
     comparisonItems: [
@@ -293,12 +309,14 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-9-1',
         homeworkId: 'hw-9',
-        files: [{ uri: 'file:///peter_reforms.pdf', type: 'document' }],
+        files: [{ uri: 'https://picsum.photos/seed/hw9sol/800/1000', type: 'photo' }],
         submittedAt: new Date(now - DAY * 7),
       },
     ],
     grade: 5,
     maxGrade: 5,
+    aiFeedback:
+      'Таблица реформ составлена полно и подробно. Указаны все ключевые реформы: военная, административная, церковная, культурная. Годы и последствия обозначены корректно.',
     teacherFeedback: 'Превосходная работа! Таблица полная и подробная.',
     classmateSubmittedCount: 15,
     totalClassmates: 15,
@@ -317,14 +335,36 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-10-1',
         homeworkId: 'hw-10',
-        files: [{ uri: 'file:///conditionals.jpg', type: 'photo' }],
+        files: [{ uri: 'https://picsum.photos/seed/hw10sol/800/1000', type: 'photo' }],
         submittedAt: new Date(now - DAY * 5),
       },
     ],
     grade: 2,
     maxGrade: 5,
+    aiFeedback:
+      'Систематические ошибки в Type 2 и Type 3. В Type 2 неверно используется would в условной части. В Type 3 перепутаны had + V3 и would have + V3.',
     teacherFeedback:
       'Слишком много ошибок в Type 2 и Type 3. Перечитайте правила и пересдайте.',
+    comparisonItems: [
+      {
+        label: 'Type 2: неверная форма глагола',
+        description: 'В условной части Type 2 используется Past Simple, а не would.',
+        studentVersion: { type: 'text', content: 'If I would have more time, I would travel.' },
+        correctVersion: { type: 'text', content: 'If I had more time, I would travel.' },
+      },
+      {
+        label: 'Type 3: перепутаны части',
+        description: 'В условной части Type 3 используется had + V3, в главной — would have + V3.',
+        studentVersion: { type: 'text', content: 'If I would have studied, I had passed the exam.' },
+        correctVersion: { type: 'text', content: 'If I had studied, I would have passed the exam.' },
+      },
+      {
+        label: 'Type 2: was вместо were',
+        description: 'В Type 2 после if с I/he/she/it используется were (сослагательное наклонение).',
+        studentVersion: { type: 'text', content: 'If I was rich, I would buy a castle.' },
+        correctVersion: { type: 'text', content: 'If I were rich, I would buy a castle.' },
+      },
+    ],
     classmateSubmittedCount: 12,
     totalClassmates: 15,
     createdAt: new Date(now - DAY * 10),
@@ -356,7 +396,7 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-12-1',
         homeworkId: 'hw-12',
-        files: [{ uri: 'file:///crusades_essay.pdf', type: 'document' }],
+        files: [{ uri: 'https://picsum.photos/seed/hw12sol/800/1000', type: 'photo' }],
         submittedAt: new Date(now - DAY * 3),
       },
     ],
@@ -364,7 +404,21 @@ export const mockHomework: HomeworkAssignment[] = [
     maxGrade: 5,
     teacherFeedback: 'Эссе слишком короткое, не раскрыта тема последствий.',
     aiFeedback:
-      'Структура эссе хорошая, но объём не соответствует требованиям.',
+      'Структура эссе хорошая, но объём не соответствует требованиям. Раздел последствий содержит всего 2 предложения.',
+    comparisonItems: [
+      {
+        label: 'Недостаточный объём раздела «Последствия»',
+        description: 'Раздел последствий должен охватывать экономические, культурные и политические аспекты.',
+        studentVersion: { type: 'text', content: 'Крестовые походы привели к большим потерям. Также они повлияли на торговлю.' },
+        correctVersion: { type: 'text', content: 'Крестовые походы имели многоплановые последствия: развитие средиземноморской торговли, знакомство Европы с восточной культурой, укрепление королевской власти.' },
+      },
+      {
+        label: 'Не указаны хронологические рамки',
+        description: 'В эссе необходимо указывать конкретные даты.',
+        studentVersion: { type: 'text', content: 'Крестовые походы начались давно и продолжались долго.' },
+        correctVersion: { type: 'text', content: 'Крестовые походы охватывают период с 1096 по 1270 год.' },
+      },
+    ],
     classmateSubmittedCount: 10,
     totalClassmates: 15,
     createdAt: new Date(now - DAY * 8),
@@ -382,13 +436,29 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-13-1',
         homeworkId: 'hw-13',
-        files: [{ uri: 'file:///fractions.jpg', type: 'photo' }],
+        files: [{ uri: 'https://picsum.photos/seed/hw13sol/800/1000', type: 'photo' }],
         submittedAt: new Date(now - DAY * 10),
       },
     ],
     grade: 4,
     maxGrade: 5,
+    aiFeedback:
+      'Задания на дроби выполнены верно. В задачах на проценты допущены две ошибки: неверный перевод процентов в десятичную дробь и ошибка при нахождении процента от числа.',
     teacherFeedback: 'Хорошо! Две ошибки в задачах на проценты.',
+    comparisonItems: [
+      {
+        label: 'Ошибка в переводе процентов: задача №8',
+        description: 'При переводе процентов в десятичную дробь нужно делить на 100.',
+        studentVersion: { type: 'text', content: '15% = 1.5' },
+        correctVersion: { type: 'text', content: '15% = 0.15' },
+      },
+      {
+        label: 'Ошибка в нахождении процента: задача №10',
+        description: 'Чтобы найти X% от числа, нужно умножить число на X/100.',
+        studentVersion: { type: 'text', content: '25% от 360 = 360 × 25 = 9000' },
+        correctVersion: { type: 'text', content: '25% от 360 = 360 × 0.25 = 90' },
+      },
+    ],
     classmateSubmittedCount: 14,
     totalClassmates: 15,
     createdAt: new Date(now - DAY * 13),
@@ -405,13 +475,23 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-14-1',
         homeworkId: 'hw-14',
-        files: [{ uri: 'file:///ohm_law.jpg', type: 'photo' }],
+        files: [{ uri: 'https://picsum.photos/seed/hw14sol/800/1000', type: 'photo' }],
         submittedAt: new Date(now - DAY * 9),
       },
     ],
     grade: 5,
     maxGrade: 5,
+    aiFeedback:
+      'Все задачи решены верно. Формулы применены правильно. Единственная неточность: в задаче №3 не переведены единицы в кОм.',
     teacherFeedback: 'Отлично! Одна неточность в единицах измерения.',
+    comparisonItems: [
+      {
+        label: 'Единицы измерения: задача №3',
+        description: 'При переводе единиц нужно учитывать приставки: 1 кОм = 1000 Ом.',
+        studentVersion: { type: 'text', content: 'R = 2200 Ом' },
+        correctVersion: { type: 'text', content: 'R = 2,2 кОм' },
+      },
+    ],
     classmateSubmittedCount: 13,
     totalClassmates: 15,
     createdAt: new Date(now - DAY * 12),
@@ -428,12 +508,14 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-15-1',
         homeworkId: 'hw-15',
-        files: [{ uri: 'file:///participle.jpg', type: 'photo' }],
+        files: [{ uri: 'https://picsum.photos/seed/hw15sol/800/1000', type: 'photo' }],
         submittedAt: new Date(now - DAY * 8),
       },
     ],
     grade: 5,
     maxGrade: 5,
+    aiFeedback:
+      'Все причастные обороты выделены правильно. Пунктуация соблюдена. Упражнения выполнены полностью и без ошибок.',
     teacherFeedback: 'Безупречная работа!',
     classmateSubmittedCount: 15,
     totalClassmates: 15,
@@ -451,13 +533,23 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-16-1',
         homeworkId: 'hw-16',
-        files: [{ uri: 'file:///present_perfect.jpg', type: 'photo' }],
+        files: [{ uri: 'https://picsum.photos/seed/hw16sol/800/1000', type: 'photo' }],
         submittedAt: new Date(now - DAY * 7),
       },
     ],
     grade: 5,
     maxGrade: 5,
+    aiFeedback:
+      'Тест выполнен на отлично. Переводы корректные. Единственная неточность — в предложении №7 использовано since вместо for с периодом времени.',
     teacherFeedback: 'Very good! Одна ошибка в употреблении since/for.',
+    comparisonItems: [
+      {
+        label: 'since/for: предложение №7',
+        description: 'Since используется с моментом в прошлом, for — с периодом времени.',
+        studentVersion: { type: 'text', content: 'I have lived here since 5 years.' },
+        correctVersion: { type: 'text', content: 'I have lived here for 5 years.' },
+      },
+    ],
     classmateSubmittedCount: 14,
     totalClassmates: 15,
     createdAt: new Date(now - DAY * 10),
@@ -474,12 +566,14 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-17-1',
         homeworkId: 'hw-17',
-        files: [{ uri: 'file:///ww2_timeline.pdf', type: 'document' }],
+        files: [{ uri: 'https://picsum.photos/seed/hw17sol/800/1000', type: 'photo' }],
         submittedAt: new Date(now - DAY * 6),
       },
     ],
     grade: 5,
     maxGrade: 5,
+    aiFeedback:
+      'Хронология составлена исчерпывающе. Включены все ключевые события: начало войны, битва за Москву, Сталинградская битва, Курская дуга, штурм Берлина. Даты точные.',
     teacherFeedback: 'Отличная хронология! Очень подробная и точная.',
     classmateSubmittedCount: 12,
     totalClassmates: 15,
