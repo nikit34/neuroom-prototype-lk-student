@@ -9,6 +9,8 @@ interface QuestionCardProps {
   totalQuestions: number;
   selectedAnswer: number | null;
   onAnswer: (index: number) => void;
+  timeLeft?: number;
+  timeLimit?: number;
 }
 
 export default function QuestionCard({
@@ -17,12 +19,40 @@ export default function QuestionCard({
   totalQuestions,
   selectedAnswer,
   onAnswer,
+  timeLeft,
+  timeLimit,
 }: QuestionCardProps) {
   const theme = useAppTheme();
   const answered = selectedAnswer !== null;
+  const showTimer = timeLeft !== undefined && timeLimit !== undefined;
+  const timerRatio = showTimer ? timeLeft! / timeLimit! : 1;
+  const timerCritical = showTimer && timeLeft! <= 5;
 
   return (
     <View style={styles.container}>
+      {showTimer && (
+        <View style={styles.timerRow}>
+          <View style={[styles.timerBarBg, { backgroundColor: theme.colors.border }]}>
+            <View
+              style={[
+                styles.timerBarFill,
+                {
+                  backgroundColor: timerCritical ? '#F44336' : theme.colors.primary,
+                  width: `${timerRatio * 100}%`,
+                },
+              ]}
+            />
+          </View>
+          <Text
+            style={[
+              styles.timerText,
+              { color: timerCritical ? '#F44336' : theme.colors.textSecondary },
+            ]}
+          >
+            {timeLeft}с
+          </Text>
+        </View>
+      )}
       <Text style={[styles.counter, { color: theme.colors.textSecondary }]}>
         Вопрос {questionNumber} из {totalQuestions}
       </Text>
@@ -69,6 +99,10 @@ export default function QuestionCard({
 }
 
 const styles = StyleSheet.create({
+  timerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 8 },
+  timerBarBg: { flex: 1, height: 6, borderRadius: 3, overflow: 'hidden' },
+  timerBarFill: { height: 6, borderRadius: 3 },
+  timerText: { fontSize: 14, fontWeight: '700', width: 32, textAlign: 'right' },
   container: { paddingVertical: 16 },
   counter: { fontSize: 13, fontWeight: '500', marginBottom: 4 },
   subject: { fontSize: 12, fontWeight: '600', marginBottom: 12 },

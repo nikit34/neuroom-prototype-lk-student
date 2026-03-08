@@ -14,8 +14,9 @@ import { useThemeStore } from '@/src/stores/themeStore';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
 import { useArenaStore } from '@/src/stores/arenaStore';
 import { useNotificationStore } from '@/src/stores/notificationStore';
-import { useChatStore } from '@/src/stores/chatStore';
+import { useChatStore, AI_TUTOR_ID } from '@/src/stores/chatStore';
 import { getMascotState, getMascotStateLabel } from '@/src/utils/gradeHelpers';
+import { useAppVersionStore, AppVersion } from '@/src/config/appVersion';
 import { AchievementRarity, AppNotification, ChatMessage } from '@/src/types';
 
 const HEALTH_PRESETS = [0, 10, 25, 50, 75, 100];
@@ -136,6 +137,61 @@ function HealthSlider() {
   );
 }
 
+function AppVersionSwitch() {
+  const theme = useAppTheme();
+  const appVersion = useAppVersionStore((s) => s.appVersion);
+  const setAppVersion = useAppVersionStore((s) => s.setAppVersion);
+
+  const options: { key: AppVersion; label: string; desc: string }[] = [
+    { key: 1, label: 'V1', desc: 'ДЗ, Чат, Рейтинг' },
+    { key: 2, label: 'V2', desc: '+ Арена, Прогресс' },
+  ];
+
+  return (
+    <View style={styles.ageGroupSection}>
+      <View style={styles.ageGroupRow}>
+        {options.map((opt) => {
+          const isActive = appVersion === opt.key;
+          return (
+            <TouchableOpacity
+              key={opt.key}
+              style={[
+                styles.ageGroupBtn,
+                {
+                  backgroundColor: isActive
+                    ? theme.colors.primary + '20'
+                    : theme.colors.background,
+                  borderColor: isActive
+                    ? theme.colors.primary
+                    : theme.colors.border,
+                  borderWidth: isActive ? 2 : 1,
+                },
+              ]}
+              onPress={() => setAppVersion(opt.key)}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[
+                  styles.ageGroupBtnText,
+                  {
+                    color: isActive ? theme.colors.primary : theme.colors.text,
+                    fontWeight: isActive ? '700' : '500',
+                  },
+                ]}
+              >
+                {opt.label}
+              </Text>
+              <Text style={{ fontSize: 11, color: theme.colors.textSecondary }}>
+                {opt.desc}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 function AgeGroupSwitch() {
   const theme = useAppTheme();
   const ageGroup = useThemeStore((s) => s.ageGroup);
@@ -227,6 +283,43 @@ function ArenaFeatureToggles() {
           </View>
         </TouchableOpacity>
       ))}
+    </View>
+  );
+}
+
+function ChatFeatureToggle() {
+  const theme = useAppTheme();
+  const teacherChatEnabled = useChatStore((s) => s.teacherChatEnabled);
+  const setTeacherChatEnabled = useChatStore((s) => s.setTeacherChatEnabled);
+
+  return (
+    <View style={styles.toggleSection}>
+      <TouchableOpacity
+        style={[
+          styles.toggleRow,
+          {
+            backgroundColor: teacherChatEnabled ? theme.colors.primary + '20' : theme.colors.background,
+            borderColor: teacherChatEnabled ? theme.colors.primary : theme.colors.border,
+          },
+        ]}
+        onPress={() => setTeacherChatEnabled(!teacherChatEnabled)}
+        activeOpacity={0.7}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.toggleLabel, { color: theme.colors.text }]}>Чат с учителями</Text>
+          <Text style={{ fontSize: 11, color: theme.colors.textSecondary, marginTop: 2 }}>
+            {teacherChatEnabled ? 'Список учителей + AI' : 'Только AI-Репетитор'}
+          </Text>
+        </View>
+        <View
+          style={[
+            styles.toggleIndicator,
+            { backgroundColor: teacherChatEnabled ? theme.colors.primary : theme.colors.border },
+          ]}
+        >
+          <Text style={styles.toggleIndicatorText}>{teacherChatEnabled ? 'ON' : 'OFF'}</Text>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -352,12 +445,18 @@ function ScreenGroup({ title, emoji, children }: { title: string; emoji: string;
 
 export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAwardBadgeSeries, onClose }: DevModePanelProps) {
   const theme = useAppTheme();
+  const appVersion = useAppVersionStore((s) => s.appVersion);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
       {/* ── Общее ── */}
       <ScreenGroup title="Общее" emoji="⚙️">
         <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
+          ВЕРСИЯ ПРИЛОЖЕНИЯ
+        </Text>
+        <AppVersionSwitch />
+
+        <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
           РЕЖИМ ЛК
         </Text>
         <AgeGroupSwitch />
@@ -381,8 +480,16 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
         <NotificationPresets />
       </ScreenGroup>
 
-      {/* ── Арена ── */}
-      <ScreenGroup title="Арена" emoji="⚔️">
+      {/* ── Чат ── */}
+      <ScreenGroup title="Чат" emoji="💬">
+        <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
+          РЕЖИМ ЧАТА
+        </Text>
+        <ChatFeatureToggle />
+      </ScreenGroup>
+
+      {/* ── Арена (V2 only) ── */}
+      {appVersion >= 2 && <ScreenGroup title="Арена" emoji="⚔️">
         <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
           МЕХАНИКИ
         </Text>
@@ -423,7 +530,7 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
             </Text>
           </TouchableOpacity>
         </View>
-      </ScreenGroup>
+      </ScreenGroup>}
     </View>
   );
 }

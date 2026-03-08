@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
-import { useChatStore } from '@/src/stores/chatStore';
+import { useChatStore, AI_TUTOR_ID } from '@/src/stores/chatStore';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { mockTeachers } from '@/src/data/mockData';
 import { ChatMessage } from '@/src/types';
@@ -89,25 +89,37 @@ export default function ChatScreen() {
   const hasSentDispute = useRef(false);
 
   const navigation = useNavigation();
+  const isAiTutor = teacherId === AI_TUTOR_ID;
   const teacher = mockTeachers.find((t) => t.id === teacherId);
-  const teacherName = teacher
-    ? `${teacher.firstName} ${teacher.lastName}`
-    : 'Учитель';
+  const teacherName = isAiTutor
+    ? 'AI-Репетитор'
+    : teacher
+      ? `${teacher.firstName} ${teacher.lastName}`
+      : 'Учитель';
 
   useEffect(() => {
     navigation.setOptions({
-      title: `${teacherName}${teacher ? ` · ${teacher.subject}` : ''}`,
+      title: isAiTutor
+        ? '🤖 AI-Репетитор'
+        : `${teacherName}${teacher ? ` · ${teacher.subject}` : ''}`,
     });
-  }, [navigation, teacherName, teacher?.subject]);
+  }, [navigation, teacherName, teacher?.subject, isAiTutor]);
 
-  // Homework for this teacher
-  const teacherHomework = assignments.filter(
-    (hw) => hw.teacher.id === teacherId,
-  );
+  // Homework for this teacher (all homework for AI tutor)
+  const teacherHomework = isAiTutor
+    ? assignments
+    : assignments.filter((hw) => hw.teacher.id === teacherId);
+
+  const aiSuggests: Suggest[] = useMemo(() => [
+    { label: '📖 Объясни тему', message: 'Привет! Можешь объяснить мне текущую тему простым языком?', topic: 'topic_help' },
+    { label: '❓ Помоги с задачей', message: 'У меня не получается решить задачу. Можешь помочь разобраться?', topic: 'hw_error' },
+    { label: '📝 Проверь моё решение', message: 'Можешь проверить моё решение и сказать, есть ли ошибки?', topic: 'hw_error' },
+    { label: '🧠 Подготовка к контрольной', message: 'Помоги подготовиться к контрольной! С чего начать?', topic: 'topic_help' },
+  ], []);
 
   const suggests = useMemo(
-    () => buildSuggests(teacherHomework, teacher?.subject ?? ''),
-    [teacherHomework, teacher?.subject],
+    () => isAiTutor ? aiSuggests : buildSuggests(teacherHomework, teacher?.subject ?? ''),
+    [isAiTutor, aiSuggests, teacherHomework, teacher?.subject],
   );
 
   // Send initial dispute message

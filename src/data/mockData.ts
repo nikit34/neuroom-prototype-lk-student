@@ -104,6 +104,10 @@ export const mockHomework: HomeworkAssignment[] = [
     deadline: new Date(now + DAY * 2),
     status: 'pending',
     submissions: [],
+    attachments: [
+      { uri: 'https://picsum.photos/seed/hw1a/800/600', type: 'photo' },
+      { uri: 'https://picsum.photos/seed/hw1b/800/600', type: 'photo' },
+    ],
     maxGrade: 5,
     classmateSubmittedCount: 4,
     totalClassmates: 15,
@@ -133,6 +137,9 @@ export const mockHomework: HomeworkAssignment[] = [
     deadline: new Date(now - DAY * 1),
     status: 'pending',
     submissions: [],
+    attachments: [
+      { uri: 'https://picsum.photos/seed/hw3lab/800/1000', type: 'photo' },
+    ],
     maxGrade: 5,
     classmateSubmittedCount: 11,
     totalClassmates: 15,
@@ -150,8 +157,7 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-4-1',
         homeworkId: 'hw-4',
-        fileUri: 'file:///presentation_1812.pptx',
-        fileType: 'document',
+        files: [{ uri: 'file:///presentation_1812.pptx', type: 'document' }],
         submittedAt: new Date(now - DAY * 4),
       },
     ],
@@ -172,8 +178,7 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-5-1',
         homeworkId: 'hw-5',
-        fileUri: 'file:///english_hw.jpg',
-        fileType: 'photo',
+        files: [{ uri: 'file:///english_hw.jpg', type: 'photo' }],
         submittedAt: new Date(now - HOUR * 6),
       },
     ],
@@ -192,12 +197,14 @@ export const mockHomework: HomeworkAssignment[] = [
     teacher: mockTeachers[0],
     deadline: new Date(now - DAY * 5),
     status: 'graded',
+    attachments: [
+      { uri: 'https://picsum.photos/seed/hw6sys/800/600', type: 'photo' },
+    ],
     submissions: [
       {
         id: 'sub-6-1',
         homeworkId: 'hw-6',
-        fileUri: 'file:///math_systems.jpg',
-        fileType: 'photo',
+        files: [{ uri: 'file:///math_systems.jpg', type: 'photo' }],
         submittedAt: new Date(now - DAY * 6),
       },
     ],
@@ -222,8 +229,7 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-7-1',
         homeworkId: 'hw-7',
-        fileUri: 'file:///dictant.jpg',
-        fileType: 'photo',
+        files: [{ uri: 'file:///dictant.jpg', type: 'photo' }],
         submittedAt: new Date(now - DAY * 3),
       },
     ],
@@ -263,8 +269,7 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-9-1',
         homeworkId: 'hw-9',
-        fileUri: 'file:///peter_reforms.pdf',
-        fileType: 'document',
+        files: [{ uri: 'file:///peter_reforms.pdf', type: 'document' }],
         submittedAt: new Date(now - DAY * 7),
       },
     ],
@@ -288,8 +293,7 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-10-1',
         homeworkId: 'hw-10',
-        fileUri: 'file:///conditionals.jpg',
-        fileType: 'photo',
+        files: [{ uri: 'file:///conditionals.jpg', type: 'photo' }],
         submittedAt: new Date(now - DAY * 5),
       },
     ],
@@ -328,8 +332,7 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-12-1',
         homeworkId: 'hw-12',
-        fileUri: 'file:///crusades_essay.pdf',
-        fileType: 'document',
+        files: [{ uri: 'file:///crusades_essay.pdf', type: 'document' }],
         submittedAt: new Date(now - DAY * 3),
       },
     ],
@@ -355,8 +358,7 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-13-1',
         homeworkId: 'hw-13',
-        fileUri: 'file:///fractions.jpg',
-        fileType: 'photo',
+        files: [{ uri: 'file:///fractions.jpg', type: 'photo' }],
         submittedAt: new Date(now - DAY * 10),
       },
     ],
@@ -379,8 +381,7 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-14-1',
         homeworkId: 'hw-14',
-        fileUri: 'file:///ohm_law.jpg',
-        fileType: 'photo',
+        files: [{ uri: 'file:///ohm_law.jpg', type: 'photo' }],
         submittedAt: new Date(now - DAY * 9),
       },
     ],
@@ -403,8 +404,7 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-15-1',
         homeworkId: 'hw-15',
-        fileUri: 'file:///participle.jpg',
-        fileType: 'photo',
+        files: [{ uri: 'file:///participle.jpg', type: 'photo' }],
         submittedAt: new Date(now - DAY * 8),
       },
     ],
@@ -427,8 +427,7 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-16-1',
         homeworkId: 'hw-16',
-        fileUri: 'file:///present_perfect.jpg',
-        fileType: 'photo',
+        files: [{ uri: 'file:///present_perfect.jpg', type: 'photo' }],
         submittedAt: new Date(now - DAY * 7),
       },
     ],
@@ -451,8 +450,7 @@ export const mockHomework: HomeworkAssignment[] = [
       {
         id: 'sub-17-1',
         homeworkId: 'hw-17',
-        fileUri: 'file:///ww2_timeline.pdf',
-        fileType: 'document',
+        files: [{ uri: 'file:///ww2_timeline.pdf', type: 'document' }],
         submittedAt: new Date(now - DAY * 6),
       },
     ],

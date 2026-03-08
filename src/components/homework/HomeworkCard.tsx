@@ -81,12 +81,7 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
         <View style={styles.footer}>
           <DeadlineIndicator deadline={homework.deadline} />
           <View style={styles.footerRight}>
-            {homework.classmateSubmittedCount != null && homework.totalClassmates != null && (
-              <Text style={[styles.classmateCount, { color: theme.colors.textSecondary }]}>
-                👥 {homework.classmateSubmittedCount} из {homework.totalClassmates}
-              </Text>
-            )}
-            {homework.grade !== undefined && (
+{homework.grade !== undefined && (
               <View style={styles.gradeContainer}>
                 <Text style={styles.gradeEmoji}>
                   {getGradeEmoji(homework.grade, homework.maxGrade)}
@@ -152,10 +147,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
-  classmateCount: {
-    fontSize: 12,
-  },
-  gradeContainer: {
+gradeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },

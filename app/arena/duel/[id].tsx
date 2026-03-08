@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
@@ -6,6 +6,8 @@ import { useArenaStore } from '@/src/stores/arenaStore';
 import QuestionCard from '@/src/components/arena/QuestionCard';
 import DuelResultView from '@/src/components/arena/DuelResultView';
 import Card from '@/src/components/ui/Card';
+
+const TIME_LIMIT = 15;
 
 export default function DuelDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -19,6 +21,31 @@ export default function DuelDetailScreen() {
 
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showingResult, setShowingResult] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
+
+  const handleAnswer = useCallback((index: number) => {
+    if (!duel || duel.status !== 'active') return;
+    setSelectedAnswer(index);
+    answerDuelQuestion(duel.id, index);
+  }, [duel, answerDuelQuestion]);
+
+  // Reset timer when question changes
+  useEffect(() => {
+    if (duel?.status === 'active') {
+      setTimeLeft(TIME_LIMIT);
+    }
+  }, [duel?.currentQuestionIndex, duel?.status]);
+
+  // Countdown
+  useEffect(() => {
+    if (!duel || duel.status !== 'active' || selectedAnswer !== null) return;
+    if (timeLeft <= 0) {
+      handleAnswer(-1);
+      return;
+    }
+    const interval = setInterval(() => setTimeLeft((t) => t - 1), 1000);
+    return () => clearInterval(interval);
+  }, [timeLeft, duel?.status, selectedAnswer, handleAnswer]);
 
   useEffect(() => {
     if (selectedAnswer !== null) {
@@ -102,11 +129,6 @@ export default function DuelDetailScreen() {
     );
   }
 
-  const handleAnswer = (index: number) => {
-    setSelectedAnswer(index);
-    answerDuelQuestion(duel.id, index);
-  };
-
   return (
     <View style={[styles.safe, { backgroundColor: theme.colors.background }]}>
       <View style={styles.gameContainer}>
@@ -140,6 +162,8 @@ export default function DuelDetailScreen() {
           totalQuestions={duel.questions.length}
           selectedAnswer={selectedAnswer}
           onAnswer={handleAnswer}
+          timeLeft={timeLeft}
+          timeLimit={TIME_LIMIT}
         />
       </View>
     </View>

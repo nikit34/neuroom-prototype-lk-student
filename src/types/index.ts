@@ -44,12 +44,21 @@ export interface Teacher {
   avatarUrl?: string;
 }
 
+export interface SubmissionFile {
+  uri: string;
+  type: 'photo' | 'document';
+}
+
 export interface Submission {
   id: string;
   homeworkId: string;
-  fileUri: string;
-  fileType: 'photo' | 'document';
+  files: SubmissionFile[];
   submittedAt: Date;
+}
+
+export interface HomeworkAttachment {
+  uri: string;
+  type: 'photo' | 'document';
 }
 
 export interface HomeworkAssignment {
@@ -61,6 +70,7 @@ export interface HomeworkAssignment {
   deadline: Date;
   status: HomeworkStatus;
   submissions: Submission[];
+  attachments?: HomeworkAttachment[];
   grade?: number;
   maxGrade: number;
   aiFeedback?: string;

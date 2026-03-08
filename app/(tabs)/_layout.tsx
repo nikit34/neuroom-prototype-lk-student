@@ -2,9 +2,11 @@ import React from 'react';
 import { Text } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useAppVersionStore } from '@/src/config/appVersion';
 
 export default function TabLayout() {
   const theme = useAppTheme();
+  const appVersion = useAppVersionStore((s) => s.appVersion);
 
   return (
     <Tabs
@@ -57,11 +59,25 @@ export default function TabLayout() {
           ),
         }}
       />
+      {/* V1: показываем Рейтинг, скрываем Арену */}
+      {/* V2: показываем Арену, скрываем Рейтинг */}
+      <Tabs.Screen
+        name="leaderboard"
+        options={{
+          title: 'Рейтинг',
+          headerShown: false,
+          href: appVersion >= 2 ? null : undefined,
+          tabBarIcon: ({ focused }) => (
+            <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.6 }}>🏆</Text>
+          ),
+        }}
+      />
       <Tabs.Screen
         name="arena"
         options={{
           title: 'Арена',
           headerShown: false,
+          href: appVersion < 2 ? null : undefined,
           tabBarIcon: ({ focused }) => (
             <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.6 }}>⚔️</Text>
           ),

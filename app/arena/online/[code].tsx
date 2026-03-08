@@ -14,6 +14,8 @@ import {
 } from '@/src/services/onlineDuel';
 import QuestionCard from '@/src/components/arena/QuestionCard';
 
+const TIME_LIMIT = 15;
+
 export default function OnlineDuelGameScreen() {
   const { code, role } = useLocalSearchParams<{ code: string; role: string }>();
   const theme = useAppTheme();
@@ -22,6 +24,7 @@ export default function OnlineDuelGameScreen() {
 
   const [room, setRoom] = useState<OnlineRoom | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
   const playerKey = role === 'player1' ? 'player1' : 'player2';
 
   useEffect(() => {
@@ -68,6 +71,24 @@ export default function OnlineDuelGameScreen() {
       submitAnswer(code, playerKey as 'player1' | 'player2', qi, index, isCorrect, score);
     }, 1200);
   }, [currentQ, me, code, playerKey, myQuestionIndex, selectedAnswer]);
+
+  // Reset timer when question changes
+  useEffect(() => {
+    if (room?.status === 'active' && !myFinished) {
+      setTimeLeft(TIME_LIMIT);
+    }
+  }, [myQuestionIndex, room?.status, myFinished]);
+
+  // Countdown
+  useEffect(() => {
+    if (!room || room.status !== 'active' || myFinished || selectedAnswer !== null) return;
+    if (timeLeft <= 0) {
+      handleAnswer(-1);
+      return;
+    }
+    const interval = setInterval(() => setTimeLeft((t) => t - 1), 1000);
+    return () => clearInterval(interval);
+  }, [timeLeft, room?.status, myFinished, selectedAnswer, handleAnswer]);
 
   // Waiting for opponent to join
   if (room?.status === 'waiting') {
@@ -195,6 +216,8 @@ export default function OnlineDuelGameScreen() {
             totalQuestions={questions.length}
             selectedAnswer={selectedAnswer}
             onAnswer={handleAnswer}
+            timeLeft={timeLeft}
+            timeLimit={TIME_LIMIT}
           />
         )}
       </View>

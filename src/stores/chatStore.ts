@@ -2,9 +2,46 @@ import { create } from 'zustand';
 import { ChatMessage } from '../types';
 import { mockTeachers, mockStudent } from '../data/mockData';
 
+export const AI_TUTOR_ID = 'ai-tutor';
+
 interface TopicReplies {
   [topic: string]: string[];
 }
+
+const aiTutorReplies: TopicReplies = {
+  hw_error: [
+    'Давай разберём ошибку пошагово. Покажи, какое выражение у тебя получилось, и я объясню, где именно пошло не так.',
+    'Попробуй подставить числа в формулу ещё раз. Скорее всего, ошибка в знаке или порядке действий. Если не найдёшь — скинь решение, разберёмся вместе!',
+    'Частая ошибка в таких задачах — неверный порядок действий. Проверь скобки и приоритет операций.',
+  ],
+  hw_conditions: [
+    'Давай разберём условие вместе. Выдели ключевые данные и что именно нужно найти — я помогу составить план решения.',
+    'Попробуй перефразировать задачу своими словами. Часто это помогает понять, что требуется. Я подскажу, если что-то упустишь.',
+    'Обрати внимание на единицы измерения и ограничения в условии — обычно в них кроется подсказка.',
+  ],
+  hw_deadline: [
+    'Я не могу продлить дедлайн, но могу помочь решить задание быстрее! Давай разберём его вместе.',
+    'По поводу дедлайна лучше написать учителю. А я могу помочь тебе ускориться — присылай задания!',
+  ],
+  hw_grade: [
+    'Давай разберёмся, за что снизили. Покажи задание и своё решение — я покажу, где были ошибки и как их исправить.',
+    'Я могу объяснить критерии оценки и показать, как нужно было решить. Присылай задание!',
+  ],
+  topic_help: [
+    'Конечно! Расскажи, какая тема, и я объясню простым языком с примерами.',
+    'Давай разберём тему! Начнём с основ — что именно вызывает затруднения?',
+    'Хороший вопрос! Я подготовлю краткое объяснение с примерами. Какой именно аспект темы тебе непонятен?',
+    'Эту тему лучше разбирать на примерах. Давай я объясню шаг за шагом!',
+  ],
+  general: [
+    'Привет! Чем могу помочь? Задавай вопрос по любому предмету — разберёмся вместе!',
+    'Интересный вопрос! Давай разберёмся. Можешь уточнить, что именно непонятно?',
+    'Я готов помочь! Опиши задачу или тему подробнее, и мы разберём её вместе.',
+    'Спрашивай что угодно — от математики до истории. Я здесь, чтобы помочь!',
+    'Отличный вопрос! Давай подойдём к нему пошагово.',
+    'Могу объяснить тему с нуля или помочь с конкретной задачей — как тебе удобнее?',
+  ],
+};
 
 const topicReplies: TopicReplies = {
   hw_error: [
@@ -49,13 +86,16 @@ const topicReplies: TopicReplies = {
   ],
 };
 
-function pickReply(topic: string): string {
-  const replies = topicReplies[topic] ?? topicReplies.general;
+function pickReply(topic: string, isAiTutor = false): string {
+  const pool = isAiTutor ? aiTutorReplies : topicReplies;
+  const replies = pool[topic] ?? pool.general;
   return replies[Math.floor(Math.random() * replies.length)];
 }
 
 interface ChatState {
   messages: Record<string, ChatMessage[]>;
+  teacherChatEnabled: boolean;
+  setTeacherChatEnabled: (enabled: boolean) => void;
   sendMessage: (teacherId: string, text: string, topic?: string) => void;
   getMessages: (teacherId: string) => ChatMessage[];
   setMessages: (messages: Record<string, ChatMessage[]>) => void;
@@ -63,6 +103,8 @@ interface ChatState {
 
 export const useChatStore = create<ChatState>((set, get) => ({
   messages: {},
+  teacherChatEnabled: true,
+  setTeacherChatEnabled: (enabled) => set({ teacherChatEnabled: enabled }),
 
   sendMessage: (teacherId, text, topic) => {
     const studentMsg: ChatMessage = {
@@ -81,17 +123,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
       },
     }));
 
-    const delay = 3000 + Math.random() * 2000;
+    const isAi = teacherId === AI_TUTOR_ID;
+    const delay = isAi ? 1000 + Math.random() * 1500 : 3000 + Math.random() * 2000;
     const teacher = mockTeachers.find((t) => t.id === teacherId);
 
     setTimeout(() => {
       const teacherMsg: ChatMessage = {
         id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         senderId: teacherId,
-        senderName: teacher
-          ? `${teacher.firstName} ${teacher.lastName}`
-          : 'Учитель',
-        text: pickReply(topic ?? 'general'),
+        senderName: isAi
+          ? 'AI-Репетитор'
+          : teacher
+            ? `${teacher.firstName} ${teacher.lastName}`
+            : 'Учитель',
+        text: pickReply(topic ?? 'general', isAi),
         timestamp: new Date(),
         isStudent: false,
       };

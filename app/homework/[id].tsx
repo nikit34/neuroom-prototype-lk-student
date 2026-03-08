@@ -5,6 +5,10 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
+  Image,
+  Pressable,
+  Modal,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -26,6 +30,7 @@ export default function HomeworkDetailScreen() {
   const assignments = useHomeworkStore((s) => s.assignments);
   const homework = assignments.find((a) => a.id === id);
   const [analyzing, setAnalyzing] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   if (!homework) {
     return (
@@ -73,6 +78,52 @@ export default function HomeworkDetailScreen() {
         <Text style={[styles.description, { color: theme.colors.text }]}>
           {homework.description}
         </Text>
+
+        {/* Teacher attachments (photos) */}
+        {homework.attachments && homework.attachments.length > 0 && (
+          <>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+              Фото задания ({homework.attachments.length})
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.attachmentsScroll}
+              contentContainerStyle={styles.attachmentsContainer}
+            >
+              {homework.attachments
+                .filter((a) => a.type === 'photo')
+                .map((attachment, index) => (
+                  <Pressable
+                    key={index}
+                    onPress={() => setPreviewImage(attachment.uri)}
+                  >
+                    <Image
+                      source={{ uri: attachment.uri }}
+                      style={[styles.attachmentThumb, { borderColor: theme.colors.border }]}
+                    />
+                  </Pressable>
+                ))}
+            </ScrollView>
+          </>
+        )}
+
+        {/* Fullscreen image preview */}
+        <Modal visible={!!previewImage} transparent animationType="fade">
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setPreviewImage(null)}
+          >
+            {previewImage && (
+              <Image
+                source={{ uri: previewImage }}
+                style={styles.modalImage}
+                resizeMode="contain"
+              />
+            )}
+            <Text style={styles.modalClose}>Закрыть</Text>
+          </Pressable>
+        </Modal>
 
         {/* Graded flow */}
         {isGraded && (
@@ -159,11 +210,13 @@ export default function HomeworkDetailScreen() {
                   <Card key={sub.id} style={styles.submissionCard}>
                     <View style={styles.submissionRow}>
                       <Text style={styles.submissionIcon}>
-                        {sub.fileType === 'photo' ? '📸' : '📄'}
+                        {sub.files.some((f) => f.type === 'photo') ? '📸' : '📄'}
                       </Text>
                       <View style={{ flex: 1 }}>
                         <Text style={[styles.submissionType, { color: theme.colors.text }]}>
-                          {sub.fileType === 'photo' ? 'Фотография' : 'Документ'}
+                          {sub.files.length === 1
+                            ? sub.files[0].type === 'photo' ? 'Фотография' : 'Документ'
+                            : `${sub.files.length} ${sub.files.length < 5 ? 'файла' : 'файлов'}`}
                         </Text>
                         <Text style={[styles.submissionDate, { color: theme.colors.textSecondary }]}>
                           {formatDateRu(sub.submittedAt)}
@@ -227,11 +280,13 @@ export default function HomeworkDetailScreen() {
                   <Card key={sub.id} style={styles.submissionCard}>
                     <View style={styles.submissionRow}>
                       <Text style={styles.submissionIcon}>
-                        {sub.fileType === 'photo' ? '📸' : '📄'}
+                        {sub.files.some((f) => f.type === 'photo') ? '📸' : '📄'}
                       </Text>
                       <View style={{ flex: 1 }}>
                         <Text style={[styles.submissionType, { color: theme.colors.text }]}>
-                          {sub.fileType === 'photo' ? 'Фотография' : 'Документ'}
+                          {sub.files.length === 1
+                            ? sub.files[0].type === 'photo' ? 'Фотография' : 'Документ'
+                            : `${sub.files.length} ${sub.files.length < 5 ? 'файла' : 'файлов'}`}
                         </Text>
                         <Text style={[styles.submissionDate, { color: theme.colors.textSecondary }]}>
                           {formatDateRu(sub.submittedAt)}
@@ -350,5 +405,35 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: 40,
+  },
+  attachmentsScroll: {
+    marginBottom: 8,
+  },
+  attachmentsContainer: {
+    gap: 10,
+  },
+  attachmentThumb: {
+    width: 160,
+    height: 120,
+    borderRadius: 12,
+    borderWidth: 1,
+    backgroundColor: '#f0f0f0',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalImage: {
+    width: Dimensions.get('window').width - 32,
+    height: Dimensions.get('window').height * 0.7,
+  },
+  modalClose: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginTop: 24,
+    padding: 12,
   },
 });

@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -17,7 +18,7 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { analyzeHomework } from '@/src/services/aiService';
 import Button from '@/src/components/ui/Button';
-import { Submission } from '@/src/types';
+import { Submission, SubmissionFile } from '@/src/types';
 
 export default function SubmitHomeworkScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -33,9 +34,9 @@ export default function SubmitHomeworkScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
   const cameraRef = useRef<CameraView>(null);
 
-  const [fileUri, setFileUri] = useState<string | null>(null);
-  const [fileType, setFileType] = useState<'photo' | 'document'>('photo');
+  const [files, setFiles] = useState<SubmissionFile[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showCamera, setShowCamera] = useState(true);
 
   if (!homework) {
     return (
@@ -56,8 +57,7 @@ export default function SubmitHomeworkScreen() {
     try {
       const photo = await cameraRef.current.takePictureAsync();
       if (photo?.uri) {
-        setFileUri(photo.uri);
-        setFileType('photo');
+        setFiles((prev) => [...prev, { uri: photo.uri, type: 'photo' }]);
       }
     } catch {
       Alert.alert('Ошибка', 'Не удалось сделать снимок.');
@@ -76,10 +76,11 @@ export default function SubmitHomeworkScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       quality: 0.8,
+      allowsMultipleSelection: true,
     });
-    if (!result.canceled && result.assets[0]) {
-      setFileUri(result.assets[0].uri);
-      setFileType('photo');
+    if (!result.canceled && result.assets.length > 0) {
+      const newFiles = result.assets.map((a) => ({ uri: a.uri, type: 'photo' as const }));
+      setFiles((prev) => [...prev, ...newFiles]);
     }
   };
 
@@ -89,20 +90,22 @@ export default function SubmitHomeworkScreen() {
       copyToCacheDirectory: true,
     });
     if (!result.canceled && result.assets[0]) {
-      setFileUri(result.assets[0].uri);
-      setFileType('document');
+      setFiles((prev) => [...prev, { uri: result.assets[0].uri, type: 'document' }]);
     }
   };
 
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async () => {
-    if (!fileUri) return;
+    if (files.length === 0) return;
     setLoading(true);
 
     const submission: Submission = {
       id: `sub-${Date.now()}`,
       homeworkId: homework.id,
-      fileUri,
-      fileType,
+      files,
       submittedAt: new Date(),
     };
 
@@ -137,16 +140,16 @@ export default function SubmitHomeworkScreen() {
     );
   }
 
-  // ── Preview state (file selected) ──────────────────────────
+  // ── Preview state (files selected, camera hidden) ──────────
 
-  if (fileUri) {
+  if (files.length > 0 && !showCamera) {
     return (
       <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
         {/* Header */}
         <View style={styles.previewHeader}>
-          <TouchableOpacity onPress={() => setFileUri(null)}>
-            <Text style={[styles.headerAction, { color: theme.colors.primary }]}>
-              Переснять
+          <TouchableOpacity onPress={() => router.back()}>
+            <Text style={[styles.headerAction, { color: theme.colors.textSecondary }]}>
+              Отмена
             </Text>
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: theme.colors.text }]} numberOfLines={1}>
@@ -155,26 +158,58 @@ export default function SubmitHomeworkScreen() {
           <View style={{ width: 70 }} />
         </View>
 
-        {/* Preview */}
-        <View style={styles.previewBody}>
-          {fileType === 'photo' ? (
-            <Image
-              source={{ uri: fileUri }}
-              style={styles.previewImage}
-              resizeMode="contain"
-            />
-          ) : (
-            <View style={styles.docPreview}>
-              <Text style={styles.docIcon}>📄</Text>
-              <Text style={[styles.docName, { color: theme.colors.text }]} numberOfLines={2}>
-                {fileUri.split('/').pop()}
-              </Text>
+        {/* Files grid */}
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.filesGrid}
+          showsVerticalScrollIndicator={false}
+        >
+          {files.map((file, index) => (
+            <View key={index} style={styles.fileCard}>
+              {file.type === 'photo' ? (
+                <Image source={{ uri: file.uri }} style={styles.fileThumbnail} resizeMode="cover" />
+              ) : (
+                <View style={[styles.fileThumbnail, styles.docThumbnail, { backgroundColor: theme.colors.surface }]}>
+                  <Text style={styles.docThumbnailIcon}>📄</Text>
+                  <Text style={[styles.docThumbnailName, { color: theme.colors.text }]} numberOfLines={2}>
+                    {file.uri.split('/').pop()}
+                  </Text>
+                </View>
+              )}
+              <TouchableOpacity
+                style={styles.removeBtn}
+                onPress={() => removeFile(index)}
+              >
+                <Text style={styles.removeBtnText}>✕</Text>
+              </TouchableOpacity>
+              <View style={styles.fileIndex}>
+                <Text style={styles.fileIndexText}>{index + 1}</Text>
+              </View>
             </View>
-          )}
-        </View>
+          ))}
+
+          {/* Add more button */}
+          <TouchableOpacity
+            style={[styles.addMoreCard, { borderColor: theme.colors.primary }]}
+            onPress={() => {
+              Alert.alert('Добавить файл', undefined, [
+                { text: 'Камера', onPress: () => setShowCamera(true) },
+                { text: 'Галерея', onPress: pickImage },
+                { text: 'Документ', onPress: pickDocument },
+                { text: 'Отмена', style: 'cancel' },
+              ]);
+            }}
+          >
+            <Text style={[styles.addMoreIcon, { color: theme.colors.primary }]}>+</Text>
+            <Text style={[styles.addMoreText, { color: theme.colors.primary }]}>Ещё фото</Text>
+          </TouchableOpacity>
+        </ScrollView>
 
         {/* Submit */}
         <View style={[styles.submitBar, { paddingBottom: insets.bottom + 16 }]}>
+          <Text style={[styles.filesCount, { color: theme.colors.textSecondary }]}>
+            {files.length} {files.length === 1 ? 'файл' : files.length < 5 ? 'файла' : 'файлов'}
+          </Text>
           <Button title="Отправить" icon="📤" onPress={handleSubmit} />
         </View>
       </SafeAreaView>
@@ -210,18 +245,45 @@ export default function SubmitHomeworkScreen() {
 
   return (
     <View style={styles.fullscreen}>
-      <CameraView ref={cameraRef} style={StyleSheet.absoluteFillObject} facing={facing}>
+      <CameraView ref={cameraRef} style={StyleSheet.absoluteFillObject} facing={facing} />
+
+      {/* Overlay controls — outside CameraView for reliable touches */}
+      <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
         {/* Top bar — homework info + close */}
         <SafeAreaView edges={['top']} style={styles.topBar}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
-            <Text style={styles.closeBtnText}>✕</Text>
+          <TouchableOpacity
+            onPress={() => {
+              if (files.length > 0) {
+                setShowCamera(false);
+              } else {
+                router.back();
+              }
+            }}
+            style={styles.closeBtn}
+          >
+            <Text style={styles.closeBtnText}>{files.length > 0 ? '←' : '✕'}</Text>
           </TouchableOpacity>
           <View style={styles.topInfo}>
             <Text style={styles.topTitle} numberOfLines={1}>{homework.subject}</Text>
             <Text style={styles.topSubtitle} numberOfLines={1}>{homework.description.split('\n')[0]}</Text>
           </View>
-          <View style={{ width: 44 }} />
+          {files.length > 0 ? (
+            <TouchableOpacity style={styles.doneBtn} onPress={() => setShowCamera(false)}>
+              <Text style={styles.doneBtnText}>Готово ({files.length})</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={{ width: 44 }} />
+          )}
         </SafeAreaView>
+
+        {/* File count badge */}
+        {files.length > 0 && (
+          <View style={styles.fileBadge}>
+            <Text style={styles.fileBadgeText}>
+              {files.length} {files.length === 1 ? 'фото' : 'фото'}
+            </Text>
+          </View>
+        )}
 
         {/* Bottom controls */}
         <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 20 }]}>
@@ -247,7 +309,7 @@ export default function SubmitHomeworkScreen() {
             <Text style={styles.sideBtnLabel}>Камера</Text>
           </TouchableOpacity>
         </View>
-      </CameraView>
+      </View>
     </View>
   );
 }
@@ -279,6 +341,25 @@ const styles = StyleSheet.create({
   topInfo: { flex: 1, alignItems: 'center', marginHorizontal: 8 },
   topTitle: { color: '#fff', fontSize: 15, fontWeight: '700' },
   topSubtitle: { color: 'rgba(255,255,255,0.65)', fontSize: 12, marginTop: 2 },
+  doneBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+  },
+  doneBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+
+  // ── File count badge (camera) ──
+  fileBadge: {
+    position: 'absolute',
+    top: '50%',
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  fileBadgeText: { color: '#fff', fontSize: 14, fontWeight: '600' },
 
   // ── Bottom bar (camera) ──
   bottomBar: {
@@ -333,20 +414,71 @@ const styles = StyleSheet.create({
   },
   headerAction: { fontSize: 15, fontWeight: '600' },
   headerTitle: { fontSize: 16, fontWeight: '700', flex: 1, textAlign: 'center', marginHorizontal: 8 },
-  previewBody: { flex: 1, padding: 16 },
-  previewImage: {
-    flex: 1,
-    borderRadius: 16,
-    backgroundColor: '#000',
+
+  // ── Files grid ──
+  filesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    padding: 12,
+    gap: 10,
   },
-  docPreview: {
-    flex: 1,
+  fileCard: {
+    width: '47%',
+    aspectRatio: 0.85,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  fileThumbnail: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 14,
+  },
+  docThumbnail: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 14,
+  },
+  docThumbnailIcon: { fontSize: 40, marginBottom: 6 },
+  docThumbnailName: { fontSize: 11, textAlign: 'center', paddingHorizontal: 8 },
+  removeBtn: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0,0,0,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  docIcon: { fontSize: 64, marginBottom: 12 },
-  docName: { fontSize: 15, textAlign: 'center' },
+  removeBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  fileIndex: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fileIndexText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  addMoreCard: {
+    width: '47%',
+    aspectRatio: 0.85,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addMoreIcon: { fontSize: 32, fontWeight: '300', marginBottom: 4 },
+  addMoreText: { fontSize: 13, fontWeight: '600' },
+
+  // ── Submit bar ──
   submitBar: { paddingHorizontal: 20, paddingTop: 12 },
+  filesCount: { fontSize: 13, textAlign: 'center', marginBottom: 8 },
   loadingText: { fontSize: 17, fontWeight: '600', marginTop: 16 },
   loadingSubtext: { fontSize: 13, marginTop: 8 },
 });
