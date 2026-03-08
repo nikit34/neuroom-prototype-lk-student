@@ -3,6 +3,7 @@ import {
   View,
   Text,
   FlatList,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
@@ -11,18 +12,23 @@ import { useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useArenaStore } from '@/src/stores/arenaStore';
 import { useStudentStore } from '@/src/stores/studentStore';
+import { useAchievementStore } from '@/src/stores/achievementStore';
+import { AchievementCategory } from '@/src/types';
 import { mockClassmates } from '@/src/data/mockData';
 import DuelCard from '@/src/components/arena/DuelCard';
 import QuestCard from '@/src/components/arena/QuestCard';
 import ChallengeCard from '@/src/components/arena/ChallengeCard';
 import LeaderboardRow from '@/src/components/achievements/LeaderboardRow';
+import AchievementBadge from '@/src/components/achievements/AchievementBadge';
+import Card from '@/src/components/ui/Card';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
 
-type Section = 'duels' | 'leaderboard' | 'quests' | 'challenges';
+type Section = 'duels' | 'leaderboard' | 'quests' | 'challenges' | 'achievements';
 
 const ALL_SECTIONS: { key: Section; label: string }[] = [
   { key: 'duels', label: 'Дуэли ⚔️' },
   { key: 'leaderboard', label: 'Рейтинг 🏆' },
+  { key: 'achievements', label: 'Достижения 🏅' },
   { key: 'quests', label: 'Квесты 🗺️' },
   { key: 'challenges', label: 'Испытания 🎯' },
 ];
@@ -48,6 +54,18 @@ const CHALLENGE_FILTERS = [
   { key: 'completed' as const, label: 'Завершённые' },
 ];
 
+type CategoryFilter = 'all' | 'unlocked' | AchievementCategory;
+
+const CATEGORY_TABS: { key: CategoryFilter; label: string; emoji: string }[] = [
+  { key: 'all', label: 'Все', emoji: '🏅' },
+  { key: 'unlocked', label: 'Получено', emoji: '✅' },
+  { key: 'homework', label: 'Домашка', emoji: '📝' },
+  { key: 'early_streak', label: 'Ранняя сдача', emoji: '🚀' },
+  { key: 'duel', label: 'Дуэли', emoji: '⚔️' },
+  { key: 'team_quest', label: 'Квесты', emoji: '🤝' },
+  { key: 'challenge', label: 'Испытания', emoji: '🏋️' },
+];
+
 export default function ArenaScreen() {
   const theme = useAppTheme();
   const router = useRouter();
@@ -58,6 +76,7 @@ export default function ArenaScreen() {
   const challengesEnabled = useArenaStore((s) => s.challengesEnabled);
 
   const student = useStudentStore((s) => s.student);
+  const achievements = useAchievementStore((s) => s.achievements);
 
   const sections = ALL_SECTIONS.filter((s) => {
     if (s.key === 'quests') return questsEnabled;
@@ -72,7 +91,6 @@ export default function ArenaScreen() {
   const getFilteredDuels = useArenaStore((s) => s.getFilteredDuels);
   const acceptDuel = useArenaStore((s) => s.acceptDuel);
   const declineDuel = useArenaStore((s) => s.declineDuel);
-
 
   const questFilter = useArenaStore((s) => s.questFilter);
   const setQuestFilter = useArenaStore((s) => s.setQuestFilter);
@@ -90,6 +108,7 @@ export default function ArenaScreen() {
   const sectionCounts: Record<Section, number> = {
     duels: duels.filter((d) => d.status === 'pending' || d.status === 'active').length,
     leaderboard: 0,
+    achievements: 0,
     quests: quests.filter((q) => q.status === 'active').length,
     challenges: challenges.filter((c) => c.status === 'active').length,
   };
@@ -142,8 +161,22 @@ export default function ArenaScreen() {
     return hints[currentUserIndex % hints.length];
   }, [currentUserIndex, leaderboard, student.totalPoints]);
 
+  // Achievements state
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
+
+  const filteredAchievements = useMemo(() => {
+    if (categoryFilter === 'all') return achievements;
+    if (categoryFilter === 'unlocked') return achievements.filter((a) => !a.isLocked);
+    return achievements.filter((a) => a.category === categoryFilter);
+  }, [achievements, categoryFilter]);
+
+  const achievementStats = useMemo(() => {
+    const unlocked = achievements.filter((a) => !a.isLocked).length;
+    return { unlocked, total: achievements.length };
+  }, [achievements]);
+
   const renderFilters = () => {
-    if (activeSection === 'leaderboard') return null;
+    if (activeSection === 'leaderboard' || activeSection === 'achievements') return null;
     const filters = activeSection === 'duels' ? DUEL_FILTERS : activeSection === 'quests' ? QUEST_FILTERS : CHALLENGE_FILTERS;
     const current = activeSection === 'duels' ? duelFilter : activeSection === 'quests' ? questFilter : challengeFilter;
     const setFn = activeSection === 'duels' ? setDuelFilter : activeSection === 'quests' ? setQuestFilter : setChallengeFilter;
@@ -264,6 +297,88 @@ export default function ArenaScreen() {
       );
     }
 
+    if (activeSection === 'achievements') {
+      return (
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.achievementsContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={[styles.achievementCount, { color: theme.colors.textSecondary }]}>
+            {achievementStats.unlocked} из {achievementStats.total} достижений
+          </Text>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoryTabsRow}
+          >
+            {CATEGORY_TABS.map((tab) => {
+              if (tab.key === 'team_quest' && !questsEnabled) return null;
+              if (tab.key === 'challenge' && !challengesEnabled) return null;
+              const active = categoryFilter === tab.key;
+              const count = tab.key === 'all'
+                ? achievements.length
+                : tab.key === 'unlocked'
+                  ? achievements.filter((a) => !a.isLocked).length
+                  : achievements.filter((a) => a.category === tab.key).length;
+              if (tab.key !== 'all' && tab.key !== 'unlocked' && count === 0) return null;
+              return (
+                <TouchableOpacity
+                  key={tab.key}
+                  style={[
+                    styles.categoryTab,
+                    {
+                      backgroundColor: active ? theme.colors.primary : theme.colors.surface,
+                      borderColor: active ? theme.colors.primary : theme.colors.border,
+                    },
+                  ]}
+                  onPress={() => setCategoryFilter(tab.key)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.categoryTabEmoji}>{tab.emoji}</Text>
+                  <Text
+                    style={[
+                      styles.categoryTabLabel,
+                      { color: active ? '#FFFFFF' : theme.colors.textSecondary },
+                    ]}
+                  >
+                    {tab.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          <FlatList
+            data={filteredAchievements}
+            keyExtractor={(item) => item.id}
+            numColumns={3}
+            scrollEnabled={false}
+            columnWrapperStyle={styles.achievementsRow}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.achievementCell}
+                onPress={() => router.push(`/achievements/${item.id}`)}
+                activeOpacity={0.7}
+              >
+                <AchievementBadge achievement={item} />
+              </TouchableOpacity>
+            )}
+            contentContainerStyle={styles.achievementsGrid}
+            ListEmptyComponent={
+              <Card>
+                <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+                  Нет достижений в этой категории
+                </Text>
+              </Card>
+            }
+          />
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
+      );
+    }
+
     if (activeSection === 'quests') {
       const questsList = getFilteredQuests();
       return (
@@ -305,37 +420,40 @@ export default function ArenaScreen() {
       <View style={styles.container}>
         <Text style={[styles.header, { color: theme.colors.text }]}>Арена</Text>
 
-        {/* Section tabs (hidden when only duels) */}
-        {sections.length > 1 && (
-          <View style={styles.sectionRow}>
-            {sections.map((s) => {
-              const active = activeSection === s.key;
-              const count = sectionCounts[s.key];
-              return (
-                <TouchableOpacity
-                  key={s.key}
-                  style={[
-                    styles.sectionBtn,
-                    {
-                      borderBottomColor: active ? theme.colors.primary : 'transparent',
-                    },
-                  ]}
-                  onPress={() => setSection(s.key)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.sectionText, { color: active ? theme.colors.primary : theme.colors.textSecondary }]}>
-                    {s.label}
-                  </Text>
-                  {count > 0 && (
-                    <View style={[styles.countBadge, { backgroundColor: theme.colors.primary }]}>
-                      <Text style={styles.countBadgeText}>{count}</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        )}
+        {/* Section tabs */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.sectionScroll}
+          contentContainerStyle={styles.sectionRow}
+        >
+          {sections.map((s) => {
+            const active = activeSection === s.key;
+            const count = sectionCounts[s.key];
+            return (
+              <TouchableOpacity
+                key={s.key}
+                style={[
+                  styles.sectionBtn,
+                  {
+                    borderBottomColor: active ? theme.colors.primary : 'transparent',
+                  },
+                ]}
+                onPress={() => setSection(s.key)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.sectionText, { color: active ? theme.colors.primary : theme.colors.textSecondary }]}>
+                  {s.label}
+                </Text>
+                {count > 0 && (
+                  <View style={[styles.countBadge, { backgroundColor: theme.colors.primary }]}>
+                    <Text style={styles.countBadgeText}>{count}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
 
         {renderFilters()}
         {renderContent()}
@@ -357,8 +475,9 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   container: { flex: 1, paddingHorizontal: 20 },
   header: { fontSize: 26, fontWeight: '700', marginTop: 16, marginBottom: 12 },
-  sectionRow: { flexDirection: 'row', marginBottom: 12, gap: 4 },
-  sectionBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderBottomWidth: 3, flexDirection: 'row', justifyContent: 'center', gap: 6 },
+  sectionScroll: { flexGrow: 0, flexShrink: 0, marginBottom: 12 },
+  sectionRow: { gap: 2, paddingVertical: 2 },
+  sectionBtn: { paddingVertical: 8, paddingHorizontal: 12, alignItems: 'center', borderBottomWidth: 3, flexDirection: 'row', justifyContent: 'center', gap: 4, height: 40 },
   sectionText: { fontSize: 13, fontWeight: '700' },
   countBadge: { minWidth: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
   countBadgeText: { fontSize: 10, fontWeight: '800', color: '#FFFFFF' },
@@ -371,6 +490,18 @@ const styles = StyleSheet.create({
   createDuelBtn: { paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
   createDuelBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   list: { paddingBottom: 100 },
+  // Achievements
+  achievementsContent: { paddingBottom: 100 },
+  achievementCount: { fontSize: 13, marginBottom: 12 },
+  categoryTabsRow: { gap: 8, paddingBottom: 4, marginBottom: 12 },
+  categoryTab: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, borderWidth: 1, gap: 4 },
+  categoryTabEmoji: { fontSize: 14 },
+  categoryTabLabel: { fontSize: 13, fontWeight: '600' },
+  achievementsGrid: { gap: 8 },
+  achievementsRow: { gap: 8 },
+  achievementCell: { flex: 1, maxWidth: '33%' },
+  bottomSpacer: { height: 40 },
+  // Empty & common
   emptyContainer: { alignItems: 'center', paddingTop: 60 },
   emptyEmoji: { fontSize: 64, marginBottom: 12 },
   emptyText: { fontSize: 16, textAlign: 'center' },

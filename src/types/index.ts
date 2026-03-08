@@ -259,3 +259,18 @@ export interface LootChestResult {
   type: 'xp';
   amount: number;
 }
+
+// ─── Notifications ──────────────────────────────────────────────
+export type NotificationType = 'chat_reply' | 'duel_challenge' | 'homework_graded' | 'duel_result';
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  icon: string;
+  isRead: boolean;
+  createdAt: Date;
+  /** Navigation target */
+  route?: string;
+}

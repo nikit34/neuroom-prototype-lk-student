@@ -6,6 +6,7 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { useAchievementStore } from '@/src/stores/achievementStore';
+import { useNotificationStore } from '@/src/stores/notificationStore';
 import Mascot from '@/src/components/mascot/Mascot';
 import Card from '@/src/components/ui/Card';
 import DeadlineIndicator from '@/src/components/homework/DeadlineIndicator';
@@ -50,12 +51,13 @@ export default function HomeScreen() {
   const assignments = useHomeworkStore((s) => s.assignments);
   const achievements = useAchievementStore((s) => s.achievements);
 
-  const nearestAchievements = useMemo(() => {
-    return achievements
-      .filter((a) => a.isLocked && a.progress > 0)
-      .sort((a, b) => b.progress - a.progress)
-      .slice(0, 3);
-  }, [achievements]);
+  const notifications = useNotificationStore((s) => s.notifications);
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const markAsRead = useNotificationStore((s) => s.markAsRead);
+
+  const recentNotifications = useMemo(() => {
+    return notifications.slice(0, 3);
+  }, [notifications]);
 
   const { height: screenHeight } = useWindowDimensions();
   const topBlockHeight = Math.round(screenHeight / 5);
@@ -85,31 +87,67 @@ export default function HomeScreen() {
 
         {/* ── Mascot + Health row ── */}
         <View style={[styles.topRow, { height: topBlockHeight }]}>
-          <Card style={styles.streakCard}>
-            <View style={styles.healthSection}>
+          <Card style={styles.notifCard}>
+            <View style={styles.notifHeader}>
+              <Text style={[styles.notifTitle, { color: theme.colors.text }]}>
+                Уведомления
+              </Text>
+              {unreadCount() > 0 && (
+                <View style={[styles.notifBadge, { backgroundColor: theme.colors.primary }]}>
+                  <Text style={styles.notifBadgeText}>{unreadCount()}</Text>
+                </View>
+              )}
+            </View>
+            {recentNotifications.length === 0 ? (
+              <Text style={[styles.notifEmpty, { color: theme.colors.textSecondary }]}>
+                Нет новых уведомлений
+              </Text>
+            ) : (
+              recentNotifications.map((notif) => (
+                <TouchableOpacity
+                  key={notif.id}
+                  style={[
+                    styles.notifItem,
+                    { backgroundColor: notif.isRead ? 'transparent' : theme.colors.primary + '10' },
+                  ]}
+                  onPress={() => {
+                    markAsRead(notif.id);
+                    if (notif.route) router.push(notif.route as any);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.notifIcon}>{notif.icon}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={[
+                        styles.notifItemTitle,
+                        { color: theme.colors.text, fontWeight: notif.isRead ? '500' : '700' },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {notif.title}
+                    </Text>
+                    <Text
+                      style={[styles.notifItemMsg, { color: theme.colors.textSecondary }]}
+                      numberOfLines={1}
+                    >
+                      {notif.message}
+                    </Text>
+                  </View>
+                  {!notif.isRead && (
+                    <View style={[styles.notifDot, { backgroundColor: theme.colors.primary }]} />
+                  )}
+                </TouchableOpacity>
+              ))
+            )}
+          </Card>
+          <View style={[styles.mascotColumn, { width: topBlockHeight }]}>
+            <View style={[styles.mascotContainer, { flex: 1 }]}>
+              <Mascot health={student.mascotHealth} showHealthBar={false} size={Math.round(topBlockHeight / 2)} compact />
+            </View>
+            <View style={styles.mascotHealth}>
               <MascotHealthBar health={student.mascotHealth} />
             </View>
-            {nearestAchievements.map((ach) => (
-              <TouchableOpacity
-                key={ach.id}
-                style={[styles.nearestReward, { backgroundColor: theme.colors.surface }]}
-                onPress={() => router.push(`/achievements/${ach.id}`)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.nearestRewardIcon}>{ach.icon}</Text>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.nearestRewardTitle, { color: theme.colors.text }]} numberOfLines={1}>
-                    {ach.title}
-                  </Text>
-                  <Text style={[styles.nearestRewardProgress, { color: theme.colors.primary }]}>
-                    {ach.progress}%
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </Card>
-          <View style={[styles.mascotContainer, { width: topBlockHeight, height: topBlockHeight }]}>
-            <Mascot health={student.mascotHealth} showHealthBar={false} size={Math.round(topBlockHeight / 1.8)} compact />
           </View>
         </View>
 
@@ -226,11 +264,64 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 4,
   },
-  streakCard: {
+  notifCard: {
     flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+  },
+  notifHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  notifTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  notifBadge: {
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
+    paddingHorizontal: 5,
+  },
+  notifBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  notifEmpty: {
+    fontSize: 11,
+    textAlign: 'center',
+    paddingVertical: 8,
+  },
+  notifItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 5,
+    borderRadius: 8,
+    gap: 6,
+    marginBottom: 2,
+  },
+  notifIcon: {
+    fontSize: 16,
+  },
+  notifItemTitle: {
+    fontSize: 11,
+  },
+  notifItemMsg: {
+    fontSize: 9,
+  },
+  notifDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+  mascotColumn: {
+    justifyContent: 'flex-end',
   },
   mascotContainer: {
     alignItems: 'center',
@@ -238,30 +329,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderRadius: 16,
   },
-  healthSection: {
-    width: '100%',
+  mascotHealth: {
     paddingHorizontal: 4,
-    marginBottom: 6,
-  },
-  nearestReward: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 10,
-    gap: 6,
-  },
-  nearestRewardIcon: {
-    fontSize: 18,
-  },
-  nearestRewardTitle: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  nearestRewardProgress: {
-    fontSize: 10,
-    fontWeight: '700',
+    paddingBottom: 2,
   },
   sectionTitle: {
     fontSize: 20,

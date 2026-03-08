@@ -3,7 +3,7 @@ import { Duel, DuelStatus, Quest, QuestStatus, Challenge, ChallengeStatus, Class
 import { mockArenaDuels, mockQuests, mockChallenges, mockDuelQuestions, mockClassmates } from '../data/mockData';
 import { rewardDuelFinish, rewardQuestComplete, rewardChallengeComplete } from '../services/rewardsEngine';
 
-type ArenaSection = 'duels' | 'leaderboard' | 'quests' | 'challenges';
+type ArenaSection = 'duels' | 'leaderboard' | 'quests' | 'challenges' | 'achievements';
 type DuelFilter = 'all' | 'pending' | 'active' | 'finished';
 type QuestFilter = 'all' | 'active' | 'available' | 'completed';
 type ChallengeFilter = 'all' | 'active' | 'available' | 'completed' | 'expired';

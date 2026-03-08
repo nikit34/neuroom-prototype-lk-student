@@ -1,21 +1,76 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
   FlatList,
+  ScrollView,
   TextInput,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useChatStore } from '@/src/stores/chatStore';
+import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { mockTeachers } from '@/src/data/mockData';
 import { ChatMessage } from '@/src/types';
 import { formatDateRu } from '@/src/utils/dateHelpers';
+
+interface Suggest {
+  label: string;
+  message: string;
+  topic: string;
+}
+
+function buildSuggests(
+  homework: { title: string; status: string; grade?: number; maxGrade: number }[],
+  subject: string,
+): Suggest[] {
+  const result: Suggest[] = [];
+
+  for (const hw of homework) {
+    const t = hw.title;
+
+    if (hw.status === 'pending' || hw.status === 'submitted') {
+      result.push({
+        label: `📋 «${t}» — непонятны условия`,
+        message: `Здравствуйте! Не совсем понимаю условия задания «${t}». Можете объяснить подробнее?`,
+        topic: 'hw_conditions',
+      });
+      result.push({
+        label: `⏰ «${t}» — продлить дедлайн`,
+        message: `Здравствуйте! Не успеваю сдать «${t}» вовремя. Можно ли продлить срок?`,
+        topic: 'hw_deadline',
+      });
+    }
+
+    if (hw.status === 'ai_reviewed' || hw.status === 'resubmit') {
+      result.push({
+        label: `❓ «${t}» — ошибка в решении`,
+        message: `Здравствуйте! Получил замечания по «${t}», но не понимаю, в чём ошибка. Можете объяснить?`,
+        topic: 'hw_error',
+      });
+    }
+
+    if (hw.status === 'graded' && hw.grade != null) {
+      result.push({
+        label: `📊 «${t}» — вопрос по оценке (${hw.grade}/${hw.maxGrade})`,
+        message: `Здравствуйте! У меня вопрос по оценке ${hw.grade}/${hw.maxGrade} за «${t}». Можете пояснить критерии?`,
+        topic: 'hw_grade',
+      });
+    }
+  }
+
+  result.push({
+    label: `📖 Не понимаю тему по ${subject}`,
+    message: `Здравствуйте! Не до конца разобрался в текущей теме по предмету «${subject}». Можете подсказать, на что обратить внимание?`,
+    topic: 'topic_help',
+  });
+
+  return result;
+}
 
 export default function ChatScreen() {
   const { teacherId, dispute, hwTitle, grade } = useLocalSearchParams<{
@@ -26,22 +81,41 @@ export default function ChatScreen() {
   }>();
   const theme = useAppTheme();
   const sendMessage = useChatStore((s) => s.sendMessage);
-  const messages = useChatStore((s) => s.getMessages(teacherId));
+  const storeMessages = useChatStore((s) => s.messages[teacherId]);
+  const messages = useMemo(() => storeMessages ?? [], [storeMessages]);
+  const assignments = useHomeworkStore((s) => s.assignments);
   const [text, setText] = useState('');
   const flatListRef = useRef<FlatList>(null);
   const hasSentDispute = useRef(false);
 
+  const navigation = useNavigation();
   const teacher = mockTeachers.find((t) => t.id === teacherId);
   const teacherName = teacher
     ? `${teacher.firstName} ${teacher.lastName}`
     : 'Учитель';
+
+  useEffect(() => {
+    navigation.setOptions({
+      title: `${teacherName}${teacher ? ` · ${teacher.subject}` : ''}`,
+    });
+  }, [navigation, teacherName, teacher?.subject]);
+
+  // Homework for this teacher
+  const teacherHomework = assignments.filter(
+    (hw) => hw.teacher.id === teacherId,
+  );
+
+  const suggests = useMemo(
+    () => buildSuggests(teacherHomework, teacher?.subject ?? ''),
+    [teacherHomework, teacher?.subject],
+  );
 
   // Send initial dispute message
   useEffect(() => {
     if (dispute === 'true' && hwTitle && !hasSentDispute.current) {
       hasSentDispute.current = true;
       const disputeMessage = `Здравствуйте! Я хотел бы оспорить оценку ${grade || ''} за задание "${decodeURIComponent(hwTitle)}". Мне кажется, оценка не совсем справедлива. Не могли бы вы пересмотреть мою работу?`;
-      sendMessage(teacherId, disputeMessage);
+      sendMessage(teacherId, disputeMessage, 'hw_grade');
     }
   }, [dispute, hwTitle, grade, teacherId]);
 
@@ -50,6 +124,10 @@ export default function ChatScreen() {
     if (!trimmed) return;
     sendMessage(teacherId, trimmed);
     setText('');
+  };
+
+  const handleSuggest = (suggest: Suggest) => {
+    sendMessage(teacherId, suggest.message, suggest.topic);
   };
 
   const renderMessage = ({ item }: { item: ChatMessage }) => {
@@ -107,26 +185,12 @@ export default function ChatScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
-      >
-        {/* Header */}
-        <View style={[styles.chatHeader, { borderBottomColor: theme.colors.border }]}>
-          <Text style={styles.chatHeaderEmoji}>👨‍🏫</Text>
-          <Text style={[styles.chatHeaderName, { color: theme.colors.text }]}>
-            {teacherName}
-          </Text>
-          {teacher && (
-            <Text style={[styles.chatHeaderSubject, { color: theme.colors.textSecondary }]}>
-              {teacher.subject}
-            </Text>
-          )}
-        </View>
-
-        {/* Messages */}
+    <KeyboardAvoidingView
+      style={[styles.keyboardView, { backgroundColor: theme.colors.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      {/* Messages */}
         <FlatList
           ref={flatListRef}
           data={[...messages].reverse()}
@@ -135,15 +199,39 @@ export default function ChatScreen() {
           inverted
           contentContainerStyle={styles.messagesList}
           showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyChat}>
-              <Text style={styles.emptyChatEmoji}>💬</Text>
-              <Text style={[styles.emptyChatText, { color: theme.colors.textSecondary }]}>
-                Начните диалог с учителем
-              </Text>
-            </View>
+          ListFooterComponent={
+            messages.length === 0 ? (
+              <View style={styles.emptyChat}>
+                <Text style={styles.emptyChatEmoji}>💬</Text>
+                <Text style={[styles.emptyChatText, { color: theme.colors.textSecondary }]}>
+                  Выберите тему или напишите сообщение
+                </Text>
+              </View>
+            ) : null
           }
         />
+
+        {/* Suggests */}
+        {suggests.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.suggestsScroll}
+            contentContainerStyle={styles.suggestsRow}
+            keyboardShouldPersistTaps="handled"
+          >
+            {suggests.map((s, i) => (
+              <TouchableOpacity
+                key={i}
+                style={[styles.suggestChip, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+                onPress={() => handleSuggest(s)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.suggestText, { color: theme.colors.text }]}>{s.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
 
         {/* Input */}
         <View
@@ -189,40 +277,18 @@ export default function ChatScreen() {
             <Text style={styles.sendIcon}>📨</Text>
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-  },
   keyboardView: {
     flex: 1,
   },
-  chatHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-  },
-  chatHeaderEmoji: {
-    fontSize: 28,
-    marginRight: 10,
-  },
-  chatHeaderName: {
-    fontSize: 16,
-    fontWeight: '700',
-    flex: 1,
-  },
-  chatHeaderSubject: {
-    fontSize: 13,
-  },
   messagesList: {
-    padding: 16,
+    paddingHorizontal: 16,
     paddingBottom: 8,
+    paddingTop: 8,
   },
   messageRow: {
     marginBottom: 10,
@@ -255,16 +321,35 @@ const styles = StyleSheet.create({
   },
   emptyChat: {
     alignItems: 'center',
-    paddingTop: 60,
-    transform: [{ scaleY: -1 }],
+    paddingVertical: 40,
   },
   emptyChatEmoji: {
-    fontSize: 48,
-    marginBottom: 8,
+    fontSize: 40,
+    marginBottom: 6,
   },
   emptyChatText: {
-    fontSize: 15,
+    fontSize: 14,
   },
+  // Suggests
+  suggestsScroll: {
+    flexGrow: 0,
+  },
+  suggestsRow: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    gap: 6,
+  },
+  suggestChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  suggestText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  // Input
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',

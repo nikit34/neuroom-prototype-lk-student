@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useArenaStore } from '@/src/stores/arenaStore';
@@ -33,18 +32,18 @@ export default function DuelDetailScreen() {
 
   if (!duel) {
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.safe, { backgroundColor: theme.colors.background }]}>
         <View style={styles.center}>
           <Text style={[styles.errorText, { color: theme.colors.textSecondary }]}>Дуэль не найдена</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   // Pending: accept/decline
   if (duel.status === 'pending') {
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.safe, { backgroundColor: theme.colors.background }]}>
         <View style={styles.pendingContainer}>
           <Text style={styles.challengeEmoji}>⚔️</Text>
           <Text style={[styles.challengeTitle, { color: theme.colors.text }]}>Вызов на дуэль!</Text>
@@ -80,16 +79,16 @@ export default function DuelDetailScreen() {
             </Text>
           )}
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   // Finished: show result
   if (duel.status === 'finished') {
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.safe, { backgroundColor: theme.colors.background }]}>
         <DuelResultView duel={duel} />
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -97,9 +96,9 @@ export default function DuelDetailScreen() {
   const currentQ = duel.questions[duel.currentQuestionIndex];
   if (!currentQ) {
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.safe, { backgroundColor: theme.colors.background }]}>
         <DuelResultView duel={duel} />
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -109,7 +108,7 @@ export default function DuelDetailScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
+    <View style={[styles.safe, { backgroundColor: theme.colors.background }]}>
       <View style={styles.gameContainer}>
         {/* Score header */}
         <View style={[styles.gameHeader, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
@@ -143,7 +142,7 @@ export default function DuelDetailScreen() {
           onAnswer={handleAnswer}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
