@@ -21,6 +21,7 @@ import Button from '@/src/components/ui/Button';
 import StatusChip from '@/src/components/ui/StatusChip';
 import DeadlineIndicator from '@/src/components/homework/DeadlineIndicator';
 import FeedbackBubble from '@/src/components/homework/FeedbackBubble';
+import ComparisonBlock from '@/src/components/homework/ComparisonBlock';
 import AppealBottomSheet from '@/src/components/homework/AppealBottomSheet';
 import AppealStatusCard from '@/src/components/homework/AppealStatusCard';
 import { getGradeColor, getGradeEmoji, getGradeLabel } from '@/src/utils/gradeHelpers';
@@ -85,8 +86,8 @@ export default function HomeworkDetailScreen() {
           {homework.description}
         </Text>
 
-        {/* Teacher attachments (photos) */}
-        {homework.attachments && homework.attachments.length > 0 && (
+        {/* Teacher attachments (photos) — only in non-graded flow */}
+        {!isGraded && homework.attachments && homework.attachments.length > 0 && (
           <>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
               Фото задания ({homework.attachments.length})
@@ -159,6 +160,11 @@ export default function HomeworkDetailScreen() {
               </Card>
             )}
 
+            {/* Comparison: student vs correct */}
+            {homework.comparisonItems && homework.comparisonItems.length > 0 && (
+              <ComparisonBlock items={homework.comparisonItems} />
+            )}
+
             {/* AI Feedback */}
             {homework.aiFeedback && (
               <FeedbackBubble
@@ -210,6 +216,35 @@ export default function HomeworkDetailScreen() {
               </View>
             )}
 
+            {/* Teacher attachments (photos) — in graded flow, after deep analysis */}
+            {homework.attachments && homework.attachments.length > 0 && (
+              <>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                  Фото задания ({homework.attachments.length})
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.attachmentsScroll}
+                  contentContainerStyle={styles.attachmentsContainer}
+                >
+                  {homework.attachments
+                    .filter((a) => a.type === 'photo')
+                    .map((attachment, index) => (
+                      <Pressable
+                        key={index}
+                        onPress={() => setPreviewImage(attachment.uri)}
+                      >
+                        <Image
+                          source={{ uri: attachment.uri }}
+                          style={[styles.attachmentThumb, { borderColor: theme.colors.border }]}
+                        />
+                      </Pressable>
+                    ))}
+                </ScrollView>
+              </>
+            )}
+
             {/* Appeal bottom sheet */}
             <AppealBottomSheet
               visible={appealSheetVisible}
@@ -230,51 +265,13 @@ export default function HomeworkDetailScreen() {
               }}
             />
 
-            {/* Submissions */}
-            {homework.submissions.length > 0 && (
-              <>
-                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-                  Мои ответы ({homework.submissions.length})
-                </Text>
-                {homework.submissions.map((sub) => (
-                  <Card key={sub.id} style={styles.submissionCard}>
-                    <View style={styles.submissionRow}>
-                      <Text style={styles.submissionIcon}>
-                        {sub.files.some((f) => f.type === 'photo') ? '📸' : '📄'}
-                      </Text>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.submissionType, { color: theme.colors.text }]}>
-                          {sub.files.length === 1
-                            ? sub.files[0].type === 'photo' ? 'Фотография' : 'Документ'
-                            : `${sub.files.length} ${sub.files.length < 5 ? 'файла' : 'файлов'}`}
-                        </Text>
-                        <Text style={[styles.submissionDate, { color: theme.colors.textSecondary }]}>
-                          {formatDateRu(sub.submittedAt)}
-                        </Text>
-                      </View>
-                    </View>
-                  </Card>
-                ))}
-              </>
-            )}
-
-            {/* Deadline + Submitted date */}
+            {/* Deadline */}
             <Card style={styles.infoCard}>
               <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
                 Дедлайн
               </Text>
               <DeadlineIndicator deadline={homework.deadline} />
             </Card>
-            {homework.submissions.length > 0 && (
-              <Card style={styles.infoCard}>
-                <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
-                  Сдано
-                </Text>
-                <Text style={[styles.infoValue, { color: theme.colors.text }]}>
-                  {formatDateRu(homework.submissions[homework.submissions.length - 1].submittedAt)}
-                </Text>
-              </Card>
-            )}
           </>
         )}
 

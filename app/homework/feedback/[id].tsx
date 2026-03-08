@@ -10,6 +10,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import FeedbackBubble from '@/src/components/homework/FeedbackBubble';
+import ComparisonBlock from '@/src/components/homework/ComparisonBlock';
 import Button from '@/src/components/ui/Button';
 import Card from '@/src/components/ui/Card';
 import { getGradeColor, getGradeEmoji, getGradeLabel } from '@/src/utils/gradeHelpers';
@@ -70,6 +71,11 @@ export default function FeedbackScreen() {
               {getGradeLabel(homework.grade, homework.maxGrade)}
             </Text>
           </Card>
+        )}
+
+        {/* Comparison: student vs correct */}
+        {homework.comparisonItems && homework.comparisonItems.length > 0 && (
+          <ComparisonBlock items={homework.comparisonItems} />
         )}
 
         {/* AI Feedback */}

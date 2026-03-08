@@ -213,6 +213,13 @@ export const mockHomework: HomeworkAssignment[] = [
     teacherFeedback:
       'Отличная работа! Одна ошибка в задаче №7 — неверный знак при переносе.',
     aiFeedback: 'Решения оформлены аккуратно. Ошибка в знаке в задаче 7.',
+    comparisonItems: [
+      {
+        label: 'Задача №7 — перенос слагаемого',
+        studentVersion: { type: 'text', content: '2x − 3y = 5\nx = (5 + 3y) / 2' },
+        correctVersion: { type: 'text', content: '2x − 3y = 5\nx = (5 + 3y) / 2\n(знак «+» при переносе −3y)' },
+      },
+    ],
     classmateSubmittedCount: 14,
     totalClassmates: 15,
     createdAt: new Date(now - DAY * 10),
@@ -237,6 +244,23 @@ export const mockHomework: HomeworkAssignment[] = [
     maxGrade: 5,
     teacherFeedback:
       'Хорошо, но допущены 3 ошибки в словах с суффиксами -онн- и -енн-.',
+    comparisonItems: [
+      {
+        label: 'Ошибка 1 — суффикс -онн-',
+        studentVersion: { type: 'text', content: 'станционый' },
+        correctVersion: { type: 'text', content: 'станционный' },
+      },
+      {
+        label: 'Ошибка 2 — суффикс -енн-',
+        studentVersion: { type: 'text', content: 'мужественый' },
+        correctVersion: { type: 'text', content: 'мужественный' },
+      },
+      {
+        label: 'Ошибка 3 — суффикс -енн-',
+        studentVersion: { type: 'text', content: 'общественый' },
+        correctVersion: { type: 'text', content: 'общественный' },
+      },
+    ],
     classmateSubmittedCount: 15,
     totalClassmates: 15,
     createdAt: new Date(now - DAY * 8),

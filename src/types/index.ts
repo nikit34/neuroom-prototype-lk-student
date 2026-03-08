@@ -61,6 +61,12 @@ export interface HomeworkAttachment {
   type: 'photo' | 'document';
 }
 
+export interface ComparisonItem {
+  label: string;
+  studentVersion: { type: 'image' | 'text'; content: string };
+  correctVersion: { type: 'image' | 'text'; content: string };
+}
+
 export interface HomeworkAssignment {
   id: string;
   title: string;
@@ -75,6 +81,7 @@ export interface HomeworkAssignment {
   maxGrade: number;
   aiFeedback?: string;
   teacherFeedback?: string;
+  comparisonItems?: ComparisonItem[];
   classmateSubmittedCount?: number;
   totalClassmates?: number;
   createdAt: Date;
