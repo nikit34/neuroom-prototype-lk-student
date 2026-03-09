@@ -134,6 +134,7 @@ interface ChatState {
   getMessages: (teacherId: string) => ChatMessage[];
   setMessages: (messages: Record<string, ChatMessage[]>) => void;
   unlockAiTutor: () => void;
+  resetAiTutorLimit: () => void;
   getAiTutorRemaining: () => number;
   isAiTutorLimitReached: () => boolean;
 }
@@ -146,6 +147,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   setTeacherChatEnabled: (enabled) => set({ teacherChatEnabled: enabled }),
 
   unlockAiTutor: () => set({ aiTutorUnlocked: true }),
+  resetAiTutorLimit: () => set({ aiTutorQuestionsUsed: 0, aiTutorUnlocked: false }),
 
   getAiTutorRemaining: () => {
     const state = get();

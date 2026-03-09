@@ -330,6 +330,32 @@ function ChatFeatureToggle() {
   );
 }
 
+function AiTutorLimitReset() {
+  const theme = useAppTheme();
+  const questionsUsed = useChatStore((s) => s.aiTutorQuestionsUsed);
+  const unlocked = useChatStore((s) => s.aiTutorUnlocked);
+  const resetLimit = useChatStore((s) => s.resetAiTutorLimit);
+
+  return (
+    <View style={styles.toggleSection}>
+      <TouchableOpacity
+        style={[styles.toggleRow, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]}
+        onPress={resetLimit}
+        activeOpacity={0.7}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.toggleLabel, { color: theme.colors.text }]}>
+            🔄 Сбросить лимит AI-репетитора
+          </Text>
+          <Text style={{ fontSize: 11, color: theme.colors.textSecondary, marginTop: 2 }}>
+            {unlocked ? 'Полный доступ активен' : `Использовано: ${questionsUsed}/10`}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 function RestartOnboardingButton({ onClose }: { onClose?: () => void }) {
   const resetOnboarding = useOnboardingStore((s) => s.reset);
   const router = useRouter();
@@ -495,6 +521,11 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
             РЕЖИМ ЧАТА
           </Text>
           <ChatFeatureToggle />
+
+          <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
+            AI-РЕПЕТИТОР
+          </Text>
+          <AiTutorLimitReset />
         </ScreenGroup>
       )}
 
