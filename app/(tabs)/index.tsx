@@ -13,6 +13,7 @@ import Card from '@/src/components/ui/Card';
 import DeadlineIndicator from '@/src/components/homework/DeadlineIndicator';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
 import MascotHealthBar from '@/src/components/mascot/MascotHealthBar';
+import { AI_TUTOR_ID } from '@/src/stores/chatStore';
 import type { Achievement, HomeworkAssignment } from '@/src/types';
 
 /** Achievement IDs linked to homework subjects + how much each HW contributes */
@@ -229,14 +230,35 @@ export default function HomeScreen() {
                   </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={[styles.cameraBtn, { backgroundColor: theme.colors.primary }]}
-                  onPress={() => router.push(`/homework/submit/${hw.id}`)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.cameraBtnIcon}>📸</Text>
-                  <Text style={styles.cameraBtnLabel}>Сдать</Text>
-                </TouchableOpacity>
+                {appVersion >= 1 ? (
+                  <View style={styles.actionBtns}>
+                    <TouchableOpacity
+                      style={[styles.cameraBtn, { backgroundColor: theme.colors.primary }]}
+                      onPress={() => router.push(`/homework/submit/${hw.id}`)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.cameraBtnIcon}>📸</Text>
+                      <Text style={styles.cameraBtnLabel}>Сдать</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.cameraBtn, { backgroundColor: theme.colors.accent }]}
+                      onPress={() => router.push(`/chat/${AI_TUTOR_ID}`)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.cameraBtnIcon}>💬</Text>
+                      <Text style={styles.cameraBtnLabel}>Вопрос</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.cameraBtn, styles.cameraBtnSingle, { backgroundColor: theme.colors.primary }]}
+                    onPress={() => router.push(`/homework/submit/${hw.id}`)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.cameraBtnIcon}>📸</Text>
+                    <Text style={styles.cameraBtnLabel}>Сдать</Text>
+                  </TouchableOpacity>
+                )}
               </Card>
             );
           })
@@ -421,12 +443,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: 16,
   },
+  actionBtns: {
+    marginLeft: 12,
+    gap: 6,
+  },
   cameraBtn: {
     width: 56,
     height: 56,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  cameraBtnSingle: {
     marginLeft: 12,
   },
   cameraBtnIcon: {

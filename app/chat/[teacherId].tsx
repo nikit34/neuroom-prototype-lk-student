@@ -19,7 +19,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
-import { useChatStore, AI_TUTOR_ID } from '@/src/stores/chatStore';
+import { useChatStore, AI_TUTOR_ID, AI_TUTOR_FREE_LIMIT } from '@/src/stores/chatStore';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { mockTeachers } from '@/src/data/mockData';
 import { ChatMessage, ChatAttachment } from '@/src/types';
@@ -139,9 +139,15 @@ export default function ChatScreen() {
   }>();
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
+  const isAiTutor = teacherId === AI_TUTOR_ID;
   const sendMessage = useChatStore((s) => s.sendMessage);
   const storeMessages = useChatStore((s) => s.messages[teacherId]);
   const messages = useMemo(() => storeMessages ?? [], [storeMessages]);
+  const aiTutorQuestionsUsed = useChatStore((s) => s.aiTutorQuestionsUsed);
+  const aiTutorUnlocked = useChatStore((s) => s.aiTutorUnlocked);
+  const unlockAiTutor = useChatStore((s) => s.unlockAiTutor);
+  const aiLimitReached = isAiTutor && !aiTutorUnlocked && aiTutorQuestionsUsed >= AI_TUTOR_FREE_LIMIT;
+  const aiRemaining = isAiTutor && !aiTutorUnlocked ? AI_TUTOR_FREE_LIMIT - aiTutorQuestionsUsed : -1;
   const assignments = useHomeworkStore((s) => s.assignments);
   const [text, setText] = useState('');
   const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
@@ -149,7 +155,6 @@ export default function ChatScreen() {
   const hasSentDispute = useRef(false);
 
   const navigation = useNavigation();
-  const isAiTutor = teacherId === AI_TUTOR_ID;
   const teacher = mockTeachers.find((t) => t.id === teacherId);
   const teacherName = isAiTutor
     ? 'AI-Репетитор'
@@ -350,7 +355,7 @@ export default function ChatScreen() {
         />
 
         {/* Suggests */}
-        {suggests.length > 0 && (
+        {suggests.length > 0 && !aiLimitReached && (
           <View style={styles.suggestsWrap}>
             {suggests.map((s, i) => (
               <TouchableOpacity
@@ -362,6 +367,37 @@ export default function ChatScreen() {
                 <Text style={[styles.suggestText, { color: theme.colors.text }]}>{s.label}</Text>
               </TouchableOpacity>
             ))}
+          </View>
+        )}
+
+        {/* AI tutor remaining counter */}
+        {isAiTutor && !aiTutorUnlocked && !aiLimitReached && (
+          <View style={[styles.aiCounterBar, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+            <Ionicons name="chatbubbles-outline" size={16} color={theme.colors.primary} />
+            <Text style={[styles.aiCounterText, { color: theme.colors.textSecondary }]}>
+              Осталось вопросов: <Text style={{ color: theme.colors.primary, fontWeight: '700' }}>{aiRemaining}</Text> из {AI_TUTOR_FREE_LIMIT}
+            </Text>
+          </View>
+        )}
+
+        {/* AI tutor limit reached banner */}
+        {aiLimitReached && (
+          <View style={[styles.aiLimitBanner, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+            <Text style={styles.aiLimitEmoji}>🔒</Text>
+            <Text style={[styles.aiLimitTitle, { color: theme.colors.text }]}>
+              Лимит бесплатных вопросов исчерпан
+            </Text>
+            <Text style={[styles.aiLimitDesc, { color: theme.colors.textSecondary }]}>
+              Вы использовали {AI_TUTOR_FREE_LIMIT} бесплатных вопросов. Получите полный доступ к AI-репетитору без ограничений.
+            </Text>
+            <TouchableOpacity
+              style={[styles.aiUnlockButton, { backgroundColor: theme.colors.primary }]}
+              onPress={unlockAiTutor}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="lock-open-outline" size={18} color="#FFFFFF" />
+              <Text style={styles.aiUnlockText}>Получить полный доступ</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -410,9 +446,10 @@ export default function ChatScreen() {
           ]}
         >
           <TouchableOpacity
-            style={styles.attachButton}
+            style={[styles.attachButton, aiLimitReached && { opacity: 0.3 }]}
             onPress={handleAttach}
             activeOpacity={0.7}
+            disabled={aiLimitReached}
           >
             <Ionicons name="add-circle-outline" size={28} color={theme.colors.primary} />
           </TouchableOpacity>
@@ -424,15 +461,17 @@ export default function ChatScreen() {
                 color: theme.colors.text,
                 borderColor: theme.colors.border,
               },
+              aiLimitReached && { opacity: 0.5 },
             ]}
             value={text}
             onChangeText={setText}
-            placeholder="Написать сообщение..."
+            placeholder={aiLimitReached ? 'Лимит вопросов исчерпан' : 'Написать сообщение...'}
             placeholderTextColor={theme.colors.textSecondary}
             multiline
             maxLength={1000}
             returnKeyType="send"
             onSubmitEditing={handleSend}
+            editable={!aiLimitReached}
           />
           <TouchableOpacity
             style={[
@@ -502,6 +541,54 @@ const styles = StyleSheet.create({
   },
   emptyChatText: {
     fontSize: 14,
+  },
+  // AI tutor limit
+  aiCounterBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+  },
+  aiCounterText: {
+    fontSize: 13,
+  },
+  aiLimitBanner: {
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+  },
+  aiLimitEmoji: {
+    fontSize: 36,
+    marginBottom: 8,
+  },
+  aiLimitTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  aiLimitDesc: {
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+    marginBottom: 14,
+  },
+  aiUnlockButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  aiUnlockText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
   // Suggests
   suggestsWrap: {

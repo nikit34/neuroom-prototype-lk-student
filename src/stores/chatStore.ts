@@ -3,6 +3,7 @@ import { ChatMessage, ChatAttachment } from '../types';
 import { mockTeachers, mockStudent } from '../data/mockData';
 
 export const AI_TUTOR_ID = 'ai-tutor';
+export const AI_TUTOR_FREE_LIMIT = 10;
 
 interface TopicReplies {
   [topic: string]: string[];
@@ -126,16 +127,36 @@ function pickReply(topic: string, isAiTutor = false): string {
 interface ChatState {
   messages: Record<string, ChatMessage[]>;
   teacherChatEnabled: boolean;
+  aiTutorQuestionsUsed: number;
+  aiTutorUnlocked: boolean;
   setTeacherChatEnabled: (enabled: boolean) => void;
   sendMessage: (teacherId: string, text: string, topic?: string, attachments?: ChatAttachment[]) => void;
   getMessages: (teacherId: string) => ChatMessage[];
   setMessages: (messages: Record<string, ChatMessage[]>) => void;
+  unlockAiTutor: () => void;
+  getAiTutorRemaining: () => number;
+  isAiTutorLimitReached: () => boolean;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
   messages: {},
   teacherChatEnabled: false,
+  aiTutorQuestionsUsed: 0,
+  aiTutorUnlocked: false,
   setTeacherChatEnabled: (enabled) => set({ teacherChatEnabled: enabled }),
+
+  unlockAiTutor: () => set({ aiTutorUnlocked: true }),
+
+  getAiTutorRemaining: () => {
+    const state = get();
+    if (state.aiTutorUnlocked) return Infinity;
+    return Math.max(0, AI_TUTOR_FREE_LIMIT - state.aiTutorQuestionsUsed);
+  },
+
+  isAiTutorLimitReached: () => {
+    const state = get();
+    return !state.aiTutorUnlocked && state.aiTutorQuestionsUsed >= AI_TUTOR_FREE_LIMIT;
+  },
 
   sendMessage: (teacherId, text, topic, attachments) => {
     const studentMsg: ChatMessage = {
@@ -148,14 +169,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
       attachments: attachments?.length ? attachments : undefined,
     };
 
+    const isAi = teacherId === AI_TUTOR_ID;
+
+    // Check limit before sending to AI tutor
+    if (isAi && !get().aiTutorUnlocked && get().aiTutorQuestionsUsed >= AI_TUTOR_FREE_LIMIT) {
+      return;
+    }
+
     set((state) => ({
       messages: {
         ...state.messages,
         [teacherId]: [...(state.messages[teacherId] ?? []), studentMsg],
       },
+      ...(isAi && !state.aiTutorUnlocked ? { aiTutorQuestionsUsed: state.aiTutorQuestionsUsed + 1 } : {}),
     }));
 
-    const isAi = teacherId === AI_TUTOR_ID;
     const delay = isAi ? 1000 + Math.random() * 1500 : 3000 + Math.random() * 2000;
     const teacher = mockTeachers.find((t) => t.id === teacherId);
 
