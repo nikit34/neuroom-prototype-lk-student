@@ -368,43 +368,6 @@ function AiTutorLimitReset() {
   );
 }
 
-function AutoAiFeedbackToggle() {
-  const theme = useAppTheme();
-  const autoAiFeedback = useHomeworkStore((s) => s.autoAiFeedback);
-  const setAutoAiFeedback = useHomeworkStore((s) => s.setAutoAiFeedback);
-
-  return (
-    <View style={styles.toggleSection}>
-      <TouchableOpacity
-        style={[
-          styles.toggleRow,
-          {
-            backgroundColor: autoAiFeedback ? '#8B5CF620' : theme.colors.background,
-            borderColor: autoAiFeedback ? '#8B5CF6' : theme.colors.border,
-          },
-        ]}
-        onPress={() => setAutoAiFeedback(!autoAiFeedback)}
-        activeOpacity={0.7}
-      >
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.toggleLabel, { color: theme.colors.text }]}>Проверка Нейрумом</Text>
-          <Text style={{ fontSize: 11, color: theme.colors.textSecondary, marginTop: 2 }}>
-            {autoAiFeedback ? 'ИИ проверит после отправки' : 'Без автопроверки ИИ'}
-          </Text>
-        </View>
-        <View
-          style={[
-            styles.toggleIndicator,
-            { backgroundColor: autoAiFeedback ? '#8B5CF6' : theme.colors.border },
-          ]}
-        >
-          <Text style={styles.toggleIndicatorText}>{autoAiFeedback ? 'ON' : 'OFF'}</Text>
-        </View>
-      </TouchableOpacity>
-    </View>
-  );
-}
-
 function ResetHomeworkButton() {
   const theme = useAppTheme();
   const resetAssignments = useHomeworkStore((s) => s.resetAssignments);
@@ -628,7 +591,6 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
           <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
             ДОМАШНИЕ ЗАДАНИЯ
           </Text>
-          <AutoAiFeedbackToggle />
           <ResetHomeworkButton />
 
           <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>

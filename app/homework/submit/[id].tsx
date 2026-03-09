@@ -16,7 +16,6 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
-import { analyzeHomework } from '@/src/services/aiService';
 import Button from '@/src/components/ui/Button';
 import { Submission, SubmissionFile } from '@/src/types';
 
@@ -27,8 +26,6 @@ export default function SubmitHomeworkScreen() {
   const insets = useSafeAreaInsets();
   const assignments = useHomeworkStore((s) => s.assignments);
   const submitHomework = useHomeworkStore((s) => s.submitHomework);
-  const autoAiFeedback = useHomeworkStore((s) => s.autoAiFeedback);
-  const setAiFeedback = useHomeworkStore((s) => s.setAiFeedback);
   const homework = assignments.find((a) => a.id === id);
 
   const [permission, requestPermission] = useCameraPermissions();
@@ -190,12 +187,6 @@ export default function SubmitHomeworkScreen() {
     };
 
     submitHomework(homework.id, submission);
-
-    if (autoAiFeedback) {
-      analyzeHomework(homework.id).then((feedback) => {
-        setAiFeedback(homework.id, feedback);
-      });
-    }
 
     setSubmitted(true);
   };
