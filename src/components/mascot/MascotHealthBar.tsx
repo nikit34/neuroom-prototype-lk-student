@@ -89,10 +89,10 @@ export default function MascotHealthBar({ health }: MascotHealthBarProps) {
         <Pressable style={styles.overlay} onPress={() => setShowHint(false)}>
           <View style={[styles.hintCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
             <Text style={[styles.hintTitle, { color: theme.colors.text }]}>
-              Здоровье маскота
+              Здоровье персонажа
             </Text>
             <Text style={[styles.hintText, { color: theme.colors.textSecondary }]}>
-              Сдавай домашку вовремя — и твой персонаж будет здоров и счастлив! Чем быстрее сдаёшь, тем больше здоровья получает маскот.
+              Сдавай домашку вовремя — и твой персонаж будет здоров и счастлив! Чем быстрее сдаёшь, тем больше здоровья он получает.
             </Text>
             <TouchableOpacity
               style={[styles.hintClose, { backgroundColor: theme.colors.primary }]}

@@ -221,7 +221,7 @@ export default function HomeScreen() {
                       <View style={[styles.rewardHint, { backgroundColor: theme.colors.success + '10', borderColor: theme.colors.success + '40' }]}>
                         <Text style={styles.rewardHintIcon}>💚</Text>
                         <Text style={[styles.rewardHintText, { color: theme.colors.success }]} numberOfLines={2}>
-                          Сдай вовремя и получи +Здоровье маскоту
+                          Сдай вовремя и получи +Здоровье персонажу
                         </Text>
                       </View>
                     ))}

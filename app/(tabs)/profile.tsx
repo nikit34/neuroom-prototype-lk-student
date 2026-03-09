@@ -108,7 +108,7 @@ export default function ProfileScreen() {
         {appVersion >= 1 && (
           <>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-              Мой маскот
+              Мой персонаж
             </Text>
             <Card>
               <Mascot health={student.mascotHealth} showHealthBar={false} size={70} compact />

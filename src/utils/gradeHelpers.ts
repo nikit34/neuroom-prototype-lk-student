@@ -68,11 +68,11 @@ export function getGradeLabel(score: number, maxScore: number): string {
 }
 
 // ---------------------------------------------------------------------------
-// Состояние маскота
+// Состояние персонажа
 // ---------------------------------------------------------------------------
 
 /**
- * Определяет состояние маскота по уровню здоровья (0-100).
+ * Определяет состояние персонажа по уровню здоровья (0-100).
  *
  * - 0-19   — sick (болеет)
  * - 20-39  — sad (грустит)
@@ -91,7 +91,7 @@ export function getMascotState(health: number): MascotState {
 }
 
 /**
- * Возвращает эмодзи маскота по его состоянию.
+ * Возвращает эмодзи персонажа по его состоянию.
  * Если передан персонаж — берёт эмодзи из его mascotEmojis.
  */
 export function getMascotEmoji(state: MascotState, character?: ThemeCharacter): string {
@@ -108,7 +108,7 @@ export function getMascotEmoji(state: MascotState, character?: ThemeCharacter): 
 }
 
 /**
- * Возвращает текстовое описание состояния маскота на русском.
+ * Возвращает текстовое описание состояния персонажа на русском.
  */
 export function getMascotStateLabel(state: MascotState): string {
   switch (state) {
