@@ -1,7 +1,7 @@
 import { useFonts } from 'expo-font';
 import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
@@ -10,6 +10,9 @@ import { useOnboardingStore } from '@/src/stores/onboardingStore';
 import DevModeOverlay from '@/src/components/dev/DevModeOverlay';
 import CelebrationOverlay from '@/src/components/CelebrationOverlay';
 import LootChestOverlay from '@/src/components/rewards/LootChestOverlay';
+import { setupNotificationHandler, addNotificationResponseListener } from '@/src/services/notificationService';
+
+setupNotificationHandler();
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -44,12 +47,25 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const theme = useAppTheme();
   const isOnboardingCompleted = useOnboardingStore((s) => s.isCompleted);
+  const responseListener = useRef<{ remove: () => void } | null>(null);
 
   useEffect(() => {
     if (!isOnboardingCompleted) {
       router.replace('/onboarding' as any);
     }
   }, [isOnboardingCompleted]);
+
+  useEffect(() => {
+    responseListener.current = addNotificationResponseListener((data) => {
+      if (data?.screen === 'ai-tutor-chat') {
+        router.push('/chat/ai-tutor' as any);
+      }
+    });
+
+    return () => {
+      responseListener.current?.remove();
+    };
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: theme.colors.background }}>

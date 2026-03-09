@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Animated,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -15,6 +16,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
+import { analyzeHomework } from '@/src/services/aiService';
 import Button from '@/src/components/ui/Button';
 import { Submission, SubmissionFile } from '@/src/types';
 
@@ -25,6 +27,8 @@ export default function SubmitHomeworkScreen() {
   const insets = useSafeAreaInsets();
   const assignments = useHomeworkStore((s) => s.assignments);
   const submitHomework = useHomeworkStore((s) => s.submitHomework);
+  const autoAiFeedback = useHomeworkStore((s) => s.autoAiFeedback);
+  const setAiFeedback = useHomeworkStore((s) => s.setAiFeedback);
   const homework = assignments.find((a) => a.id === id);
 
   const [permission, requestPermission] = useCameraPermissions();
@@ -33,6 +37,37 @@ export default function SubmitHomeworkScreen() {
 
   const [files, setFiles] = useState<SubmissionFile[]>([]);
   const [showCamera, setShowCamera] = useState(true);
+  const [submitted, setSubmitted] = useState(false);
+  const successOpacity = useRef(new Animated.Value(0)).current;
+  const successScale = useRef(new Animated.Value(0.8)).current;
+
+  const isLate = homework ? homework.deadline && new Date() > new Date(homework.deadline) : false;
+  const teacherName = homework?.teacher
+    ? `${homework.teacher.firstName} ${homework.teacher.lastName}`
+    : '';
+
+  // Auto-navigate after showing success screen
+  useEffect(() => {
+    if (!submitted) return;
+    Animated.parallel([
+      Animated.timing(successOpacity, {
+        toValue: 1,
+        duration: 350,
+        useNativeDriver: true,
+      }),
+      Animated.spring(successScale, {
+        toValue: 1,
+        friction: 6,
+        tension: 80,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    const timer = setTimeout(() => {
+      router.replace('/');
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [submitted]);
 
   if (!homework) {
     return (
@@ -42,6 +77,56 @@ export default function SubmitHomeworkScreen() {
             Задание не найдено
           </Text>
         </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ── Success screen ────────────────────────────────────────
+  if (submitted) {
+    return (
+      <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.successTouchable}
+          onPress={() => router.replace('/')}
+        >
+        <Animated.View
+          style={[
+            styles.successContainer,
+            { opacity: successOpacity, transform: [{ scale: successScale }] },
+          ]}
+        >
+          <View style={[styles.successCard, { backgroundColor: theme.colors.surface }]}>
+            <Text style={styles.successIcon}>{isLate ? '⏰' : '✅'}</Text>
+            <Text style={[styles.successTitle, { color: theme.colors.text }]}>
+              Домашка сдана!
+            </Text>
+            <Text style={[styles.successSubject, { color: theme.colors.primary }]}>
+              {homework.subject}
+            </Text>
+            <View
+              style={[
+                styles.successBadge,
+                { backgroundColor: isLate ? '#FFF3E0' : '#E8F5E9' },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.successBadgeText,
+                  { color: isLate ? '#E65100' : '#2E7D32' },
+                ]}
+              >
+                {isLate ? 'С опозданием' : 'В срок'}
+              </Text>
+            </View>
+            {teacherName ? (
+              <Text style={[styles.successTeacher, { color: theme.colors.textSecondary }]}>
+                Отправлено учителю: {teacherName}
+              </Text>
+            ) : null}
+          </View>
+        </Animated.View>
+        </TouchableOpacity>
       </SafeAreaView>
     );
   }
@@ -105,7 +190,14 @@ export default function SubmitHomeworkScreen() {
     };
 
     submitHomework(homework.id, submission);
-    router.replace('/');
+
+    if (autoAiFeedback) {
+      analyzeHomework(homework.id).then((feedback) => {
+        setAiFeedback(homework.id, feedback);
+      });
+    }
+
+    setSubmitted(true);
   };
 
   // ── Preview state (files selected, camera hidden) ──────────
@@ -447,4 +539,56 @@ const styles = StyleSheet.create({
   // ── Submit bar ──
   submitBar: { paddingHorizontal: 20, paddingTop: 12 },
   filesCount: { fontSize: 13, textAlign: 'center', marginBottom: 8 },
+
+  // ── Success screen ──
+  successTouchable: {
+    flex: 1,
+  },
+  successContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+  },
+  successCard: {
+    width: '100%',
+    alignItems: 'center',
+    borderRadius: 24,
+    paddingVertical: 40,
+    paddingHorizontal: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  successIcon: {
+    fontSize: 56,
+    marginBottom: 16,
+  },
+  successTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    marginBottom: 8,
+  },
+  successSubject: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 16,
+  },
+  successBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginBottom: 20,
+  },
+  successBadgeText: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  successTeacher: {
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
 });

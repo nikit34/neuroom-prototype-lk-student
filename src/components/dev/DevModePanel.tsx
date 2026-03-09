@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, LayoutChangeEvent } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { sendTestPush } from '@/src/services/notificationService';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -336,21 +337,68 @@ function AiTutorLimitReset() {
   const questionsUsed = useChatStore((s) => s.aiTutorQuestionsUsed);
   const unlocked = useChatStore((s) => s.aiTutorUnlocked);
   const resetLimit = useChatStore((s) => s.resetAiTutorLimit);
+  const [done, setDone] = useState(false);
+
+  const handlePress = useCallback(() => {
+    resetLimit();
+    setDone(true);
+    setTimeout(() => setDone(false), 1500);
+  }, [resetLimit]);
 
   return (
     <View style={styles.toggleSection}>
       <TouchableOpacity
-        style={[styles.toggleRow, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]}
-        onPress={resetLimit}
+        style={[styles.toggleRow, {
+          backgroundColor: done ? '#10B98120' : theme.colors.background,
+          borderColor: done ? '#10B981' : theme.colors.border,
+        }]}
+        onPress={handlePress}
         activeOpacity={0.7}
       >
         <View style={{ flex: 1 }}>
-          <Text style={[styles.toggleLabel, { color: theme.colors.text }]}>
-            🔄 Сбросить лимит AI-репетитора
+          <Text style={[styles.toggleLabel, { color: done ? '#10B981' : theme.colors.text }]}>
+            {done ? '✅ Лимит сброшен' : '🔄 Сбросить лимит AI-репетитора'}
           </Text>
-          <Text style={{ fontSize: 11, color: theme.colors.textSecondary, marginTop: 2 }}>
+          <Text style={{ fontSize: 11, color: done ? '#10B981' : theme.colors.textSecondary, marginTop: 2 }}>
             {unlocked ? 'Полный доступ активен' : `Использовано: ${questionsUsed}/10`}
           </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function AutoAiFeedbackToggle() {
+  const theme = useAppTheme();
+  const autoAiFeedback = useHomeworkStore((s) => s.autoAiFeedback);
+  const setAutoAiFeedback = useHomeworkStore((s) => s.setAutoAiFeedback);
+
+  return (
+    <View style={styles.toggleSection}>
+      <TouchableOpacity
+        style={[
+          styles.toggleRow,
+          {
+            backgroundColor: autoAiFeedback ? '#8B5CF620' : theme.colors.background,
+            borderColor: autoAiFeedback ? '#8B5CF6' : theme.colors.border,
+          },
+        ]}
+        onPress={() => setAutoAiFeedback(!autoAiFeedback)}
+        activeOpacity={0.7}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.toggleLabel, { color: theme.colors.text }]}>Проверка Нейрумом</Text>
+          <Text style={{ fontSize: 11, color: theme.colors.textSecondary, marginTop: 2 }}>
+            {autoAiFeedback ? 'ИИ проверит после отправки' : 'Без автопроверки ИИ'}
+          </Text>
+        </View>
+        <View
+          style={[
+            styles.toggleIndicator,
+            { backgroundColor: autoAiFeedback ? '#8B5CF6' : theme.colors.border },
+          ]}
+        >
+          <Text style={styles.toggleIndicatorText}>{autoAiFeedback ? 'ON' : 'OFF'}</Text>
         </View>
       </TouchableOpacity>
     </View>
@@ -360,19 +408,29 @@ function AiTutorLimitReset() {
 function ResetHomeworkButton() {
   const theme = useAppTheme();
   const resetAssignments = useHomeworkStore((s) => s.resetAssignments);
+  const [done, setDone] = useState(false);
+
+  const handlePress = useCallback(() => {
+    resetAssignments();
+    setDone(true);
+    setTimeout(() => setDone(false), 1500);
+  }, [resetAssignments]);
 
   return (
     <View style={styles.toggleSection}>
       <TouchableOpacity
-        style={[styles.toggleRow, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]}
-        onPress={resetAssignments}
+        style={[styles.toggleRow, {
+          backgroundColor: done ? '#10B98120' : theme.colors.background,
+          borderColor: done ? '#10B981' : theme.colors.border,
+        }]}
+        onPress={handlePress}
         activeOpacity={0.7}
       >
         <View style={{ flex: 1 }}>
-          <Text style={[styles.toggleLabel, { color: theme.colors.text }]}>
-            📚 Сбросить домашки
+          <Text style={[styles.toggleLabel, { color: done ? '#10B981' : theme.colors.text }]}>
+            {done ? '✅ Домашки сброшены' : '📚 Сбросить домашки'}
           </Text>
-          <Text style={{ fontSize: 11, color: theme.colors.textSecondary, marginTop: 2 }}>
+          <Text style={{ fontSize: 11, color: done ? '#10B981' : theme.colors.textSecondary, marginTop: 2 }}>
             Вернуть все задания в начальное состояние
           </Text>
         </View>
@@ -487,6 +545,41 @@ function NotificationPresets() {
   );
 }
 
+function SendTestPushButton() {
+  const theme = useAppTheme();
+  const [status, setStatus] = useState<'idle' | 'sent' | 'error'>('idle');
+
+  const handlePress = useCallback(async () => {
+    const ok = await sendTestPush();
+    setStatus(ok ? 'sent' : 'error');
+    setTimeout(() => setStatus('idle'), 2000);
+  }, []);
+
+  return (
+    <View style={styles.toggleSection}>
+      <TouchableOpacity
+        style={[styles.toggleRow, {
+          backgroundColor: status === 'sent' ? '#10B98120' : status === 'error' ? '#EF444420' : theme.colors.background,
+          borderColor: status === 'sent' ? '#10B981' : status === 'error' ? '#EF4444' : theme.colors.border,
+        }]}
+        onPress={handlePress}
+        activeOpacity={0.7}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.toggleLabel, {
+            color: status === 'sent' ? '#10B981' : status === 'error' ? '#EF4444' : theme.colors.text,
+          }]}>
+            {status === 'sent' ? '✅ Push отправлен!' : status === 'error' ? '❌ Недоступно' : '🔔 Отправить Push'}
+          </Text>
+          <Text style={{ fontSize: 11, color: theme.colors.textSecondary, marginTop: 2 }}>
+            Откроет AI-репетитора при нажатии
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 function ScreenGroup({ title, emoji, children }: { title: string; emoji: string; children: React.ReactNode }) {
   const theme = useAppTheme();
   return (
@@ -535,6 +628,7 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
           <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
             ДОМАШНИЕ ЗАДАНИЯ
           </Text>
+          <AutoAiFeedbackToggle />
           <ResetHomeworkButton />
 
           <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
@@ -556,6 +650,11 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
             AI-РЕПЕТИТОР
           </Text>
           <AiTutorLimitReset />
+
+          <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
+            PUSH-УВЕДОМЛЕНИЯ
+          </Text>
+          <SendTestPushButton />
         </ScreenGroup>
       )}
 

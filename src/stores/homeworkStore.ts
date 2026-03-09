@@ -8,18 +8,21 @@ type FilterType = 'all' | 'active' | 'overdue' | 'done';
 interface HomeworkState {
   assignments: HomeworkAssignment[];
   filter: FilterType;
+  autoAiFeedback: boolean;
   setFilter: (f: FilterType) => void;
   getFiltered: () => HomeworkAssignment[];
   submitHomework: (id: string, submission: Submission) => void;
   updateStatus: (id: string, status: HomeworkStatus) => void;
   setGrade: (id: string, grade: number, feedback: string) => void;
   setAiFeedback: (id: string, feedback: string) => void;
+  setAutoAiFeedback: (enabled: boolean) => void;
   resetAssignments: () => void;
 }
 
 export const useHomeworkStore = create<HomeworkState>((set, get) => ({
   assignments: [...mockHomework],
   filter: 'all',
+  autoAiFeedback: false,
 
   setFilter: (f) => set({ filter: f }),
 
@@ -108,6 +111,8 @@ export const useHomeworkStore = create<HomeworkState>((set, get) => ({
           : a
       ),
     })),
+
+  setAutoAiFeedback: (enabled) => set({ autoAiFeedback: enabled }),
 
   resetAssignments: () => {
     const offset = Date.now() - MOCK_BASE_TIME;

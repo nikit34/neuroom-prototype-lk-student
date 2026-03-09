@@ -325,6 +325,26 @@ export default function HomeworkDetailScreen() {
               </>
             )}
 
+            {/* AI-reviewed feedback */}
+            {homework.status === 'ai_reviewed' && (
+              <>
+                {homework.comparisonItems && homework.comparisonItems.length > 0 && (
+                  <ComparisonBlock items={homework.comparisonItems} />
+                )}
+                {homework.aiFeedback && (
+                  <FeedbackBubble
+                    text={homework.aiFeedback}
+                    type="ai"
+                    timestamp={
+                      homework.submissions.length > 0
+                        ? homework.submissions[homework.submissions.length - 1].submittedAt
+                        : homework.createdAt
+                    }
+                  />
+                )}
+              </>
+            )}
+
             {/* Actions */}
             <View style={styles.actions}>
               {canSubmit && (
