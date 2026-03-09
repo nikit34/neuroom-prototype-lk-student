@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { HomeworkAssignment, HomeworkStatus, Submission } from '../types';
-import { mockHomework } from '../data/mockData';
+import { mockHomework, MOCK_BASE_TIME } from '../data/mockData';
 import { rewardHomeworkSubmit, rewardHomeworkGraded } from '../services/rewardsEngine';
 
 type FilterType = 'all' | 'active' | 'overdue' | 'done';
@@ -14,6 +14,7 @@ interface HomeworkState {
   updateStatus: (id: string, status: HomeworkStatus) => void;
   setGrade: (id: string, grade: number, feedback: string) => void;
   setAiFeedback: (id: string, feedback: string) => void;
+  resetAssignments: () => void;
 }
 
 export const useHomeworkStore = create<HomeworkState>((set, get) => ({
@@ -107,4 +108,18 @@ export const useHomeworkStore = create<HomeworkState>((set, get) => ({
           : a
       ),
     })),
+
+  resetAssignments: () => {
+    const offset = Date.now() - MOCK_BASE_TIME;
+    const fresh = mockHomework.map((hw) => ({
+      ...hw,
+      deadline: new Date(hw.deadline.getTime() + offset),
+      createdAt: new Date(hw.createdAt.getTime() + offset),
+      submissions: hw.submissions.map((s) => ({
+        ...s,
+        submittedAt: new Date(s.submittedAt.getTime() + offset),
+      })),
+    }));
+    set({ assignments: fresh });
+  },
 }));

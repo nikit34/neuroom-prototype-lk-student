@@ -43,6 +43,7 @@ export const mockClassStudents: StudentListItem[] = [
 const DAY = 86400000;
 const HOUR = 3600000;
 const now = Date.now();
+export const MOCK_BASE_TIME = now;
 
 // ─── Текущий ученик ───────────────────────────────────────────────
 export const mockStudent: Student = {

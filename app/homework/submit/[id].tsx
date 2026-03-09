@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   Image,
-  ActivityIndicator,
   TouchableOpacity,
   Alert,
   ScrollView,
@@ -16,7 +15,6 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
-import { analyzeHomework } from '@/src/services/aiService';
 import Button from '@/src/components/ui/Button';
 import { Submission, SubmissionFile } from '@/src/types';
 
@@ -27,7 +25,6 @@ export default function SubmitHomeworkScreen() {
   const insets = useSafeAreaInsets();
   const assignments = useHomeworkStore((s) => s.assignments);
   const submitHomework = useHomeworkStore((s) => s.submitHomework);
-  const setAiFeedback = useHomeworkStore((s) => s.setAiFeedback);
   const homework = assignments.find((a) => a.id === id);
 
   const [permission, requestPermission] = useCameraPermissions();
@@ -35,7 +32,6 @@ export default function SubmitHomeworkScreen() {
   const cameraRef = useRef<CameraView>(null);
 
   const [files, setFiles] = useState<SubmissionFile[]>([]);
-  const [loading, setLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(true);
 
   if (!homework) {
@@ -98,9 +94,8 @@ export default function SubmitHomeworkScreen() {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (files.length === 0) return;
-    setLoading(true);
 
     const submission: Submission = {
       id: `sub-${Date.now()}`,
@@ -110,35 +105,8 @@ export default function SubmitHomeworkScreen() {
     };
 
     submitHomework(homework.id, submission);
-
-    try {
-      const feedback = await analyzeHomework(homework.id);
-      setAiFeedback(homework.id, feedback);
-    } catch {
-      // AI analysis failed silently
-    }
-
-    setLoading(false);
-    router.replace(`/homework/feedback/${homework.id}`);
+    router.replace('/');
   };
-
-  // ── Loading state ───────────────────────────────────────────
-
-  if (loading) {
-    return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={[styles.loadingText, { color: theme.colors.text }]}>
-            Отправка и анализ работы...
-          </Text>
-          <Text style={[styles.loadingSubtext, { color: theme.colors.textSecondary }]}>
-            ИИ проверяет вашу работу
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   // ── Preview state (files selected, camera hidden) ──────────
 
@@ -479,6 +447,4 @@ const styles = StyleSheet.create({
   // ── Submit bar ──
   submitBar: { paddingHorizontal: 20, paddingTop: 12 },
   filesCount: { fontSize: 13, textAlign: 'center', marginBottom: 8 },
-  loadingText: { fontSize: 17, fontWeight: '600', marginTop: 16 },
-  loadingSubtext: { fontSize: 13, marginTop: 8 },
 });

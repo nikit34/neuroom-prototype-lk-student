@@ -15,6 +15,7 @@ import { useOnboardingStore } from '@/src/stores/onboardingStore';
 import { useArenaStore } from '@/src/stores/arenaStore';
 import { useNotificationStore } from '@/src/stores/notificationStore';
 import { useChatStore, AI_TUTOR_ID } from '@/src/stores/chatStore';
+import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { getMascotState, getMascotStateLabel } from '@/src/utils/gradeHelpers';
 import { useAppVersionStore, AppVersion } from '@/src/config/appVersion';
 import { AchievementRarity, AppNotification, ChatMessage } from '@/src/types';
@@ -356,6 +357,30 @@ function AiTutorLimitReset() {
   );
 }
 
+function ResetHomeworkButton() {
+  const theme = useAppTheme();
+  const resetAssignments = useHomeworkStore((s) => s.resetAssignments);
+
+  return (
+    <View style={styles.toggleSection}>
+      <TouchableOpacity
+        style={[styles.toggleRow, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]}
+        onPress={resetAssignments}
+        activeOpacity={0.7}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.toggleLabel, { color: theme.colors.text }]}>
+            📚 Сбросить домашки
+          </Text>
+          <Text style={{ fontSize: 11, color: theme.colors.textSecondary, marginTop: 2 }}>
+            Вернуть все задания в начальное состояние
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 function RestartOnboardingButton({ onClose }: { onClose?: () => void }) {
   const resetOnboarding = useOnboardingStore((s) => s.reset);
   const router = useRouter();
@@ -506,6 +531,11 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
             ЗДОРОВЬЕ МАСКОТА
           </Text>
           <HealthSlider />
+
+          <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
+            ДОМАШНИЕ ЗАДАНИЯ
+          </Text>
+          <ResetHomeworkButton />
 
           <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
             УВЕДОМЛЕНИЯ И СООБЩЕНИЯ

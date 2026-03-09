@@ -31,12 +31,6 @@ export const useCelebrationStore = create<CelebrationState>((set, get) => ({
   },
 
   dismiss: () => {
-    const { queue } = get();
-    if (queue.length > 0) {
-      const [next, ...rest] = queue;
-      set({ current: next, queue: rest });
-    } else {
-      set({ current: null });
-    }
+    set({ current: null, queue: [] });
   },
 }));
