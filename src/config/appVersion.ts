@@ -1,7 +1,8 @@
 /**
  * App version control
  *
- * V1: Главная, ДЗ, Чат (AI-репетитор), Рейтинг, Профиль
+ * V0: Главная (упрощённая), ДЗ, Профиль — минимальный MVP
+ * V1: + Чат (AI-репетитор), Рейтинг, Маскот, Уведомления, Геймификация
  * V2: + Арена (дуэли, квесты, испытания, достижения) + Прогресс
  */
 
@@ -9,7 +10,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export type AppVersion = 1 | 2;
+export type AppVersion = 0 | 1 | 2;
 
 interface AppVersionState {
   appVersion: AppVersion;

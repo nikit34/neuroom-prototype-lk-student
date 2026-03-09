@@ -143,8 +143,9 @@ function AppVersionSwitch() {
   const setAppVersion = useAppVersionStore((s) => s.setAppVersion);
 
   const options: { key: AppVersion; label: string; desc: string }[] = [
-    { key: 1, label: 'V1', desc: 'ДЗ, Чат, Рейтинг' },
-    { key: 2, label: 'V2', desc: '+ Арена, Прогресс' },
+    { key: 0, label: 'V0', desc: 'MVP' },
+    { key: 1, label: 'V1', desc: 'Базовый' },
+    { key: 2, label: 'V2', desc: 'Полный' },
   ];
 
   return (
@@ -156,7 +157,7 @@ function AppVersionSwitch() {
             <TouchableOpacity
               key={opt.key}
               style={[
-                styles.ageGroupBtn,
+                styles.versionBtn,
                 {
                   backgroundColor: isActive
                     ? theme.colors.primary + '20'
@@ -171,17 +172,22 @@ function AppVersionSwitch() {
               activeOpacity={0.7}
             >
               <Text
-                style={[
-                  styles.ageGroupBtnText,
-                  {
-                    color: isActive ? theme.colors.primary : theme.colors.text,
-                    fontWeight: isActive ? '700' : '500',
-                  },
-                ]}
+                style={{
+                  fontSize: 15,
+                  fontWeight: isActive ? '800' : '600',
+                  color: isActive ? theme.colors.primary : theme.colors.text,
+                }}
               >
                 {opt.label}
               </Text>
-              <Text style={{ fontSize: 11, color: theme.colors.textSecondary }}>
+              <Text
+                style={{
+                  fontSize: 10,
+                  color: theme.colors.textSecondary,
+                  marginTop: 2,
+                }}
+                numberOfLines={1}
+              >
                 {opt.desc}
               </Text>
             </TouchableOpacity>
@@ -467,26 +473,30 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
         <RestartOnboardingButton onClose={onClose} />
       </ScreenGroup>
 
-      {/* ── Главная ── */}
-      <ScreenGroup title="Главная" emoji="🏠">
-        <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
-          ЗДОРОВЬЕ МАСКОТА
-        </Text>
-        <HealthSlider />
+      {/* ── Главная (V1+) ── */}
+      {appVersion >= 1 && (
+        <ScreenGroup title="Главная" emoji="🏠">
+          <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
+            ЗДОРОВЬЕ МАСКОТА
+          </Text>
+          <HealthSlider />
 
-        <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
-          УВЕДОМЛЕНИЯ И СООБЩЕНИЯ
-        </Text>
-        <NotificationPresets />
-      </ScreenGroup>
+          <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
+            УВЕДОМЛЕНИЯ И СООБЩЕНИЯ
+          </Text>
+          <NotificationPresets />
+        </ScreenGroup>
+      )}
 
-      {/* ── Чат ── */}
-      <ScreenGroup title="Чат" emoji="💬">
-        <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
-          РЕЖИМ ЧАТА
-        </Text>
-        <ChatFeatureToggle />
-      </ScreenGroup>
+      {/* ── Чат (V1+) ── */}
+      {appVersion >= 1 && (
+        <ScreenGroup title="Чат" emoji="💬">
+          <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
+            РЕЖИМ ЧАТА
+          </Text>
+          <ChatFeatureToggle />
+        </ScreenGroup>
+      )}
 
       {/* ── Арена (V2 only) ── */}
       {appVersion >= 2 && <ScreenGroup title="Арена" emoji="⚔️">
@@ -584,6 +594,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 1,
     marginBottom: 10,
+  },
+
+  // Version Switch
+  versionBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 12,
   },
 
   // Age Group Switch

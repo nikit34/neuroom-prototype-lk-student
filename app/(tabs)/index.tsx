@@ -7,6 +7,7 @@ import { useStudentStore } from '@/src/stores/studentStore';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { useAchievementStore } from '@/src/stores/achievementStore';
 import { useNotificationStore } from '@/src/stores/notificationStore';
+import { useAppVersionStore } from '@/src/config/appVersion';
 import Mascot from '@/src/components/mascot/Mascot';
 import Card from '@/src/components/ui/Card';
 import DeadlineIndicator from '@/src/components/homework/DeadlineIndicator';
@@ -50,6 +51,7 @@ export default function HomeScreen() {
   const student = useStudentStore((s) => s.student);
   const assignments = useHomeworkStore((s) => s.assignments);
   const achievements = useAchievementStore((s) => s.achievements);
+  const appVersion = useAppVersionStore((s) => s.appVersion);
 
   const notifications = useNotificationStore((s) => s.notifications);
   const unreadCount = useNotificationStore((s) => s.unreadCount);
@@ -78,82 +80,81 @@ export default function HomeScreen() {
         style={styles.container}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
       >
         <Text style={[styles.greeting, { color: theme.colors.text }]}>
           {getGreeting()}, {student.firstName}! 👋
         </Text>
 
-        {/* ── Mascot + Health row ── */}
-        <View style={[styles.topRow, { minHeight: recentNotifications.length > 0 ? topBlockHeight : undefined }]}>
-          <Card style={styles.notifCard}>
-            <View style={styles.notifHeader}>
-              <Text style={[styles.notifTitle, { color: theme.colors.text }]}>
-                Уведомления
-              </Text>
-              {unreadCount() > 0 && (
-                <View style={[styles.notifBadge, { backgroundColor: theme.colors.primary }]}>
-                  <Text style={styles.notifBadgeText}>{unreadCount()}</Text>
-                </View>
+        {/* ── Mascot + Health row (V1+) ── */}
+        {appVersion >= 1 && (
+          <View style={[styles.topRow, { height: topBlockHeight }]}>
+            <Card style={styles.notifCard}>
+              <View style={styles.notifHeader}>
+                <Text style={[styles.notifTitle, { color: theme.colors.text }]}>
+                  Уведомления
+                </Text>
+                {unreadCount() > 0 && (
+                  <View style={[styles.notifBadge, { backgroundColor: theme.colors.primary }]}>
+                    <Text style={styles.notifBadgeText}>{unreadCount()}</Text>
+                  </View>
+                )}
+              </View>
+              {recentNotifications.length === 0 ? (
+                <Text style={[styles.notifEmpty, { color: theme.colors.textSecondary }]}>
+                  Всё прочитано
+                </Text>
+              ) : (
+                <ScrollView style={styles.notifScroll} nestedScrollEnabled showsVerticalScrollIndicator={recentNotifications.length > 3}>
+                  {recentNotifications.map((notif) => (
+                    <TouchableOpacity
+                      key={notif.id}
+                      style={[
+                        styles.notifItem,
+                        { backgroundColor: notif.isRead ? 'transparent' : theme.colors.primary + '10' },
+                      ]}
+                      onPress={() => {
+                        markAsRead(notif.id);
+                        if (notif.route) router.push(notif.route as any);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.notifIcon}>{notif.icon}</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={[
+                            styles.notifItemTitle,
+                            { color: theme.colors.text, fontWeight: notif.isRead ? '500' : '700' },
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {notif.title}
+                        </Text>
+                        <Text
+                          style={[styles.notifItemMsg, { color: theme.colors.textSecondary }]}
+                          numberOfLines={1}
+                        >
+                          {notif.message}
+                        </Text>
+                      </View>
+                      {!notif.isRead && (
+                        <View style={[styles.notifDot, { backgroundColor: theme.colors.primary }]} />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
               )}
-            </View>
-            {recentNotifications.length === 0 ? (
-              <Text style={[styles.notifEmpty, { color: theme.colors.textSecondary }]}>
-                Всё прочитано
-              </Text>
-            ) : (
-              <ScrollView
-                nestedScrollEnabled
-                showsVerticalScrollIndicator={recentNotifications.length > 3}
-                style={recentNotifications.length > 3 ? styles.notifScroll : undefined}
-              >
-                {recentNotifications.map((notif) => (
-                  <TouchableOpacity
-                    key={notif.id}
-                    style={[
-                      styles.notifItem,
-                      { backgroundColor: notif.isRead ? 'transparent' : theme.colors.primary + '10' },
-                    ]}
-                    onPress={() => {
-                      markAsRead(notif.id);
-                      if (notif.route) router.push(notif.route as any);
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.notifIcon}>{notif.icon}</Text>
-                    <View style={{ flex: 1 }}>
-                      <Text
-                        style={[
-                          styles.notifItemTitle,
-                          { color: theme.colors.text, fontWeight: notif.isRead ? '500' : '700' },
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {notif.title}
-                      </Text>
-                      <Text
-                        style={[styles.notifItemMsg, { color: theme.colors.textSecondary }]}
-                        numberOfLines={1}
-                      >
-                        {notif.message}
-                      </Text>
-                    </View>
-                    {!notif.isRead && (
-                      <View style={[styles.notifDot, { backgroundColor: theme.colors.primary }]} />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            )}
-          </Card>
-          <View style={[styles.mascotColumn, { width: topBlockHeight }]}>
-            <View style={[styles.mascotContainer, { flex: 1 }]}>
-              <Mascot health={student.mascotHealth} showHealthBar={false} size={Math.round(topBlockHeight / 2)} compact />
-            </View>
-            <View style={styles.mascotHealth}>
-              <MascotHealthBar health={student.mascotHealth} />
+            </Card>
+            <View style={[styles.mascotColumn, { width: topBlockHeight }]}>
+              <View style={[styles.mascotContainer, { flex: 1 }]}>
+                <Mascot health={student.mascotHealth} showHealthBar={false} size={Math.round(topBlockHeight / 2)} compact />
+              </View>
+              <View style={styles.mascotHealth}>
+                <MascotHealthBar health={student.mascotHealth} />
+              </View>
             </View>
           </View>
-        </View>
+        )}
 
         {/* ── Deadlines ── */}
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -184,7 +185,7 @@ export default function HomeScreen() {
                     <Text style={[styles.hwSubject, { color: theme.colors.textSecondary }]} numberOfLines={2}>
                       {hw.description.split('\n')[0]}
                     </Text>
-                    {reward ? (
+                    {appVersion >= 1 && (reward ? (
                       <TouchableOpacity
                         style={[styles.rewardHint, { backgroundColor: theme.colors.primary + '10', borderColor: theme.colors.primary + '40' }]}
                         onPress={() => router.push(`/achievements/${reward.achievement.id}`)}
@@ -223,7 +224,7 @@ export default function HomeScreen() {
                           Сдай вовремя и получи +Здоровье маскоту
                         </Text>
                       </View>
-                    )}
+                    ))}
                     <DeadlineIndicator deadline={hw.deadline} />
                   </View>
                 </TouchableOpacity>
@@ -272,6 +273,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 8,
     paddingHorizontal: 10,
+    overflow: 'hidden',
   },
   notifHeader: {
     flexDirection: 'row',
@@ -297,7 +299,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   notifScroll: {
-    maxHeight: 100,
+    flex: 1,
   },
   notifEmpty: {
     fontSize: 11,

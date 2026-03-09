@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme, useCurrentCharacter } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useThemeStore } from '@/src/stores/themeStore';
+import { useAppVersionStore } from '@/src/config/appVersion';
 import { allCharacters, seniorThemes, juniorThemes } from '@/src/theme/themes';
 import { useMemo } from 'react';
 import Mascot from '@/src/components/mascot/Mascot';
@@ -33,6 +34,7 @@ export default function ProfileScreen() {
     () => (ageGroup === 'senior' ? seniorThemes : juniorThemes),
     [ageGroup],
   );
+  const appVersion = useAppVersionStore((s) => s.appVersion);
   const ageLabel = ageGroup === 'senior' ? '8–11 класс' : '5–7 класс';
   const { level, currentLevelXp, xpForNextLevel, rank } = getLevel(student.totalPoints);
 
@@ -67,44 +69,52 @@ export default function ProfileScreen() {
             {student.grade} класс, {student.classId}
           </Text>
 
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: theme.colors.accent }]}>
-                🚀 {student.earlyStreak}
-              </Text>
-              <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
-                ДЗ вовремя подряд
-              </Text>
-            </View>
-            <View style={[styles.statDivider, { backgroundColor: theme.colors.border }]} />
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: theme.colors.accent }]}>
-                {rank.emoji} {rank.title}
-              </Text>
-              <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
-                Уровень {level} · {student.totalPoints} очков
-              </Text>
-            </View>
-          </View>
-          <View style={styles.levelProgressRow}>
-            <ProgressBar
-              progress={(currentLevelXp / xpForNextLevel) * 100}
-              color={theme.colors.primary}
-              height={6}
-            />
-            <Text style={[styles.levelProgressLabel, { color: theme.colors.textSecondary }]}>
-              {currentLevelXp} / {xpForNextLevel} до уровня {level + 1}
-            </Text>
-          </View>
+          {appVersion >= 1 && (
+            <>
+              <View style={styles.statsRow}>
+                <View style={styles.statItem}>
+                  <Text style={[styles.statValue, { color: theme.colors.accent }]}>
+                    🚀 {student.earlyStreak}
+                  </Text>
+                  <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
+                    ДЗ вовремя подряд
+                  </Text>
+                </View>
+                <View style={[styles.statDivider, { backgroundColor: theme.colors.border }]} />
+                <View style={styles.statItem}>
+                  <Text style={[styles.statValue, { color: theme.colors.accent }]}>
+                    {rank.emoji} {rank.title}
+                  </Text>
+                  <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
+                    Уровень {level} · {student.totalPoints} очков
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.levelProgressRow}>
+                <ProgressBar
+                  progress={(currentLevelXp / xpForNextLevel) * 100}
+                  color={theme.colors.primary}
+                  height={6}
+                />
+                <Text style={[styles.levelProgressLabel, { color: theme.colors.textSecondary }]}>
+                  {currentLevelXp} / {xpForNextLevel} до уровня {level + 1}
+                </Text>
+              </View>
+            </>
+          )}
         </Card>
 
-        {/* Mascot */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          Мой маскот
-        </Text>
-        <Card>
-          <Mascot health={student.mascotHealth} showHealthBar={false} size={70} compact />
-        </Card>
+        {/* Mascot (V1+) */}
+        {appVersion >= 1 && (
+          <>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+              Мой маскот
+            </Text>
+            <Card>
+              <Mascot health={student.mascotHealth} showHealthBar={false} size={70} compact />
+            </Card>
+          </>
+        )}
 
         {/* Character Selection */}
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>

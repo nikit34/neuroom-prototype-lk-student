@@ -49,16 +49,19 @@ export default function TabLayout() {
           ),
         }}
       />
+      {/* V0: скрываем Чат */}
       <Tabs.Screen
         name="chat"
         options={{
           title: 'Чат',
           headerShown: false,
+          href: appVersion < 1 ? null : undefined,
           tabBarIcon: ({ focused }) => (
             <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.6 }}>💬</Text>
           ),
         }}
       />
+      {/* V0: скрываем Рейтинг и Арену */}
       {/* V1: показываем Рейтинг, скрываем Арену */}
       {/* V2: показываем Арену, скрываем Рейтинг */}
       <Tabs.Screen
@@ -66,7 +69,7 @@ export default function TabLayout() {
         options={{
           title: 'Рейтинг',
           headerShown: false,
-          href: appVersion >= 2 ? null : undefined,
+          href: appVersion >= 2 || appVersion < 1 ? null : undefined,
           tabBarIcon: ({ focused }) => (
             <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.6 }}>🏆</Text>
           ),
