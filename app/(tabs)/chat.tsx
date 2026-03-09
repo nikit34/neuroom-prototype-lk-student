@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useChatStore, AI_TUTOR_ID } from '@/src/stores/chatStore';
 import { mockTeachers } from '@/src/data/mockData';
@@ -19,12 +19,25 @@ export default function ChatListScreen() {
   const router = useRouter();
   const allMessages = useChatStore((s) => s.messages);
   const teacherChatEnabled = useChatStore((s) => s.teacherChatEnabled);
+  const didRedirect = useRef(false);
 
-  useEffect(() => {
-    if (!teacherChatEnabled) {
-      router.push(`/chat/${AI_TUTOR_ID}`);
-    }
-  }, [teacherChatEnabled]);
+  useFocusEffect(
+    useCallback(() => {
+      if (teacherChatEnabled) {
+        didRedirect.current = false;
+        return;
+      }
+      if (!didRedirect.current) {
+        // First focus — push to AI tutor
+        didRedirect.current = true;
+        router.push(`/chat/${AI_TUTOR_ID}`);
+      } else {
+        // Came back from AI tutor via "back" — skip this screen, go to home tab
+        didRedirect.current = false;
+        router.navigate('/(tabs)');
+      }
+    }, [teacherChatEnabled]),
+  );
 
   const aiMessages = allMessages[AI_TUTOR_ID] ?? [];
   const aiLastMessage = aiMessages[aiMessages.length - 1];
@@ -107,25 +120,29 @@ export default function ChatListScreen() {
           <Text style={[styles.arrow, { color: theme.colors.primary }]}>›</Text>
         </TouchableOpacity>
 
-        <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
-          Учителя
-        </Text>
+        {teacherChatEnabled && (
+          <>
+            <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
+              Учителя
+            </Text>
 
-        <FlatList
-          data={mockTeachers}
-          keyExtractor={(item) => item.id}
-          renderItem={renderTeacher}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyEmoji}>💬</Text>
-              <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
-                Нет доступных учителей
-              </Text>
-            </View>
-          }
-        />
+            <FlatList
+              data={mockTeachers}
+              keyExtractor={(item) => item.id}
+              renderItem={renderTeacher}
+              contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyEmoji}>💬</Text>
+                  <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+                    Нет доступных учителей
+                  </Text>
+                </View>
+              }
+            />
+          </>
+        )}
       </View>
     </SafeAreaView>
   );

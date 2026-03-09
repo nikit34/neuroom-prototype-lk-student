@@ -123,6 +123,12 @@ export interface Badge {
   earnedAt: Date;
 }
 
+export interface ChatAttachment {
+  uri: string;
+  type: 'image' | 'document';
+  name?: string;
+}
+
 export interface ChatMessage {
   id: string;
   senderId: string;
@@ -130,6 +136,7 @@ export interface ChatMessage {
   text: string;
   timestamp: Date;
   isStudent: boolean;
+  attachments?: ChatAttachment[];
 }
 
 export interface DuelChallenge {

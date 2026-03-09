@@ -9,19 +9,62 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Image,
+  Alert,
+  Dimensions,
 } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
+import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useChatStore, AI_TUTOR_ID } from '@/src/stores/chatStore';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { mockTeachers } from '@/src/data/mockData';
-import { ChatMessage } from '@/src/types';
+import { ChatMessage, ChatAttachment } from '@/src/types';
 import { formatDateRu } from '@/src/utils/dateHelpers';
 
 interface Suggest {
   label: string;
   message: string;
   topic: string;
+}
+
+const SUGGEST_H_PAD = 10 * 2;
+const SUGGEST_BORDER = 2;
+const SUGGEST_FONT = 12;
+const CHAR_WIDTH = 6.5;
+const WRAP_GAP = 6;
+const WRAP_PAD = 12 * 2;
+
+function estimateChipWidth(label: string): number {
+  return label.length * CHAR_WIDTH * SUGGEST_FONT / 12 + SUGGEST_H_PAD + SUGGEST_BORDER;
+}
+
+/** Reorder suggests so they pack into fewest rows (first-fit-decreasing). */
+function packSuggests(items: Suggest[]): Suggest[] {
+  const containerWidth = Dimensions.get('window').width - WRAP_PAD;
+  const indexed = items.map((s, i) => ({ s, w: estimateChipWidth(s.label), i }));
+  indexed.sort((a, b) => b.w - a.w);
+
+  const rows: { remaining: number; items: typeof indexed }[] = [];
+  for (const item of indexed) {
+    let placed = false;
+    for (const row of rows) {
+      if (row.remaining >= item.w + WRAP_GAP) {
+        row.items.push(item);
+        row.remaining -= item.w + WRAP_GAP;
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) {
+      rows.push({ remaining: containerWidth - item.w, items: [item] });
+    }
+  }
+
+  return rows.flatMap((r) => r.items.map((x) => x.s));
 }
 
 function buildSuggests(
@@ -56,11 +99,26 @@ function buildSuggests(
 
     if (hw.status === 'graded' && hw.grade != null) {
       result.push({
-        label: `📊 «${t}» — вопрос по оценке (${hw.grade}/${hw.maxGrade})`,
-        message: `Здравствуйте! У меня вопрос по оценке ${hw.grade}/${hw.maxGrade} за «${t}». Можете пояснить критерии?`,
-        topic: 'hw_grade',
+        label: `📊 «${t}» — почему такая оценка (${hw.grade}/${hw.maxGrade})`,
+        message: `Здравствуйте! Хотел бы понять, почему я получил ${hw.grade}/${hw.maxGrade} за «${t}». Можете объяснить, за что снизили и что конкретно было не так?`,
+        topic: 'hw_grade_explain',
+      });
+      result.push({
+        label: `📈 «${t}» — как улучшить результат`,
+        message: `Здравствуйте! Получил ${hw.grade}/${hw.maxGrade} за «${t}». Подскажите, что мне нужно исправить и как в следующий раз получить оценку лучше?`,
+        topic: 'hw_improve',
       });
     }
+  }
+
+  // General (not tied to specific homework) suggests
+  const hasGradedWork = homework.some((hw) => hw.status === 'graded' && hw.grade != null);
+  if (hasGradedWork) {
+    result.push({
+      label: `🎯 Как получать лучше оценки по ${subject}`,
+      message: `Здравствуйте! Хотел бы улучшить свои оценки по предмету «${subject}». Можете посмотреть на мои прошлые работы и подсказать, на что обратить внимание, чтобы результаты были лучше?`,
+      topic: 'hw_improve_general',
+    });
   }
 
   result.push({
@@ -80,11 +138,13 @@ export default function ChatScreen() {
     grade?: string;
   }>();
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
   const sendMessage = useChatStore((s) => s.sendMessage);
   const storeMessages = useChatStore((s) => s.messages[teacherId]);
   const messages = useMemo(() => storeMessages ?? [], [storeMessages]);
   const assignments = useHomeworkStore((s) => s.assignments);
   const [text, setText] = useState('');
+  const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
   const flatListRef = useRef<FlatList>(null);
   const hasSentDispute = useRef(false);
 
@@ -112,13 +172,15 @@ export default function ChatScreen() {
 
   const aiSuggests: Suggest[] = useMemo(() => [
     { label: '📖 Объясни тему', message: 'Привет! Можешь объяснить мне текущую тему простым языком?', topic: 'topic_help' },
+    { label: '📊 Почему такая оценка', message: 'Привет! Не понимаю, почему мне поставили такую оценку. Можешь объяснить, что было не так?', topic: 'hw_grade_explain' },
+    { label: '📈 Как улучшить оценки', message: 'Привет! Хочу получать оценки лучше. Можешь посмотреть мои прошлые работы и подсказать, что исправить?', topic: 'hw_improve_general' },
     { label: '❓ Помоги с задачей', message: 'У меня не получается решить задачу. Можешь помочь разобраться?', topic: 'hw_error' },
     { label: '📝 Проверь моё решение', message: 'Можешь проверить моё решение и сказать, есть ли ошибки?', topic: 'hw_error' },
     { label: '🧠 Подготовка к контрольной', message: 'Помоги подготовиться к контрольной! С чего начать?', topic: 'topic_help' },
   ], []);
 
   const suggests = useMemo(
-    () => isAiTutor ? aiSuggests : buildSuggests(teacherHomework, teacher?.subject ?? ''),
+    () => packSuggests(isAiTutor ? aiSuggests : buildSuggests(teacherHomework, teacher?.subject ?? '')),
     [isAiTutor, aiSuggests, teacherHomework, teacher?.subject],
   );
 
@@ -131,15 +193,63 @@ export default function ChatScreen() {
     }
   }, [dispute, hwTitle, grade, teacherId]);
 
+  const hasContent = text.trim().length > 0 || attachments.length > 0;
+
   const handleSend = () => {
     const trimmed = text.trim();
-    if (!trimmed) return;
-    sendMessage(teacherId, trimmed);
+    if (!trimmed && attachments.length === 0) return;
+    const msgText = trimmed || (attachments.length === 1 ? 'Файл' : `Файлы (${attachments.length})`);
+    sendMessage(teacherId, msgText, undefined, attachments.length > 0 ? attachments : undefined);
     setText('');
+    setAttachments([]);
   };
 
   const handleSuggest = (suggest: Suggest) => {
     sendMessage(teacherId, suggest.message, suggest.topic);
+  };
+
+  const handleAttach = () => {
+    Alert.alert('Прикрепить', undefined, [
+      { text: 'Фото из галереи', onPress: pickImage },
+      { text: 'Документ', onPress: pickDocument },
+      { text: 'Отмена', style: 'cancel' },
+    ]);
+  };
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      const newFiles: ChatAttachment[] = result.assets.map((a) => ({
+        uri: a.uri,
+        type: 'image' as const,
+        name: a.fileName ?? undefined,
+      }));
+      setAttachments((prev) => [...prev, ...newFiles]);
+    }
+  };
+
+  const pickDocument = async () => {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: '*/*',
+      copyToCacheDirectory: true,
+      multiple: true,
+    });
+    if (!result.canceled) {
+      const newFiles: ChatAttachment[] = result.assets.map((a) => ({
+        uri: a.uri,
+        type: 'document' as const,
+        name: a.name,
+      }));
+      setAttachments((prev) => [...prev, ...newFiles]);
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
   const renderMessage = ({ item }: { item: ChatMessage }) => {
@@ -170,6 +280,22 @@ export default function ChatScreen() {
             >
               {item.senderName}
             </Text>
+          )}
+          {item.attachments && item.attachments.length > 0 && (
+            <View style={styles.msgAttachments}>
+              {item.attachments.map((att, idx) =>
+                att.type === 'image' ? (
+                  <Image key={idx} source={{ uri: att.uri }} style={styles.msgImage} />
+                ) : (
+                  <View key={idx} style={[styles.msgDocBadge, { backgroundColor: isStudent ? 'rgba(255,255,255,0.2)' : theme.colors.background }]}>
+                    <Ionicons name="document-outline" size={16} color={isStudent ? '#fff' : theme.colors.textSecondary} />
+                    <Text style={[styles.msgDocName, { color: isStudent ? '#fff' : theme.colors.text }]} numberOfLines={1}>
+                      {att.name || 'Документ'}
+                    </Text>
+                  </View>
+                ),
+              )}
+            </View>
           )}
           <Text
             style={[
@@ -225,13 +351,7 @@ export default function ChatScreen() {
 
         {/* Suggests */}
         {suggests.length > 0 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.suggestsScroll}
-            contentContainerStyle={styles.suggestsRow}
-            keyboardShouldPersistTaps="handled"
-          >
+          <View style={styles.suggestsWrap}>
             {suggests.map((s, i) => (
               <TouchableOpacity
                 key={i}
@@ -241,6 +361,39 @@ export default function ChatScreen() {
               >
                 <Text style={[styles.suggestText, { color: theme.colors.text }]}>{s.label}</Text>
               </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {/* Attachment previews */}
+        {attachments.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={[styles.attachPreviewScroll, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border }]}
+            contentContainerStyle={styles.attachPreviewRow}
+            keyboardShouldPersistTaps="handled"
+          >
+            {attachments.map((att, idx) => (
+              <View key={idx} style={styles.attachPreviewItem}>
+                {att.type === 'image' ? (
+                  <Image source={{ uri: att.uri }} style={styles.attachThumb} />
+                ) : (
+                  <View style={[styles.attachDocThumb, { backgroundColor: theme.colors.background }]}>
+                    <Ionicons name="document-outline" size={22} color={theme.colors.textSecondary} />
+                    <Text style={[styles.attachDocName, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+                      {att.name || 'Файл'}
+                    </Text>
+                  </View>
+                )}
+                <TouchableOpacity
+                  style={styles.attachRemove}
+                  onPress={() => removeAttachment(idx)}
+                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                >
+                  <Ionicons name="close-circle" size={20} color="#E53935" />
+                </TouchableOpacity>
+              </View>
             ))}
           </ScrollView>
         )}
@@ -252,9 +405,17 @@ export default function ChatScreen() {
             {
               backgroundColor: theme.colors.surface,
               borderTopColor: theme.colors.border,
+              paddingBottom: Math.max(12, insets.bottom),
             },
           ]}
         >
+          <TouchableOpacity
+            style={styles.attachButton}
+            onPress={handleAttach}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="add-circle-outline" size={28} color={theme.colors.primary} />
+          </TouchableOpacity>
           <TextInput
             style={[
               styles.input,
@@ -277,16 +438,16 @@ export default function ChatScreen() {
             style={[
               styles.sendButton,
               {
-                backgroundColor: text.trim()
+                backgroundColor: hasContent
                   ? theme.colors.primary
                   : theme.colors.border,
               },
             ]}
             onPress={handleSend}
-            disabled={!text.trim()}
+            disabled={!hasContent}
             activeOpacity={0.7}
           >
-            <Text style={styles.sendIcon}>📨</Text>
+            <Ionicons name="send" size={20} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
     </KeyboardAvoidingView>
@@ -343,10 +504,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   // Suggests
-  suggestsScroll: {
-    flexGrow: 0,
-  },
-  suggestsRow: {
+  suggestsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingHorizontal: 12,
     paddingVertical: 4,
     gap: 6,
@@ -361,12 +521,78 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
+  // Attachment previews
+  attachPreviewScroll: {
+    flexGrow: 0,
+    borderTopWidth: 1,
+  },
+  attachPreviewRow: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 8,
+  },
+  attachPreviewItem: {
+    position: 'relative',
+  },
+  attachThumb: {
+    width: 64,
+    height: 64,
+    borderRadius: 10,
+  },
+  attachDocThumb: {
+    width: 64,
+    height: 64,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  attachDocName: {
+    fontSize: 9,
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  attachRemove: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+  },
+  // Message attachments
+  msgAttachments: {
+    marginBottom: 6,
+    gap: 4,
+  },
+  msgImage: {
+    width: 180,
+    height: 130,
+    borderRadius: 10,
+  },
+  msgDocBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  msgDocName: {
+    fontSize: 13,
+    maxWidth: 140,
+  },
   // Input
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     padding: 12,
     borderTopWidth: 1,
+  },
+  attachButton: {
+    width: 40,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 4,
   },
   input: {
     flex: 1,
@@ -385,8 +611,5 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  sendIcon: {
-    fontSize: 20,
   },
 });
