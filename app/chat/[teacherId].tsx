@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   Image,
   Alert,
   Dimensions,
+  LayoutAnimation,
 } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -131,11 +132,13 @@ function buildSuggests(
 }
 
 export default function ChatScreen() {
-  const { teacherId, dispute, hwTitle, grade } = useLocalSearchParams<{
+  const { teacherId, dispute, hwTitle, grade, hwPromptSubject, hwPromptText } = useLocalSearchParams<{
     teacherId: string;
     dispute?: string;
     hwTitle?: string;
     grade?: string;
+    hwPromptSubject?: string;
+    hwPromptText?: string;
   }>();
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
@@ -151,8 +154,14 @@ export default function ChatScreen() {
   const assignments = useHomeworkStore((s) => s.assignments);
   const [text, setText] = useState('');
   const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
+  const [showHwPrompt, setShowHwPrompt] = useState(!!hwPromptText);
   const flatListRef = useRef<FlatList>(null);
   const hasSentDispute = useRef(false);
+
+  const dismissHwPrompt = useCallback(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowHwPrompt(false);
+  }, []);
 
   const navigation = useNavigation();
   const teacher = mockTeachers.find((t) => t.id === teacherId);
@@ -333,6 +342,23 @@ export default function ChatScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
+      {/* HW prompt banner */}
+      {showHwPrompt && hwPromptText && (
+        <View style={[styles.hwPromptBanner, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }]}>
+          <View style={styles.hwPromptContent}>
+            <Text style={[styles.hwPromptSubject, { color: theme.colors.primary }]}>
+              {hwPromptSubject}
+            </Text>
+            <Text style={[styles.hwPromptText, { color: theme.colors.text }]}>
+              {hwPromptText}
+            </Text>
+          </View>
+          <TouchableOpacity onPress={dismissHwPrompt} style={styles.hwPromptClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Ionicons name="close" size={18} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Messages */}
         <FlatList
           ref={flatListRef}
@@ -698,5 +724,29 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  // HW prompt banner
+  hwPromptBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  hwPromptContent: {
+    flex: 1,
+  },
+  hwPromptSubject: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  hwPromptText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  hwPromptClose: {
+    marginLeft: 8,
+    marginTop: 2,
   },
 });

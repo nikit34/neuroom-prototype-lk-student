@@ -242,7 +242,7 @@ export default function HomeScreen() {
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.cameraBtn, { backgroundColor: theme.colors.accent }]}
-                      onPress={() => router.push(`/chat/${AI_TUTOR_ID}`)}
+                      onPress={() => router.push(`/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(hw.subject)}&hwPromptText=${encodeURIComponent(hw.description)}`)}
                       activeOpacity={0.7}
                     >
                       <Text style={styles.cameraBtnIcon}>💬</Text>
@@ -264,6 +264,7 @@ export default function HomeScreen() {
           })
         )}
       </ScrollView>
+
     </SafeAreaView>
   );
 }
