@@ -5,6 +5,7 @@ interface AppealState {
   appeals: Record<string, Appeal>;
   getAppeal: (homeworkId: string) => Appeal | undefined;
   getErrorAppeal: (homeworkId: string, errorIndex: number) => Appeal | undefined;
+  resetAppeals: () => void;
   submitAppeal: (data: {
     homeworkId: string;
     disagreementPoints: string[];
@@ -34,6 +35,8 @@ export const useAppealStore = create<AppealState>((set, get) => ({
 
   getErrorAppeal: (homeworkId, errorIndex) =>
     get().appeals[appealKey(homeworkId, errorIndex)],
+
+  resetAppeals: () => set({ appeals: {} }),
 
   submitAppeal: ({ homeworkId, disagreementPoints, reviewType, comment, oldGrade, errorIndex, errorLabel }) => {
     const key = appealKey(homeworkId, errorIndex);

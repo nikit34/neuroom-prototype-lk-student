@@ -16,6 +16,7 @@ import { useArenaStore } from '@/src/stores/arenaStore';
 import { useNotificationStore } from '@/src/stores/notificationStore';
 import { useChatStore, AI_TUTOR_ID } from '@/src/stores/chatStore';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
+import { useAppealStore } from '@/src/stores/appealStore';
 import { getMascotState, getMascotStateLabel } from '@/src/utils/gradeHelpers';
 import { useAppVersionStore, AppVersion } from '@/src/config/appVersion';
 import { AchievementRarity, AppNotification, ChatMessage } from '@/src/types';
@@ -404,6 +405,8 @@ function ResetHomeworkButton() {
 function RestartOnboardingButton({ onClose }: { onClose?: () => void }) {
   const resetOnboarding = useOnboardingStore((s) => s.reset);
   const resetChatOnboarding = useChatStore((s) => s.resetChatOnboarding);
+  const resetAssignments = useHomeworkStore((s) => s.resetAssignments);
+  const resetAppeals = useAppealStore((s) => s.resetAppeals);
 
   return (
     <TouchableOpacity
@@ -412,6 +415,8 @@ function RestartOnboardingButton({ onClose }: { onClose?: () => void }) {
         onClose?.();
         resetOnboarding();
         resetChatOnboarding();
+        resetAssignments();
+        resetAppeals();
       }}
       activeOpacity={0.7}
     >
