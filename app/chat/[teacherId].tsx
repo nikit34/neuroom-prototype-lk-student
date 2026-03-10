@@ -406,6 +406,44 @@ export default function ChatScreen() {
       );
     }
 
+    if (item.optionType === 'motivation' || item.optionType === 'learning_style' || item.optionType === 'goal') {
+      return (
+        <View style={styles.interestOptionsGrid}>
+          {item.options.map((opt) => (
+            <TouchableOpacity
+              key={opt.id}
+              style={[
+                styles.interestOptionCard,
+                {
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.border,
+                },
+              ]}
+              onPress={() => selectOnboardingOption(opt.id)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.interestOptionEmoji}>{opt.emoji}</Text>
+              <Text
+                style={[styles.interestOptionLabel, { color: theme.colors.text }]}
+                numberOfLines={2}
+              >
+                {opt.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+          <TouchableOpacity
+            style={styles.skipButton}
+            onPress={() => selectOnboardingOption('skip')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.skipButtonText, { color: theme.colors.textSecondary }]}>
+              Пропустить
+            </Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
     return null;
   };
 
@@ -546,7 +584,7 @@ export default function ChatScreen() {
           <View style={[styles.aiCounterBar, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
             <Ionicons name="chatbubbles-outline" size={16} color={theme.colors.primary} />
             <Text style={[styles.aiCounterText, { color: theme.colors.textSecondary }]}>
-              Осталось вопросов: <Text style={{ color: theme.colors.primary, fontWeight: '700' }}>{aiRemaining}</Text> из {AI_TUTOR_FREE_LIMIT}
+              Осталось сообщений: <Text style={{ color: theme.colors.primary, fontWeight: '700' }}>{aiRemaining}</Text> из {AI_TUTOR_FREE_LIMIT}
             </Text>
           </View>
         )}
@@ -556,10 +594,10 @@ export default function ChatScreen() {
           <View style={[styles.aiLimitBanner, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
             <Text style={styles.aiLimitEmoji}>🔒</Text>
             <Text style={[styles.aiLimitTitle, { color: theme.colors.text }]}>
-              Лимит бесплатных вопросов исчерпан
+              Лимит бесплатных сообщений исчерпан
             </Text>
             <Text style={[styles.aiLimitDesc, { color: theme.colors.textSecondary }]}>
-              Вы использовали {AI_TUTOR_FREE_LIMIT} бесплатных вопросов. Получите полный доступ к AI-репетитору без ограничений.
+              Вы использовали {AI_TUTOR_FREE_LIMIT} бесплатных сообщений. Получите полный доступ к AI-репетитору без ограничений.
             </Text>
             <TouchableOpacity
               style={[styles.aiUnlockButton, { backgroundColor: theme.colors.primary }]}
@@ -803,6 +841,42 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     textAlign: 'center',
+  },
+
+  // Interest options (2-column grid)
+  interestOptionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 10,
+    width: '100%',
+  },
+  interestOptionCard: {
+    width: (SCREEN_WIDTH - 32 - 16) / 2,
+    paddingVertical: 16,
+    paddingHorizontal: 10,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    gap: 6,
+  },
+  interestOptionEmoji: {
+    fontSize: 28,
+  },
+  interestOptionLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+
+  skipButton: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  skipButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
 
   // Confirm

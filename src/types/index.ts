@@ -34,6 +34,9 @@ export interface Student {
   avatarUrl?: string;
   totalPoints: number;
   characterId?: string;
+  motivation?: string;
+  learningStyle?: string;
+  goal?: string;
 }
 
 export interface Teacher {
@@ -145,7 +148,7 @@ export interface ChatMessage {
   isStudent: boolean;
   attachments?: ChatAttachment[];
   options?: ChatMessageOption[];
-  optionType?: 'gender' | 'theme' | 'character' | 'confirm';
+  optionType?: 'gender' | 'theme' | 'character' | 'motivation' | 'learning_style' | 'goal' | 'confirm';
   selectedOptionId?: string;
 }
 

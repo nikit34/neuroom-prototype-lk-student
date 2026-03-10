@@ -71,6 +71,7 @@ export default function OnboardingScreen() {
       gender: 'female',
       grade: 10,
       classId: '10A',
+      avatarEmoji: '👤',
     });
     setShowManualForm(false);
     animateTransition(1);

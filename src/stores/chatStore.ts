@@ -8,9 +8,30 @@ import { useThemeStore } from './themeStore';
 import { themes, allCharacters, seniorThemes, juniorThemes, defaultTheme } from '../theme/themes';
 
 export const AI_TUTOR_ID = 'ai-tutor';
-export const AI_TUTOR_FREE_LIMIT = 10;
+export const AI_TUTOR_FREE_LIMIT = 25;
 
-export type ChatOnboardingStep = 'gender' | 'theme' | 'character' | 'confirm' | 'done';
+export type ChatOnboardingStep = 'gender' | 'theme' | 'character' | 'motivation' | 'learning_style' | 'goal' | 'confirm' | 'done';
+
+const motivationOptions: { id: string; label: string; emoji: string }[] = [
+  { id: 'grades', label: 'Получать хорошие оценки', emoji: '⭐' },
+  { id: 'leaderboard', label: 'Быть лучшим в классе', emoji: '🏆' },
+  { id: 'teamwork', label: 'Делать что-то в команде', emoji: '🤝' },
+  { id: 'challenges', label: 'Челленджи и вызовы', emoji: '🎯' },
+];
+
+const learningStyleOptions: { id: string; label: string; emoji: string }[] = [
+  { id: 'step_by_step', label: 'По шагам', emoji: '📝' },
+  { id: 'examples', label: 'На примерах', emoji: '👀' },
+  { id: 'practice', label: 'Решая задачи', emoji: '🧩' },
+  { id: 'video', label: 'Через видео', emoji: '🎥' },
+];
+
+const goalOptions: { id: string; label: string; emoji: string }[] = [
+  { id: 'improve_grades', label: 'Подтянуть оценки', emoji: '📈' },
+  { id: 'keep_up', label: 'Не отставать от класса', emoji: '🎯' },
+  { id: 'be_top', label: 'Стать лучшим учеником', emoji: '🥇' },
+  { id: 'understand', label: 'Глубже разобраться', emoji: '🧠' },
+];
 
 interface TopicReplies {
   [topic: string]: string[];
@@ -330,17 +351,151 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
       });
 
       setTimeout(() => {
-        const gender = useStudentStore.getState().student.gender;
+        const botMsg: ChatMessage = {
+          id: `msg-onb-${now}-b`,
+          senderId: AI_TUTOR_ID,
+          senderName: 'AI-Репетитор',
+          text: 'Теперь пара вопросов, чтобы настроить всё под тебя.\n\nЧто тебе интереснее в учёбе?',
+          timestamp: new Date(),
+          isStudent: false,
+          options: motivationOptions,
+          optionType: 'motivation',
+        };
+
+        set((s) => ({
+          chatOnboardingStep: 'motivation',
+          messages: {
+            ...s.messages,
+            [AI_TUTOR_ID]: [...(s.messages[AI_TUTOR_ID] ?? []), botMsg],
+          },
+        }));
+      }, 600);
+    } else if (step === 'motivation') {
+      const isSkip = optionId === 'skip';
+      const opt = motivationOptions.find((o) => o.id === optionId);
+      if (!isSkip && !opt) return;
+
+      if (!isSkip) useStudentStore.getState().setMotivation(optionId);
+
+      const studentMsg: ChatMessage = {
+        id: `msg-onb-${now}-s`,
+        senderId: student.id,
+        senderName: `${student.firstName} ${student.lastName}`,
+        text: isSkip ? 'Пропущено' : `${opt!.emoji} ${opt!.label}`,
+        timestamp: new Date(),
+        isStudent: true,
+      };
+
+      set({
+        messages: { ...state.messages, [AI_TUTOR_ID]: [...messages, studentMsg] },
+      });
+
+      setTimeout(() => {
+        const botMsg: ChatMessage = {
+          id: `msg-onb-${now}-b`,
+          senderId: AI_TUTOR_ID,
+          senderName: 'AI-Репетитор',
+          text: 'Как тебе проще разбираться в новой теме?',
+          timestamp: new Date(),
+          isStudent: false,
+          options: learningStyleOptions,
+          optionType: 'learning_style',
+        };
+
+        set((s) => ({
+          chatOnboardingStep: 'learning_style',
+          messages: {
+            ...s.messages,
+            [AI_TUTOR_ID]: [...(s.messages[AI_TUTOR_ID] ?? []), botMsg],
+          },
+        }));
+      }, 600);
+    } else if (step === 'learning_style') {
+      const isSkip = optionId === 'skip';
+      const opt = learningStyleOptions.find((o) => o.id === optionId);
+      if (!isSkip && !opt) return;
+
+      if (!isSkip) useStudentStore.getState().setLearningStyle(optionId);
+
+      const studentMsg: ChatMessage = {
+        id: `msg-onb-${now}-s`,
+        senderId: student.id,
+        senderName: `${student.firstName} ${student.lastName}`,
+        text: isSkip ? 'Пропущено' : `${opt!.emoji} ${opt!.label}`,
+        timestamp: new Date(),
+        isStudent: true,
+      };
+
+      set({
+        messages: { ...state.messages, [AI_TUTOR_ID]: [...messages, studentMsg] },
+      });
+
+      setTimeout(() => {
+        const botMsg: ChatMessage = {
+          id: `msg-onb-${now}-b`,
+          senderId: AI_TUTOR_ID,
+          senderName: 'AI-Репетитор',
+          text: 'И последнее — какая у тебя цель на этот год?',
+          timestamp: new Date(),
+          isStudent: false,
+          options: goalOptions,
+          optionType: 'goal',
+        };
+
+        set((s) => ({
+          chatOnboardingStep: 'goal',
+          messages: {
+            ...s.messages,
+            [AI_TUTOR_ID]: [...(s.messages[AI_TUTOR_ID] ?? []), botMsg],
+          },
+        }));
+      }, 600);
+    } else if (step === 'goal') {
+      const isSkip = optionId === 'skip';
+      const opt = goalOptions.find((o) => o.id === optionId);
+      if (!isSkip && !opt) return;
+
+      if (!isSkip) useStudentStore.getState().setGoal(optionId);
+
+      const studentMsg: ChatMessage = {
+        id: `msg-onb-${now}-s`,
+        senderId: student.id,
+        senderName: `${student.firstName} ${student.lastName}`,
+        text: isSkip ? 'Пропущено' : `${opt!.emoji} ${opt!.label}`,
+        timestamp: new Date(),
+        isStudent: true,
+      };
+
+      set({
+        messages: { ...state.messages, [AI_TUTOR_ID]: [...messages, studentMsg] },
+      });
+
+      setTimeout(() => {
+        const currentStudent = useStudentStore.getState().student;
+        const gender = currentStudent.gender;
         const genderLabel = gender === 'male' ? '🧑 Парень' : '👩 Девушка';
         const selectedTheme = themes.find((t) => t.id === useThemeStore.getState().themeId);
         const themeLabel = selectedTheme ? `${selectedTheme.emoji} ${selectedTheme.name}` : '';
-        const charLabel = `${char.emoji} ${char.name}`;
+        const char = allCharacters.find((c) => c.id === useThemeStore.getState().characterId);
+        const charLabel = char ? `${char.emoji} ${char.name}` : '';
+        const motiv = motivationOptions.find((o) => o.id === currentStudent.motivation);
+        const style = learningStyleOptions.find((o) => o.id === currentStudent.learningStyle);
+        const goalItem = goalOptions.find((o) => o.id === currentStudent.goal);
+
+        const lines = [
+          genderLabel,
+          themeLabel,
+          charLabel,
+          motiv ? `${motiv.emoji} ${motiv.label}` : '',
+          style ? `${style.emoji} ${style.label}` : '',
+          goalItem ? `${goalItem.emoji} ${goalItem.label}` : '',
+        ].filter(Boolean);
 
         const botMsg: ChatMessage = {
           id: `msg-onb-${now}-b`,
           senderId: AI_TUTOR_ID,
           senderName: 'AI-Репетитор',
-          text: `Отлично! Вот что ты выбрал:\n\n${genderLabel}\n${themeLabel}\n${charLabel}\n\nВсё верно?`,
+          text: `Отлично! Вот что ты выбрал:\n\n${lines.join('\n')}\n\nВсё верно?`,
           timestamp: new Date(),
           isStudent: false,
           optionType: 'confirm',

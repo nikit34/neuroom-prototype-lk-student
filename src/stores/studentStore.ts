@@ -12,6 +12,9 @@ interface StudentState {
   setXpMultiplier: (multiplier: number) => void;
   addPoints: (points: number) => void;
   setGender: (gender: 'male' | 'female') => void;
+  setMotivation: (motivation: string) => void;
+  setLearningStyle: (style: string) => void;
+  setGoal: (goal: string) => void;
 }
 
 export const useStudentStore = create<StudentState>((set) => ({
@@ -89,6 +92,30 @@ export const useStudentStore = create<StudentState>((set) => ({
       student: {
         ...state.student,
         gender,
+      },
+    })),
+
+  setMotivation: (motivation) =>
+    set((state) => ({
+      student: {
+        ...state.student,
+        motivation,
+      },
+    })),
+
+  setLearningStyle: (style) =>
+    set((state) => ({
+      student: {
+        ...state.student,
+        learningStyle: style,
+      },
+    })),
+
+  setGoal: (goal) =>
+    set((state) => ({
+      student: {
+        ...state.student,
+        goal,
       },
     })),
 }));
