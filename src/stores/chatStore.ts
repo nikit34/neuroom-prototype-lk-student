@@ -184,7 +184,7 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
       id: 'msg-onb-gender',
       senderId: AI_TUTOR_ID,
       senderName: 'AI-Репетитор',
-      text: `Привет, ${student.firstName}! Давай настроим приложение под тебя.\n\nКто ты?`,
+      text: `Давай настроим приложение под тебя.\n\nКто ты?`,
       timestamp: new Date(),
       isStudent: false,
       options: [

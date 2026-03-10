@@ -72,8 +72,8 @@ export default function OnboardingScreen() {
       grade: 10,
       classId: '10A',
     });
-    initChatOnboarding();
-    completeOnboarding();
+    setShowManualForm(false);
+    animateTransition(1);
   };
 
   const handleNext = () => {
@@ -187,25 +187,24 @@ export default function OnboardingScreen() {
           <View style={styles.stepContainer}>
             <Text style={styles.stepEmoji}>👋</Text>
             <Text style={[styles.title, { color: theme.colors.text }]}>
-              Привет!
+              Привет, {student.firstName}!
             </Text>
             <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-              Давай проверим, что всё верно
+              Ты {student.gender === 'male' ? 'добавился' : 'добавилась'} к{' '}
+              {student.classId.replace(/(\d+)(\D)/, '$1-$2')} классу
             </Text>
 
             <View
               style={[
-                styles.nameCard,
+                styles.welcomeCard,
                 {
                   backgroundColor: theme.colors.surface,
                   borderColor: theme.colors.border,
                 },
               ]}
             >
-              <Text style={[styles.nameLabel, { color: theme.colors.textSecondary }]}>
-                Твоё имя
-              </Text>
-              <Text style={[styles.nameValue, { color: theme.colors.text }]}>
+              <Avatar size={64} neutral />
+              <Text style={[styles.nameValue, { color: theme.colors.text, marginTop: 12 }]}>
                 {student.firstName} {student.lastName}
               </Text>
               <Text style={[styles.classValue, { color: theme.colors.textSecondary }]}>
@@ -498,18 +497,14 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
 
-  // Step 2 — Name
-  nameCard: {
+  // Step 2 — Welcome
+  welcomeCard: {
     width: '100%',
-    padding: 24,
+    padding: 28,
     borderRadius: 20,
     borderWidth: 1,
     alignItems: 'center',
     marginBottom: 16,
-  },
-  nameLabel: {
-    fontSize: 14,
-    marginBottom: 8,
   },
   nameValue: {
     fontSize: 24,
