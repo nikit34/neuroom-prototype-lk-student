@@ -129,6 +129,13 @@ export interface ChatAttachment {
   name?: string;
 }
 
+export interface ChatMessageOption {
+  id: string;
+  label: string;
+  emoji?: string;
+  colors?: [string, string, string];
+}
+
 export interface ChatMessage {
   id: string;
   senderId: string;
@@ -137,6 +144,9 @@ export interface ChatMessage {
   timestamp: Date;
   isStudent: boolean;
   attachments?: ChatAttachment[];
+  options?: ChatMessageOption[];
+  optionType?: 'gender' | 'theme' | 'character' | 'confirm';
+  selectedOptionId?: string;
 }
 
 export interface DuelChallenge {

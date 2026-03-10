@@ -1,11 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Animated,
-  Dimensions,
   ScrollView,
   TextInput,
 } from 'react-native';
@@ -14,42 +13,28 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
-import { useThemeStore } from '@/src/stores/themeStore';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
-import { themes, allCharacters, seniorThemes, juniorThemes } from '@/src/theme/themes';
+import { useChatStore, AI_TUTOR_ID } from '@/src/stores/chatStore';
 import { mockClassStudents, StudentListItem } from '@/src/data/mockData';
-import { AppTheme, ThemeCharacter } from '@/src/types';
+import Avatar from '@/src/components/ui/Avatar';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 2;
 
 export default function OnboardingScreen() {
   const theme = useAppTheme();
   const student = useStudentStore((s) => s.student);
   const selectStudent = useStudentStore((s) => s.selectStudent);
-  const setGender = useStudentStore((s) => s.setGender);
-  const themeId = useThemeStore((s) => s.themeId);
-  const characterId = useThemeStore((s) => s.characterId);
-  const setThemeId = useThemeStore((s) => s.setTheme);
-  const setCharacterId = useThemeStore((s) => s.setCharacter);
   const completeOnboarding = useOnboardingStore((s) => s.complete);
-
-  const ageGroup = useThemeStore((s) => s.ageGroup);
-
-  const genderTheme = (g: 'male' | 'female') => g === 'male' ? 'genshin' : 'sakura';
-
-  useEffect(() => {
-    setCharacterId('pk-pikachu');
-  }, []);
+  const initChatOnboarding = useChatStore((s) => s.initChatOnboarding);
 
   const [step, setStep] = useState(0);
   const [selectedStudentItem, setSelectedStudentItem] = useState<StudentListItem | null>(null);
-  const [selectedGender, setSelectedGender] = useState<'male' | 'female'>(student.gender);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showManualForm, setShowManualForm] = useState(false);
+  const [manualLastName, setManualLastName] = useState('');
+  const [manualFirstName, setManualFirstName] = useState('');
+  const [manualPatronymic, setManualPatronymic] = useState('');
   const fadeAnim = useRef(new Animated.Value(1)).current;
-
-  const availableThemes = ageGroup === 'senior' ? seniorThemes : juniorThemes;
-  const ageLabel = ageGroup === 'senior' ? '8–11 класс' : '5–7 класс';
 
   const filteredStudents = searchQuery.trim()
     ? mockClassStudents.filter((s) =>
@@ -72,27 +57,48 @@ export default function OnboardingScreen() {
     });
   };
 
-  const canProceed = step === 0 ? selectedStudentItem !== null : true;
+  const canProceed = showManualForm
+    ? manualLastName.trim() !== '' && manualFirstName.trim() !== ''
+    : step === 0
+      ? selectedStudentItem !== null
+      : true;
+
+  const handleManualRegister = () => {
+    if (!manualLastName.trim() || !manualFirstName.trim()) return;
+    selectStudent({
+      id: `manual-${Date.now()}`,
+      firstName: manualFirstName.trim(),
+      lastName: manualLastName.trim(),
+      gender: 'female',
+      grade: 10,
+      classId: '10A',
+    });
+    completeOnboarding();
+    initChatOnboarding();
+    router.replace('/(tabs)');
+    setTimeout(() => router.push(`/chat/${AI_TUTOR_ID}`), 100);
+  };
 
   const handleNext = () => {
     if (step === 0) {
       if (!selectedStudentItem) return;
       selectStudent(selectedStudentItem);
-      setSelectedGender(selectedStudentItem.gender);
-      setThemeId(genderTheme(selectedStudentItem.gender));
-    }
-    if (step === 2) {
-      setGender(selectedGender);
     }
     if (step < TOTAL_STEPS - 1) {
       animateTransition(step + 1);
     } else {
       completeOnboarding();
+      initChatOnboarding();
       router.replace('/(tabs)');
+      setTimeout(() => router.push(`/chat/${AI_TUTOR_ID}`), 100);
     }
   };
 
   const handleBack = () => {
+    if (showManualForm) {
+      setShowManualForm(false);
+      return;
+    }
     if (step > 0) {
       animateTransition(step - 1);
     }
@@ -100,7 +106,6 @@ export default function OnboardingScreen() {
 
   const renderStep = () => {
     switch (step) {
-      // ── Шаг 1: Выбор себя из списка ──
       case 0:
         return (
           <View style={styles.stepContainer}>
@@ -145,7 +150,7 @@ export default function OnboardingScreen() {
                     onPress={() => setSelectedStudentItem(item)}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.studentEmoji}>{item.avatarEmoji}</Text>
+                    <Avatar size={36} neutral />
                     <View style={styles.studentInfo}>
                       <Text
                         style={[
@@ -159,7 +164,7 @@ export default function OnboardingScreen() {
                         {item.lastName} {item.firstName}
                       </Text>
                       <Text style={[styles.studentClass, { color: theme.colors.textSecondary }]}>
-                        {item.grade} класс, {item.classId}
+                        {item.classId.replace(/(\d+)(\D)/, '$1-$2')} класс
                       </Text>
                     </View>
                     {isSelected && (
@@ -169,10 +174,19 @@ export default function OnboardingScreen() {
                 );
               })}
             </View>
+
+            <TouchableOpacity
+              style={styles.notInListBtn}
+              onPress={() => setShowManualForm(true)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.notInListText, { color: theme.colors.primary }]}>
+                Меня нет в списке
+              </Text>
+            </TouchableOpacity>
           </View>
         );
 
-      // ── Шаг 2: Подтверждение имени ──
       case 1:
         return (
           <View style={styles.stepContainer}>
@@ -200,7 +214,7 @@ export default function OnboardingScreen() {
                 {student.firstName} {student.lastName}
               </Text>
               <Text style={[styles.classValue, { color: theme.colors.textSecondary }]}>
-                {student.grade} класс, {student.classId}
+                {student.classId.replace(/(\d+)(\D)/, '$1-$2')} класс
               </Text>
             </View>
 
@@ -210,232 +224,81 @@ export default function OnboardingScreen() {
           </View>
         );
 
-      // ── Шаг 3: Выбор пола ──
-      case 2:
-        return (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepEmoji}>
-              {selectedGender === 'male' ? '🧑' : '👩'}
-            </Text>
-            <Text style={[styles.title, { color: theme.colors.text }]}>
-              Кто ты?
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-              Это нужно для правильного обращения
-            </Text>
-
-            <View style={styles.genderRow}>
-              {(['male', 'female'] as const).map((g) => {
-                const isSelected = selectedGender === g;
-                const emoji = g === 'male' ? '🧑' : '👩';
-                const label = g === 'male' ? 'Парень' : 'Девушка';
-
-                return (
-                  <TouchableOpacity
-                    key={g}
-                    style={[
-                      styles.genderCard,
-                      {
-                        backgroundColor: isSelected
-                          ? theme.colors.primary + '20'
-                          : theme.colors.surface,
-                        borderColor: isSelected
-                          ? theme.colors.primary
-                          : theme.colors.border,
-                        borderWidth: isSelected ? 2.5 : 1,
-                      },
-                    ]}
-                    onPress={() => {
-                      setSelectedGender(g);
-                      setThemeId(genderTheme(g));
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.genderEmoji}>{emoji}</Text>
-                    <Text
-                      style={[
-                        styles.genderLabel,
-                        {
-                          color: isSelected
-                            ? theme.colors.primary
-                            : theme.colors.text,
-                          fontWeight: isSelected ? '700' : '500',
-                        },
-                      ]}
-                    >
-                      {label}
-                    </Text>
-                    {isSelected && (
-                      <Text style={[styles.checkMark, { color: theme.colors.primary }]}>
-                        ✓
-                      </Text>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-        );
-
-      // ── Шаг 4: Выбор оформления (франшизы) ──
-      case 3:
-        return (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepEmoji}>🎨</Text>
-            <Text style={[styles.title, { color: theme.colors.text }]}>
-              Выбери оформление
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-              Его всегда можно сменить в профиле
-            </Text>
-
-            <Text style={[styles.ageGroupLabel, { color: theme.colors.textSecondary }]}>
-              {ageLabel}
-            </Text>
-            <View style={styles.themesGrid}>
-              {availableThemes.map((t: AppTheme) => renderThemeCard(t))}
-            </View>
-          </View>
-        );
-
-      // ── Шаг 5: Выбор персонажа ──
-      case 4:
-        return (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepEmoji}>{'🧑‍🎤'}</Text>
-            <Text style={[styles.title, { color: theme.colors.text }]}>
-              Выбери персонажа
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-              Выбери любого персонажа
-            </Text>
-
-            <View style={styles.charactersGrid}>
-              {allCharacters.map((char: ThemeCharacter) => {
-                  const isSelected = char.id === characterId;
-                  return (
-                    <TouchableOpacity
-                      key={char.id}
-                      style={[
-                        styles.characterCard,
-                        {
-                          backgroundColor: isSelected
-                            ? theme.colors.primary + '20'
-                            : theme.colors.surface,
-                          borderColor: isSelected
-                            ? theme.colors.primary
-                            : theme.colors.border,
-                          borderWidth: isSelected ? 2.5 : 1,
-                        },
-                      ]}
-                      onPress={() => setCharacterId(char.id)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.characterEmoji}>{char.emoji}</Text>
-                      <Text
-                        style={[
-                          styles.characterName,
-                          {
-                            color: isSelected
-                              ? theme.colors.primary
-                              : theme.colors.text,
-                            fontWeight: isSelected ? '700' : '500',
-                          },
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {char.name}
-                      </Text>
-                      {isSelected && (
-                        <View
-                          style={[
-                            styles.selectedBadge,
-                            { backgroundColor: theme.colors.primary },
-                          ]}
-                        >
-                          <Text style={styles.selectedBadgeText}>✓</Text>
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                  );
-                },
-              )}
-            </View>
-
-          </View>
-        );
-
       default:
         return null;
     }
   };
 
-  const renderThemeCard = (t: AppTheme) => {
-    const isSelected = t.id === themeId;
-    return (
-      <TouchableOpacity
-        key={t.id}
-        style={[
-          styles.themeCard,
-          {
-            backgroundColor: t.colors.surface,
-            borderColor: isSelected
-              ? t.colors.primary
-              : t.colors.border,
-            borderWidth: isSelected ? 3 : 1,
-          },
-        ]}
-        onPress={() => setThemeId(t.id)}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.themeEmoji}>{t.emoji}</Text>
-        <Text style={[styles.themeName, { color: t.colors.text }]}>
-          {t.name}
-        </Text>
-        <View style={styles.colorPreview}>
-          <View
-            style={[styles.colorDot, { backgroundColor: t.colors.primary }]}
-          />
-          <View
-            style={[styles.colorDot, { backgroundColor: t.colors.secondary }]}
-          />
-          <View
-            style={[styles.colorDot, { backgroundColor: t.colors.accent }]}
+  const renderManualForm = () => (
+    <View style={styles.stepContainer}>
+      <Text style={[styles.title, { color: theme.colors.text }]}>
+        Представьтесь, пожалуйста
+      </Text>
+      <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+        Это имя будет видно преподавателям и родителям
+      </Text>
+
+      <View style={styles.formFields}>
+        <View style={styles.formField}>
+          <Text style={[styles.formLabel, { color: theme.colors.text }]}>Фамилия*</Text>
+          <TextInput
+            style={[styles.formInput, { color: theme.colors.text, borderColor: theme.colors.border, backgroundColor: theme.colors.surface }]}
+            placeholder="Введите фамилию"
+            placeholderTextColor={theme.colors.textSecondary}
+            value={manualLastName}
+            onChangeText={setManualLastName}
+            autoCorrect={false}
           />
         </View>
-        {isSelected && (
-          <View
-            style={[
-              styles.selectedBadge,
-              { backgroundColor: t.colors.primary },
-            ]}
-          >
-            <Text style={styles.selectedBadgeText}>✓</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-    );
-  };
+
+        <View style={styles.formField}>
+          <Text style={[styles.formLabel, { color: theme.colors.text }]}>Имя*</Text>
+          <TextInput
+            style={[styles.formInput, { color: theme.colors.text, borderColor: theme.colors.border, backgroundColor: theme.colors.surface }]}
+            placeholder="Введите имя"
+            placeholderTextColor={theme.colors.textSecondary}
+            value={manualFirstName}
+            onChangeText={setManualFirstName}
+            autoCorrect={false}
+          />
+        </View>
+
+        <View style={styles.formField}>
+          <Text style={[styles.formLabel, { color: theme.colors.textSecondary }]}>Отчество</Text>
+          <TextInput
+            style={[styles.formInput, { color: theme.colors.text, borderColor: theme.colors.border, backgroundColor: theme.colors.surface }]}
+            placeholder="Введите отчество"
+            placeholderTextColor={theme.colors.textSecondary}
+            value={manualPatronymic}
+            onChangeText={setManualPatronymic}
+            autoCorrect={false}
+          />
+        </View>
+      </View>
+    </View>
+  );
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
       <View style={styles.container}>
-        {/* Progress dots */}
-        <View style={styles.progressRow}>
-          {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.dot,
-                {
-                  backgroundColor:
-                    i <= step ? theme.colors.primary : theme.colors.border,
-                  width: i === step ? 24 : 8,
-                },
-              ]}
-            />
-          ))}
-        </View>
+        {/* Progress dots — hide on manual form */}
+        {!showManualForm && (
+          <View style={styles.progressRow}>
+            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.dot,
+                  {
+                    backgroundColor:
+                      i <= step ? theme.colors.primary : theme.colors.border,
+                    width: i === step ? 24 : 8,
+                  },
+                ]}
+              />
+            ))}
+          </View>
+        )}
 
         {/* Step content */}
         <ScrollView
@@ -444,13 +307,13 @@ export default function OnboardingScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Animated.View style={{ opacity: fadeAnim }}>
-            {renderStep()}
+            {showManualForm ? renderManualForm() : renderStep()}
           </Animated.View>
         </ScrollView>
 
         {/* Bottom buttons */}
         <View style={styles.bottomBar}>
-          {step > 0 ? (
+          {step > 0 || showManualForm ? (
             <TouchableOpacity
               style={[
                 styles.backBtn,
@@ -469,22 +332,41 @@ export default function OnboardingScreen() {
             <View style={styles.backBtn} />
           )}
 
-          <TouchableOpacity
-            onPress={handleNext}
-            activeOpacity={canProceed ? 0.8 : 1}
-            disabled={!canProceed}
-          >
-            <LinearGradient
-              colors={canProceed ? theme.colors.gradient : ['#CCCCCC', '#AAAAAA']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.nextBtn}
+          {showManualForm ? (
+            <TouchableOpacity
+              onPress={handleManualRegister}
+              activeOpacity={canProceed ? 0.8 : 1}
+              disabled={!canProceed}
             >
-              <Text style={styles.nextBtnText}>
-                {step === TOTAL_STEPS - 1 ? 'Начать' : 'Далее'}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+              <LinearGradient
+                colors={canProceed ? theme.colors.gradient : ['#CCCCCC', '#AAAAAA']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.nextBtn}
+              >
+                <Text style={styles.nextBtnText}>
+                  Завершить регистрацию
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={handleNext}
+              activeOpacity={canProceed ? 0.8 : 1}
+              disabled={!canProceed}
+            >
+              <LinearGradient
+                colors={canProceed ? theme.colors.gradient : ['#CCCCCC', '#AAAAAA']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.nextBtn}
+              >
+                <Text style={styles.nextBtnText}>
+                  {step === TOTAL_STEPS - 1 ? 'Начать' : 'Далее'}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </SafeAreaView>
@@ -572,9 +454,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     gap: 12,
   },
-  studentEmoji: {
-    fontSize: 28,
-  },
   studentInfo: {
     flex: 1,
   },
@@ -588,6 +467,40 @@ const styles = StyleSheet.create({
   studentCheck: {
     fontSize: 18,
     fontWeight: '700',
+  },
+
+  notInListBtn: {
+    marginTop: 16,
+    paddingVertical: 12,
+  },
+  notInListText: {
+    fontSize: 15,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
+
+  // Manual registration form
+  formFields: {
+    width: '100%',
+    gap: 16,
+  },
+  formField: {
+    width: '100%',
+    gap: 4,
+  },
+  formLabel: {
+    fontSize: 12,
+    paddingHorizontal: 17,
+    letterSpacing: -0.4,
+  },
+  formInput: {
+    width: '100%',
+    fontSize: 18,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    lineHeight: 24,
   },
 
   // Step 2 — Name
@@ -615,117 +528,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     lineHeight: 18,
-  },
-
-  // Step 3 — Gender
-  genderRow: {
-    flexDirection: 'row',
-    gap: 16,
-    width: '100%',
-  },
-  genderCard: {
-    flex: 1,
-    paddingVertical: 28,
-    borderRadius: 20,
-    alignItems: 'center',
-    position: 'relative',
-  },
-  genderEmoji: {
-    fontSize: 48,
-    marginBottom: 12,
-  },
-  genderLabel: {
-    fontSize: 17,
-  },
-  checkMark: {
-    position: 'absolute',
-    top: 12,
-    right: 14,
-    fontSize: 18,
-    fontWeight: '700',
-  },
-
-  // Step 4 — Themes
-  ageGroupLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 12,
-    alignSelf: 'flex-start',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  themesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    width: '100%',
-    justifyContent: 'center',
-  },
-  themeCard: {
-    width: (SCREEN_WIDTH - 48 - 24) / 2.5,
-    padding: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-    position: 'relative',
-  },
-  themeEmoji: {
-    fontSize: 32,
-    marginBottom: 8,
-  },
-  themeName: {
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  colorPreview: {
-    flexDirection: 'row',
-    gap: 5,
-  },
-  colorDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-  },
-  selectedBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  selectedBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-
-  // Step 5 — Characters
-  charactersGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    width: '100%',
-    justifyContent: 'center',
-  },
-  characterCard: {
-    width: (SCREEN_WIDTH - 48 - 24) / 2,
-    paddingVertical: 20,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    alignItems: 'center',
-    position: 'relative',
-  },
-  characterEmoji: {
-    fontSize: 40,
-    marginBottom: 8,
-  },
-  characterName: {
-    fontSize: 14,
-    textAlign: 'center',
   },
 
   // Bottom

@@ -13,7 +13,7 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
-import { useLocalSearchParams, useNavigation } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -22,8 +22,10 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useChatStore, AI_TUTOR_ID, AI_TUTOR_FREE_LIMIT } from '@/src/stores/chatStore';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { mockTeachers } from '@/src/data/mockData';
-import { ChatMessage, ChatAttachment } from '@/src/types';
+import { ChatMessage, ChatAttachment, ChatMessageOption } from '@/src/types';
 import { formatDateRu } from '@/src/utils/dateHelpers';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface Suggest {
   label: string;
@@ -151,6 +153,16 @@ export default function ChatScreen() {
   const aiLimitReached = isAiTutor && !aiTutorUnlocked && aiTutorQuestionsUsed >= AI_TUTOR_FREE_LIMIT;
   const aiRemaining = isAiTutor && !aiTutorUnlocked ? AI_TUTOR_FREE_LIMIT - aiTutorQuestionsUsed : -1;
   const assignments = useHomeworkStore((s) => s.assignments);
+
+  // Chat onboarding
+  const chatOnboardingStep = useChatStore((s) => s.chatOnboardingStep);
+  const initChatOnboarding = useChatStore((s) => s.initChatOnboarding);
+  const selectOnboardingOption = useChatStore((s) => s.selectOnboardingOption);
+  const confirmOnboarding = useChatStore((s) => s.confirmOnboarding);
+  const resetChatOnboarding = useChatStore((s) => s.resetChatOnboarding);
+  const isOnboarding = isAiTutor && chatOnboardingStep !== 'done';
+  const router = useRouter();
+
   const [text, setText] = useState('');
   const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
   const flatListRef = useRef<FlatList>(null);
@@ -171,6 +183,13 @@ export default function ChatScreen() {
         : `${teacherName}${teacher ? ` · ${teacher.subject}` : ''}`,
     });
   }, [navigation, teacherName, teacher?.subject, isAiTutor]);
+
+  // Init chat onboarding if needed
+  useEffect(() => {
+    if (isAiTutor && chatOnboardingStep !== 'done') {
+      initChatOnboarding();
+    }
+  }, [isAiTutor]);
 
   // Homework for this teacher (all homework for AI tutor)
   const teacherHomework = isAiTutor
@@ -259,13 +278,147 @@ export default function ChatScreen() {
     setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleConfirmOnboarding = () => {
+    confirmOnboarding();
+    router.replace('/(tabs)');
+  };
+
+  const handleChangeOnboarding = () => {
+    resetChatOnboarding();
+    // Re-init after reset so the first question appears again
+    setTimeout(() => {
+      initChatOnboarding();
+    }, 100);
+  };
+
+  const renderOptions = (item: ChatMessage) => {
+    if (item.optionType === 'confirm' && !item.selectedOptionId) {
+      return (
+        <View style={styles.confirmContainer}>
+          <TouchableOpacity
+            style={[styles.confirmButton, { backgroundColor: theme.colors.primary }]}
+            onPress={handleConfirmOnboarding}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.confirmButtonText}>Подтвердить выбор</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.changeButton, { borderColor: theme.colors.border }]}
+            onPress={handleChangeOnboarding}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.changeButtonText, { color: theme.colors.textSecondary }]}>Изменить выбор</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    if (!item.options || item.selectedOptionId) return null;
+
+    if (item.optionType === 'gender') {
+      return (
+        <View style={styles.genderOptionsRow}>
+          {item.options.map((opt) => (
+            <TouchableOpacity
+              key={opt.id}
+              style={[
+                styles.genderOptionCard,
+                {
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.border,
+                },
+              ]}
+              onPress={() => selectOnboardingOption(opt.id)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.genderOptionEmoji}>{opt.emoji}</Text>
+              <Text style={[styles.genderOptionLabel, { color: theme.colors.text }]}>
+                {opt.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      );
+    }
+
+    if (item.optionType === 'theme') {
+      return (
+        <View style={styles.themeOptionsGrid}>
+          {item.options.map((opt) => (
+            <TouchableOpacity
+              key={opt.id}
+              style={[
+                styles.themeOptionCard,
+                {
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.border,
+                },
+              ]}
+              onPress={() => selectOnboardingOption(opt.id)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.themeOptionEmoji}>{opt.emoji}</Text>
+              <Text
+                style={[styles.themeOptionLabel, { color: theme.colors.text }]}
+                numberOfLines={1}
+              >
+                {opt.label}
+              </Text>
+              {opt.colors && (
+                <View style={styles.colorDotsRow}>
+                  {opt.colors.map((c, i) => (
+                    <View key={i} style={[styles.colorDot, { backgroundColor: c }]} />
+                  ))}
+                </View>
+              )}
+            </TouchableOpacity>
+          ))}
+        </View>
+      );
+    }
+
+    if (item.optionType === 'character') {
+      return (
+        <View style={styles.characterOptionsGrid}>
+          {item.options.map((opt) => (
+            <TouchableOpacity
+              key={opt.id}
+              style={[
+                styles.characterOptionCard,
+                {
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.border,
+                },
+              ]}
+              onPress={() => selectOnboardingOption(opt.id)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.characterOptionEmoji}>{opt.emoji}</Text>
+              <Text
+                style={[styles.characterOptionLabel, { color: theme.colors.text }]}
+                numberOfLines={1}
+              >
+                {opt.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      );
+    }
+
+    return null;
+  };
+
   const renderMessage = ({ item }: { item: ChatMessage }) => {
     const isStudent = item.isStudent;
+    const hasActiveOptions = (item.options || item.optionType === 'confirm') && !item.selectedOptionId;
+
     return (
       <View
         style={[
           styles.messageRow,
           isStudent ? styles.messageRowRight : styles.messageRowLeft,
+          hasActiveOptions && styles.messageRowFull,
         ]}
       >
         <View
@@ -325,6 +478,7 @@ export default function ChatScreen() {
             {formatDateRu(item.timestamp)}
           </Text>
         </View>
+        {renderOptions(item)}
       </View>
     );
   };
@@ -371,8 +525,8 @@ export default function ChatScreen() {
           }
         />
 
-        {/* Suggests */}
-        {suggests.length > 0 && !aiLimitReached && (
+        {/* Suggests — hide during onboarding */}
+        {!isOnboarding && suggests.length > 0 && !aiLimitReached && (
           <View style={styles.suggestsWrap}>
             {suggests.map((s, i) => (
               <TouchableOpacity
@@ -387,8 +541,8 @@ export default function ChatScreen() {
           </View>
         )}
 
-        {/* AI tutor remaining counter */}
-        {isAiTutor && !aiTutorUnlocked && !aiLimitReached && (
+        {/* AI tutor remaining counter — hide during onboarding */}
+        {!isOnboarding && isAiTutor && !aiTutorUnlocked && !aiLimitReached && (
           <View style={[styles.aiCounterBar, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
             <Ionicons name="chatbubbles-outline" size={16} color={theme.colors.primary} />
             <Text style={[styles.aiCounterText, { color: theme.colors.textSecondary }]}>
@@ -451,61 +605,63 @@ export default function ChatScreen() {
           </ScrollView>
         )}
 
-        {/* Input */}
-        <View
-          style={[
-            styles.inputContainer,
-            {
-              backgroundColor: theme.colors.surface,
-              borderTopColor: theme.colors.border,
-              paddingBottom: Math.max(12, insets.bottom),
-            },
-          ]}
-        >
-          <TouchableOpacity
-            style={[styles.attachButton, aiLimitReached && { opacity: 0.3 }]}
-            onPress={handleAttach}
-            activeOpacity={0.7}
-            disabled={aiLimitReached}
-          >
-            <Ionicons name="add-circle-outline" size={28} color={theme.colors.primary} />
-          </TouchableOpacity>
-          <TextInput
+        {/* Input — hide during onboarding */}
+        {!isOnboarding && (
+          <View
             style={[
-              styles.input,
+              styles.inputContainer,
               {
-                backgroundColor: theme.colors.background,
-                color: theme.colors.text,
-                borderColor: theme.colors.border,
-              },
-              aiLimitReached && { opacity: 0.5 },
-            ]}
-            value={text}
-            onChangeText={setText}
-            placeholder={aiLimitReached ? 'Лимит вопросов исчерпан' : 'Написать сообщение...'}
-            placeholderTextColor={theme.colors.textSecondary}
-            multiline
-            maxLength={1000}
-            returnKeyType="send"
-            onSubmitEditing={handleSend}
-            editable={!aiLimitReached}
-          />
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              {
-                backgroundColor: hasContent
-                  ? theme.colors.primary
-                  : theme.colors.border,
+                backgroundColor: theme.colors.surface,
+                borderTopColor: theme.colors.border,
+                paddingBottom: Math.max(12, insets.bottom),
               },
             ]}
-            onPress={handleSend}
-            disabled={!hasContent}
-            activeOpacity={0.7}
           >
-            <Ionicons name="send" size={20} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={[styles.attachButton, aiLimitReached && { opacity: 0.3 }]}
+              onPress={handleAttach}
+              activeOpacity={0.7}
+              disabled={aiLimitReached}
+            >
+              <Ionicons name="add-circle-outline" size={28} color={theme.colors.primary} />
+            </TouchableOpacity>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.colors.background,
+                  color: theme.colors.text,
+                  borderColor: theme.colors.border,
+                },
+                aiLimitReached && { opacity: 0.5 },
+              ]}
+              value={text}
+              onChangeText={setText}
+              placeholder={aiLimitReached ? 'Лимит вопросов исчерпан' : 'Написать сообщение...'}
+              placeholderTextColor={theme.colors.textSecondary}
+              multiline
+              maxLength={1000}
+              returnKeyType="send"
+              onSubmitEditing={handleSend}
+              editable={!aiLimitReached}
+            />
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                {
+                  backgroundColor: hasContent
+                    ? theme.colors.primary
+                    : theme.colors.border,
+                },
+              ]}
+              onPress={handleSend}
+              disabled={!hasContent}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="send" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        )}
     </KeyboardAvoidingView>
   );
 }
@@ -528,6 +684,10 @@ const styles = StyleSheet.create({
   },
   messageRowLeft: {
     alignSelf: 'flex-start',
+  },
+  messageRowFull: {
+    maxWidth: '100%',
+    alignSelf: 'stretch',
   },
   messageBubble: {
     padding: 12,
@@ -559,6 +719,115 @@ const styles = StyleSheet.create({
   emptyChatText: {
     fontSize: 14,
   },
+
+  // ── Onboarding options ──
+  genderOptionsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 10,
+    width: '100%',
+  },
+  genderOptionCard: {
+    flex: 1,
+    paddingVertical: 24,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    gap: 8,
+  },
+  genderOptionEmoji: {
+    fontSize: 40,
+  },
+  genderOptionLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  themeOptionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 10,
+    width: '100%',
+  },
+  themeOptionCard: {
+    width: (SCREEN_WIDTH - 32 - 24) / 3,
+    paddingVertical: 12,
+    paddingHorizontal: 6,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    gap: 4,
+  },
+  themeOptionEmoji: {
+    fontSize: 24,
+  },
+  themeOptionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  colorDotsRow: {
+    flexDirection: 'row',
+    gap: 4,
+    marginTop: 2,
+  },
+  colorDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  characterOptionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 10,
+    width: '100%',
+  },
+  characterOptionCard: {
+    width: (SCREEN_WIDTH - 32 - 24) / 3,
+    paddingVertical: 14,
+    paddingHorizontal: 6,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    gap: 4,
+  },
+  characterOptionEmoji: {
+    fontSize: 28,
+  },
+  characterOptionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+
+  // Confirm
+  confirmContainer: {
+    marginTop: 12,
+    width: '100%',
+  },
+  confirmButton: {
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  confirmButtonText: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  changeButton: {
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    marginTop: 8,
+  },
+  changeButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+
   // AI tutor limit
   aiCounterBar: {
     flexDirection: 'row',

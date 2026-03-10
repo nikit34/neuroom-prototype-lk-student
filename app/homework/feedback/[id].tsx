@@ -13,6 +13,7 @@ import FeedbackBubble from '@/src/components/homework/FeedbackBubble';
 import ComparisonBlock from '@/src/components/homework/ComparisonBlock';
 import Button from '@/src/components/ui/Button';
 import Card from '@/src/components/ui/Card';
+import Avatar from '@/src/components/ui/Avatar';
 import { getGradeColor, getGradeEmoji, getGradeLabel } from '@/src/utils/gradeHelpers';
 
 export default function FeedbackScreen() {
@@ -107,7 +108,7 @@ export default function FeedbackScreen() {
           />
         ) : (
           <Card style={styles.noFeedback}>
-            <Text style={styles.noFeedbackEmoji}>👨‍🏫</Text>
+            <Avatar size={40} neutral />
             <Text style={[styles.noFeedbackText, { color: theme.colors.textSecondary }]}>
               Учитель ещё не оставил отзыв
             </Text>

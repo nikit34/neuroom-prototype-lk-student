@@ -17,6 +17,7 @@ import Mascot from '@/src/components/mascot/Mascot';
 import Card from '@/src/components/ui/Card';
 import ProgressBar from '@/src/components/ui/ProgressBar';
 import { AppTheme, ThemeCharacter } from '@/src/types';
+import Avatar from '@/src/components/ui/Avatar';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
 import { getLevel } from '@/src/utils/levelHelpers';
 
@@ -53,20 +54,13 @@ export default function ProfileScreen() {
         {/* Student Info */}
         <Card style={styles.infoCard}>
           <View style={styles.avatarContainer}>
-            <View
-              style={[
-                styles.avatarCircle,
-                { backgroundColor: theme.colors.primary + '30' },
-              ]}
-            >
-              <Text style={styles.avatarEmoji}>{character.emoji}</Text>
-            </View>
+            <Avatar size={80} neutral />
           </View>
           <Text style={[styles.studentName, { color: theme.colors.text }]}>
             {student.firstName} {student.lastName}
           </Text>
           <Text style={[styles.classInfo, { color: theme.colors.textSecondary }]}>
-            {student.grade} класс, {student.classId}
+            {student.classId.replace(/(\d+)(\D)/, '$1-$2')} класс
           </Text>
 
           {appVersion >= 1 && (

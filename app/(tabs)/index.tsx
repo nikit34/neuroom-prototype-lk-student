@@ -13,7 +13,7 @@ import Card from '@/src/components/ui/Card';
 import DeadlineIndicator from '@/src/components/homework/DeadlineIndicator';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
 import MascotHealthBar from '@/src/components/mascot/MascotHealthBar';
-import { AI_TUTOR_ID } from '@/src/stores/chatStore';
+import { AI_TUTOR_ID, useChatStore } from '@/src/stores/chatStore';
 import type { Achievement, HomeworkAssignment } from '@/src/types';
 
 /** Achievement IDs linked to homework subjects + how much each HW contributes */
@@ -57,8 +57,14 @@ export default function HomeScreen() {
   const notifications = useNotificationStore((s) => s.notifications);
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const markAsRead = useNotificationStore((s) => s.markAsRead);
+  const teacherChatEnabled = useChatStore((s) => s.teacherChatEnabled);
 
-  const recentNotifications = notifications;
+  const recentNotifications = useMemo(
+    () => teacherChatEnabled
+      ? notifications
+      : notifications.filter((n) => n.type !== 'chat_reply'),
+    [notifications, teacherChatEnabled],
+  );
 
   const { height: screenHeight } = useWindowDimensions();
   const topBlockHeight = Math.round(screenHeight / 5);

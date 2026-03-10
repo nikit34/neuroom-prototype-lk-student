@@ -1,9 +1,14 @@
 import { create } from 'zustand';
 import { ChatMessage, ChatAttachment } from '../types';
 import { mockTeachers, mockStudent } from '../data/mockData';
+import { useStudentStore } from './studentStore';
+import { useThemeStore } from './themeStore';
+import { themes, allCharacters, seniorThemes, juniorThemes } from '../theme/themes';
 
 export const AI_TUTOR_ID = 'ai-tutor';
 export const AI_TUTOR_FREE_LIMIT = 10;
+
+export type ChatOnboardingStep = 'gender' | 'theme' | 'character' | 'confirm' | 'done';
 
 interface TopicReplies {
   [topic: string]: string[];
@@ -129,6 +134,7 @@ interface ChatState {
   teacherChatEnabled: boolean;
   aiTutorQuestionsUsed: number;
   aiTutorUnlocked: boolean;
+  chatOnboardingStep: ChatOnboardingStep;
   setTeacherChatEnabled: (enabled: boolean) => void;
   sendMessage: (teacherId: string, text: string, topic?: string, attachments?: ChatAttachment[]) => void;
   getMessages: (teacherId: string) => ChatMessage[];
@@ -137,6 +143,10 @@ interface ChatState {
   resetAiTutorLimit: () => void;
   getAiTutorRemaining: () => number;
   isAiTutorLimitReached: () => boolean;
+  initChatOnboarding: () => void;
+  selectOnboardingOption: (optionId: string) => void;
+  confirmOnboarding: () => void;
+  resetChatOnboarding: () => void;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -144,6 +154,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   teacherChatEnabled: false,
   aiTutorQuestionsUsed: 0,
   aiTutorUnlocked: false,
+  chatOnboardingStep: 'gender',
   setTeacherChatEnabled: (enabled) => set({ teacherChatEnabled: enabled }),
 
   unlockAiTutor: () => set({ aiTutorUnlocked: true }),
@@ -158,6 +169,224 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isAiTutorLimitReached: () => {
     const state = get();
     return !state.aiTutorUnlocked && state.aiTutorQuestionsUsed >= AI_TUTOR_FREE_LIMIT;
+  },
+
+  initChatOnboarding: () => {
+    const state = get();
+    const aiMessages = state.messages[AI_TUTOR_ID] ?? [];
+    if (aiMessages.length > 0 || state.chatOnboardingStep === 'done') return;
+
+    const student = useStudentStore.getState().student;
+
+    const botMsg: ChatMessage = {
+      id: 'msg-onb-gender',
+      senderId: AI_TUTOR_ID,
+      senderName: 'AI-Репетитор',
+      text: `Привет, ${student.firstName}! Давай настроим приложение под тебя.\n\nКто ты?`,
+      timestamp: new Date(),
+      isStudent: false,
+      options: [
+        { id: 'male', label: 'Парень', emoji: '🧑' },
+        { id: 'female', label: 'Девушка', emoji: '👩' },
+      ],
+      optionType: 'gender',
+    };
+
+    set({
+      messages: { ...state.messages, [AI_TUTOR_ID]: [botMsg] },
+    });
+  },
+
+  selectOnboardingOption: (optionId) => {
+    const state = get();
+    const step = state.chatOnboardingStep;
+    const messages = [...(state.messages[AI_TUTOR_ID] ?? [])];
+    const now = Date.now();
+
+    // Mark selected option on the last message
+    if (messages.length > 0) {
+      const last = messages[messages.length - 1];
+      messages[messages.length - 1] = { ...last, selectedOptionId: optionId };
+    }
+
+    const student = useStudentStore.getState().student;
+
+    if (step === 'gender') {
+      const gender = optionId as 'male' | 'female';
+      const label = gender === 'male' ? 'Парень' : 'Девушка';
+      const emoji = gender === 'male' ? '🧑' : '👩';
+
+      useStudentStore.getState().setGender(gender);
+      useThemeStore.getState().setTheme(gender === 'male' ? 'genshin' : 'sakura');
+
+      const studentMsg: ChatMessage = {
+        id: `msg-onb-${now}-s`,
+        senderId: student.id,
+        senderName: `${student.firstName} ${student.lastName}`,
+        text: `${emoji} ${label}`,
+        timestamp: new Date(),
+        isStudent: true,
+      };
+
+      // Add student message, then bot reply with delay
+      set({
+        messages: { ...state.messages, [AI_TUTOR_ID]: [...messages, studentMsg] },
+      });
+
+      setTimeout(() => {
+        const ageGroup = useThemeStore.getState().ageGroup;
+        const availableThemes = ageGroup === 'senior' ? seniorThemes : juniorThemes;
+
+        const botMsg: ChatMessage = {
+          id: `msg-onb-${now}-b`,
+          senderId: AI_TUTOR_ID,
+          senderName: 'AI-Репетитор',
+          text: 'Теперь выбери оформление — его всегда можно сменить в профиле',
+          timestamp: new Date(),
+          isStudent: false,
+          options: availableThemes.map((t) => ({
+            id: t.id,
+            label: t.name,
+            emoji: t.emoji,
+            colors: [t.colors.primary, t.colors.secondary, t.colors.accent] as [string, string, string],
+          })),
+          optionType: 'theme',
+        };
+
+        set((s) => ({
+          chatOnboardingStep: 'theme',
+          messages: {
+            ...s.messages,
+            [AI_TUTOR_ID]: [...(s.messages[AI_TUTOR_ID] ?? []), botMsg],
+          },
+        }));
+      }, 600);
+    } else if (step === 'theme') {
+      const theme = themes.find((t) => t.id === optionId);
+      if (!theme) return;
+
+      useThemeStore.getState().setTheme(optionId);
+
+      const studentMsg: ChatMessage = {
+        id: `msg-onb-${now}-s`,
+        senderId: student.id,
+        senderName: `${student.firstName} ${student.lastName}`,
+        text: `${theme.emoji} ${theme.name}`,
+        timestamp: new Date(),
+        isStudent: true,
+      };
+
+      set({
+        messages: { ...state.messages, [AI_TUTOR_ID]: [...messages, studentMsg] },
+      });
+
+      setTimeout(() => {
+        const botMsg: ChatMessage = {
+          id: `msg-onb-${now}-b`,
+          senderId: AI_TUTOR_ID,
+          senderName: 'AI-Репетитор',
+          text: 'И последнее — выбери своего персонажа-компаньона',
+          timestamp: new Date(),
+          isStudent: false,
+          options: allCharacters.map((c) => ({
+            id: c.id,
+            label: c.name,
+            emoji: c.emoji,
+          })),
+          optionType: 'character',
+        };
+
+        set((s) => ({
+          chatOnboardingStep: 'character',
+          messages: {
+            ...s.messages,
+            [AI_TUTOR_ID]: [...(s.messages[AI_TUTOR_ID] ?? []), botMsg],
+          },
+        }));
+      }, 600);
+    } else if (step === 'character') {
+      const char = allCharacters.find((c) => c.id === optionId);
+      if (!char) return;
+
+      useThemeStore.getState().setCharacter(optionId);
+
+      const studentMsg: ChatMessage = {
+        id: `msg-onb-${now}-s`,
+        senderId: student.id,
+        senderName: `${student.firstName} ${student.lastName}`,
+        text: `${char.emoji} ${char.name}`,
+        timestamp: new Date(),
+        isStudent: true,
+      };
+
+      set({
+        messages: { ...state.messages, [AI_TUTOR_ID]: [...messages, studentMsg] },
+      });
+
+      setTimeout(() => {
+        const gender = useStudentStore.getState().student.gender;
+        const genderLabel = gender === 'male' ? '🧑 Парень' : '👩 Девушка';
+        const selectedTheme = themes.find((t) => t.id === useThemeStore.getState().themeId);
+        const themeLabel = selectedTheme ? `${selectedTheme.emoji} ${selectedTheme.name}` : '';
+        const charLabel = `${char.emoji} ${char.name}`;
+
+        const botMsg: ChatMessage = {
+          id: `msg-onb-${now}-b`,
+          senderId: AI_TUTOR_ID,
+          senderName: 'AI-Репетитор',
+          text: `Отлично! Вот что ты выбрал:\n\n${genderLabel}\n${themeLabel}\n${charLabel}\n\nВсё верно?`,
+          timestamp: new Date(),
+          isStudent: false,
+          optionType: 'confirm',
+        };
+
+        set((s) => ({
+          chatOnboardingStep: 'confirm',
+          messages: {
+            ...s.messages,
+            [AI_TUTOR_ID]: [...(s.messages[AI_TUTOR_ID] ?? []), botMsg],
+          },
+        }));
+      }, 600);
+    }
+  },
+
+  confirmOnboarding: () => {
+    const state = get();
+    const messages = [...(state.messages[AI_TUTOR_ID] ?? [])];
+    const now = Date.now();
+
+    // Mark confirm message as selected
+    if (messages.length > 0) {
+      const last = messages[messages.length - 1];
+      messages[messages.length - 1] = { ...last, selectedOptionId: 'confirmed' };
+    }
+
+    const student = useStudentStore.getState().student;
+
+    const studentMsg: ChatMessage = {
+      id: `msg-onb-${now}-s`,
+      senderId: student.id,
+      senderName: `${student.firstName} ${student.lastName}`,
+      text: 'Подтверждаю!',
+      timestamp: new Date(),
+      isStudent: true,
+    };
+
+    set({
+      chatOnboardingStep: 'done',
+      messages: { ...state.messages, [AI_TUTOR_ID]: [...messages, studentMsg] },
+    });
+  },
+
+  resetChatOnboarding: () => {
+    set((state) => {
+      const { [AI_TUTOR_ID]: _, ...rest } = state.messages;
+      return {
+        chatOnboardingStep: 'gender',
+        messages: rest,
+      };
+    });
   },
 
   sendMessage: (teacherId, text, topic, attachments) => {

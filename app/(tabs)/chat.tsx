@@ -13,6 +13,7 @@ import { useChatStore, AI_TUTOR_ID } from '@/src/stores/chatStore';
 import { mockTeachers } from '@/src/data/mockData';
 import { Teacher } from '@/src/types';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
+import Avatar from '@/src/components/ui/Avatar';
 
 export default function ChatListScreen() {
   const theme = useAppTheme();
@@ -52,7 +53,9 @@ export default function ChatListScreen() {
         onPress={() => router.push(`/chat/${item.id}`)}
         activeOpacity={0.7}
       >
-        <Text style={styles.avatar}>👨‍🏫</Text>
+        <View style={styles.avatarWrap}>
+          <Avatar size={40} neutral />
+        </View>
         <View style={styles.teacherInfo}>
           <Text style={[styles.teacherName, { color: theme.colors.text }]}>
             {item.firstName} {item.lastName}
@@ -189,7 +192,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
   },
-  avatar: { fontSize: 32, marginRight: 12 },
+  avatarWrap: { marginRight: 12 },
   teacherInfo: { flex: 1 },
   teacherName: { fontSize: 16, fontWeight: '700', marginBottom: 2 },
   subject: { fontSize: 13, marginBottom: 2 },

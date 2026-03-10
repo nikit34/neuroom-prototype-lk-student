@@ -404,6 +404,7 @@ function ResetHomeworkButton() {
 
 function RestartOnboardingButton({ onClose }: { onClose?: () => void }) {
   const resetOnboarding = useOnboardingStore((s) => s.reset);
+  const resetChatOnboarding = useChatStore((s) => s.resetChatOnboarding);
   const router = useRouter();
 
   return (
@@ -412,6 +413,7 @@ function RestartOnboardingButton({ onClose }: { onClose?: () => void }) {
       onPress={() => {
         onClose?.();
         resetOnboarding();
+        resetChatOnboarding();
         router.replace('/onboarding');
       }}
       activeOpacity={0.7}

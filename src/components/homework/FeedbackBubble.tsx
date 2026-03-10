@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { formatDateTimeRu } from '@/src/utils/dateHelpers';
+import Avatar from '@/src/components/ui/Avatar';
 
 interface FeedbackBubbleProps {
   text: string;
@@ -26,7 +27,13 @@ export default function FeedbackBubble({ text, type, timestamp }: FeedbackBubble
       ]}
     >
       <View style={styles.header}>
-        <Text style={styles.icon}>{isAI ? '🤖' : '👨‍🏫'}</Text>
+        {isAI ? (
+          <Text style={styles.icon}>🤖</Text>
+        ) : (
+          <View style={styles.iconWrap}>
+            <Avatar size={20} neutral />
+          </View>
+        )}
         <Text style={[styles.label, { color: isAI ? theme.colors.primary : theme.colors.success }]}>
           {isAI ? 'Отзыв ИИ' : 'Отзыв учителя'}
         </Text>
@@ -53,6 +60,9 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 16,
+    marginRight: 6,
+  },
+  iconWrap: {
     marginRight: 6,
   },
   label: {

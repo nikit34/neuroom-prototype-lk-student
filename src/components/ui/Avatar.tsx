@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 interface AvatarProps {
@@ -7,6 +8,8 @@ interface AvatarProps {
   name?: string;
   size?: number;
   backgroundColor?: string;
+  /** Show neutral person silhouette instead of emoji/initials */
+  neutral?: boolean;
 }
 
 export default function Avatar({
@@ -14,6 +17,7 @@ export default function Avatar({
   name,
   size = 48,
   backgroundColor,
+  neutral,
 }: AvatarProps) {
   const theme = useAppTheme();
   const bgColor = backgroundColor || theme.colors.surface;
@@ -27,6 +31,8 @@ export default function Avatar({
         .slice(0, 2)
     : '';
 
+  const showNeutral = neutral || (!emoji && !name);
+
   return (
     <View
       style={[
@@ -35,11 +41,13 @@ export default function Avatar({
           width: size,
           height: size,
           borderRadius: size / 2,
-          backgroundColor: bgColor,
+          backgroundColor: neutral ? '#F2F6F8' : bgColor,
         },
       ]}
     >
-      {emoji ? (
+      {showNeutral ? (
+        <Ionicons name="person" size={size * 0.5} color="#333435" />
+      ) : emoji ? (
         <Text style={{ fontSize: size * 0.5 }}>{emoji}</Text>
       ) : (
         <Text
