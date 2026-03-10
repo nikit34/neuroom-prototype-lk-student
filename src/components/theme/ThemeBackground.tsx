@@ -14,6 +14,15 @@ interface ThemeScene {
 // ── Scene definitions ────────────────────────────────────────────────
 
 const SCENES: Record<string, ThemeScene> = {
+  // Neuroom default
+  neuroom: {
+    sky: ['#E8E0FF', '#F2F6F8', '#FFFFFF'],
+    layers: [
+      { type: 'mountains', color: '#D8D0F0', opacity: 0.25, height: 0.35 },
+      { type: 'hills',     color: '#C8C0E8', opacity: 0.35, height: 0.25 },
+      { type: 'bushes',    color: '#B0A8D8', opacity: 0.5,  height: 0.15 },
+    ],
+  },
   // Mountains preset
   csgo: {
     sky: ['#0a0a14', '#1a1a2a', '#1A1A1A'],

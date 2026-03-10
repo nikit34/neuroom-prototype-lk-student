@@ -3,7 +3,7 @@ import { ChatMessage, ChatAttachment } from '../types';
 import { mockTeachers, mockStudent } from '../data/mockData';
 import { useStudentStore } from './studentStore';
 import { useThemeStore } from './themeStore';
-import { themes, allCharacters, seniorThemes, juniorThemes } from '../theme/themes';
+import { themes, allCharacters, seniorThemes, juniorThemes, defaultTheme } from '../theme/themes';
 
 export const AI_TUTOR_ID = 'ai-tutor';
 export const AI_TUTOR_FREE_LIMIT = 10;
@@ -217,7 +217,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const emoji = gender === 'male' ? '🧑' : '👩';
 
       useStudentStore.getState().setGender(gender);
-      useThemeStore.getState().setTheme(gender === 'male' ? 'genshin' : 'sakura');
+      useThemeStore.getState().setTheme('neuroom');
 
       const studentMsg: ChatMessage = {
         id: `msg-onb-${now}-s`,
@@ -235,7 +235,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
       setTimeout(() => {
         const ageGroup = useThemeStore.getState().ageGroup;
-        const availableThemes = ageGroup === 'senior' ? seniorThemes : juniorThemes;
+        const grouped = ageGroup === 'senior' ? seniorThemes : juniorThemes;
+        // Нейрум — дефолт для всех, всегда первым
+        const availableThemes = grouped.some((t) => t.id === defaultTheme.id)
+          ? grouped
+          : [defaultTheme, ...grouped];
 
         const botMsg: ChatMessage = {
           id: `msg-onb-${now}-b`,

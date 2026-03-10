@@ -11,7 +11,7 @@ import { useAppTheme, useCurrentCharacter } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useThemeStore } from '@/src/stores/themeStore';
 import { useAppVersionStore } from '@/src/config/appVersion';
-import { allCharacters, seniorThemes, juniorThemes } from '@/src/theme/themes';
+import { allCharacters, seniorThemes, juniorThemes, defaultTheme } from '@/src/theme/themes';
 import { useMemo } from 'react';
 import Mascot from '@/src/components/mascot/Mascot';
 import Card from '@/src/components/ui/Card';
@@ -32,7 +32,12 @@ export default function ProfileScreen() {
   const ageGroup = useThemeStore((s) => s.ageGroup);
 
   const availableThemes = useMemo(
-    () => (ageGroup === 'senior' ? seniorThemes : juniorThemes),
+    () => {
+      const grouped = ageGroup === 'senior' ? seniorThemes : juniorThemes;
+      // Нейрум — дефолт для всех, всегда первым в списке
+      if (grouped.some((t) => t.id === defaultTheme.id)) return grouped;
+      return [defaultTheme, ...grouped];
+    },
     [ageGroup],
   );
   const appVersion = useAppVersionStore((s) => s.appVersion);

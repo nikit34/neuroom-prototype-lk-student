@@ -1,6 +1,36 @@
 import { AppTheme } from '../types';
 
 // ═══════════════════════════════════════════════════════════════════
+// ─── Дефолтная тема Нейрум (из UI Kit) ──────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+
+const neuroomTheme: AppTheme = {
+  id: 'neuroom',
+  name: 'Нейрум',
+  emoji: '🧠',
+  ageGroup: 'senior',
+  backgroundEmojis: ['🧠', '📚', '✨', '🎓', '💡', '🚀'],
+  colors: {
+    primary: '#6240FF',
+    secondary: '#EDE9FF',
+    accent: '#6240FF',
+    background: '#F2F6F8',
+    surface: '#FFFFFF',
+    text: '#232323',
+    textSecondary: '#7A7F82',
+    overdue: '#B91C1B',
+    success: '#1A6A35',
+    warning: '#C2410B',
+    gradient: ['#6240FF', '#EDE9FF'],
+    tabBar: '#FFFFFF',
+    tabBarActive: '#6240FF',
+    tabBarInactive: '#7A7F82',
+    card: '#FFFFFF',
+    border: '#E4EBEF',
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════
 // ─── Старшие (8-11 класс) — СВЕТЛЫЕ ─────────────────────────────
 // ═══════════════════════════════════════════════════════════════════
 
@@ -769,6 +799,8 @@ const fortniteTheme: AppTheme = {
 // ═══════════════════════════════════════════════════════════════════
 
 export const themes: AppTheme[] = [
+  // Дефолтная тема Нейрум
+  neuroomTheme,
   // Старшие — светлые первыми
   sakuraTheme,
   animeTheme,
@@ -842,4 +874,4 @@ export const allCharacters: import('../types').ThemeCharacter[] = [
   { id: 'fn-peely', name: 'Пили', emoji: '🍌', mascotEmojis: { sick: '🤢', sad: '😢', neutral: '🍌', happy: '🎉', thriving: '🌟' } },
 ];
 
-export const defaultTheme: AppTheme = sakuraTheme;
+export const defaultTheme: AppTheme = neuroomTheme;

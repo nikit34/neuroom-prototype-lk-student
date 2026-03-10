@@ -18,7 +18,7 @@ interface ThemeState {
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
-      themeId: defaultTheme.id,
+      themeId: 'neuroom',
       characterId: 'pk-pikachu',
       ageGroup: 'senior' as AgeGroup,
 
@@ -35,20 +35,23 @@ export const useThemeStore = create<ThemeState>()(
       },
 
       setAgeGroup: (group) => {
-        const currentTheme = themes.find((t) => t.id === get().themeId);
+        const currentId = get().themeId;
+        const currentTheme = themes.find((t) => t.id === currentId);
+        // Нейрум — дефолт для всех, не меняем при смене группы
+        if (currentId === defaultTheme.id) {
+          set({ ageGroup: group });
+          return;
+        }
         // Если текущая тема уже из нужной группы — не меняем
         if (currentTheme?.ageGroup === group) {
           set({ ageGroup: group });
           return;
         }
-        // Ставим первую тему из новой группы
-        const firstTheme = themes.find((t) => t.ageGroup === group);
-        if (firstTheme) {
-          set({
-            ageGroup: group,
-            themeId: firstTheme.id,
-          });
-        }
+        // Ставим дефолтную тему Нейрум при смене группы
+        set({
+          ageGroup: group,
+          themeId: defaultTheme.id,
+        });
       },
     }),
     {
