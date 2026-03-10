@@ -75,8 +75,7 @@ export default function OnboardingScreen() {
     });
     completeOnboarding();
     initChatOnboarding();
-    router.replace('/(tabs)');
-    setTimeout(() => router.push(`/chat/${AI_TUTOR_ID}`), 100);
+    router.replace(`/chat/${AI_TUTOR_ID}`);
   };
 
   const handleNext = () => {
@@ -89,8 +88,7 @@ export default function OnboardingScreen() {
     } else {
       completeOnboarding();
       initChatOnboarding();
-      router.replace('/(tabs)');
-      setTimeout(() => router.push(`/chat/${AI_TUTOR_ID}`), 100);
+      router.replace(`/chat/${AI_TUTOR_ID}`);
     }
   };
 
