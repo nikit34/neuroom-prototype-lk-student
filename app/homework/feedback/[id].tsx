@@ -4,17 +4,17 @@ import {
   Text,
   ScrollView,
   StyleSheet,
+  Image,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
-import FeedbackBubble from '@/src/components/homework/FeedbackBubble';
 import ComparisonBlock from '@/src/components/homework/ComparisonBlock';
 import Button from '@/src/components/ui/Button';
-import Card from '@/src/components/ui/Card';
-import Avatar from '@/src/components/ui/Avatar';
-import { getGradeColor, getGradeEmoji, getGradeLabel } from '@/src/utils/gradeHelpers';
+import { getGradeEmoji, getGradeLabel } from '@/src/utils/gradeHelpers';
+import { formatDateShortRu } from '@/src/utils/dateHelpers';
 
 export default function FeedbackScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -35,93 +35,119 @@ export default function FeedbackScreen() {
     );
   }
 
+  const studentPhotos = homework.submissions.flatMap((sub) =>
+    sub.files.filter((f) => f.type === 'photo').map((f) => f.uri)
+  );
+
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: '#EBEFF8' }]}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={styles.contentGraded}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={[styles.title, { color: theme.colors.text }]}>
-          Обратная связь
-        </Text>
-        <Text style={[styles.hwTitle, { color: theme.colors.textSecondary }]}>
-          {homework.subject}
-        </Text>
+        <View style={styles.gradedContainer}>
+          {/* Header */}
+          <Text style={styles.gradedHeaderTitle}>
+            Оценка и обратная связь
+          </Text>
 
-        {/* Grade if available */}
-        {homework.grade !== undefined && (
-          <Card style={styles.gradeCard}>
-            <Text style={[styles.gradeTitle, { color: theme.colors.text }]}>
-              Оценка
+          {/* Subject badge + Date */}
+          <View style={styles.titleCenter}>
+            <View
+              style={[
+                styles.subjectBadge,
+                { backgroundColor: theme.colors.primary + '33' },
+              ]}
+            >
+              <Text style={styles.subjectBadgeText}>{homework.subject}</Text>
+            </View>
+            <Text style={styles.gradedTitle}>
+              Задание от {formatDateShortRu(homework.createdAt)}
             </Text>
-            <View style={styles.gradeRow}>
-              <Text style={styles.gradeEmoji}>
-                {getGradeEmoji(homework.grade, homework.maxGrade)}
-              </Text>
-              <Text
+          </View>
+
+          {/* Grade card — purple bar + sticker area */}
+          {homework.grade !== undefined && (
+            <View style={styles.gradeCardNew}>
+              <View
+                style={[styles.gradeBar, { backgroundColor: theme.colors.primary }]}
+              >
+                <View style={styles.gradeBarInner}>
+                  <Text style={styles.gradeBarText}>Твоя оценка :</Text>
+                  <View style={styles.gradeNumberBox}>
+                    <Text style={[styles.gradeNumber, { color: theme.colors.primary }]}>
+                      {homework.grade}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.stickerArea}>
+                <Text style={styles.stickerEmoji}>
+                  {getGradeEmoji(homework.grade, homework.maxGrade)}
+                </Text>
+                <View style={styles.stickerTextWrap}>
+                  <Text style={styles.stickerText}>
+                    {getGradeLabel(homework.grade, homework.maxGrade)}!
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* Feedback card — Резюме */}
+          {(homework.aiFeedback || homework.teacherFeedback) && (
+            <View style={styles.feedbackCardNew}>
+              <View
                 style={[
-                  styles.gradeValue,
-                  { color: getGradeColor(homework.grade, homework.maxGrade) },
+                  styles.feedbackBadge,
+                  { backgroundColor: theme.colors.primary + '33' },
                 ]}
               >
-                {homework.grade}/{homework.maxGrade}
+                <Text style={styles.feedbackBadgeText}>
+                  Резюме по этой работе:
+                </Text>
+              </View>
+              <Text style={styles.feedbackText}>
+                {homework.aiFeedback || homework.teacherFeedback}
               </Text>
             </View>
-            <Text style={[styles.gradeLabel, { color: theme.colors.textSecondary }]}>
-              {getGradeLabel(homework.grade, homework.maxGrade)}
-            </Text>
-          </Card>
-        )}
+          )}
 
-        {/* Comparison: student vs correct */}
-        {homework.comparisonItems && homework.comparisonItems.length > 0 && (
-          <ComparisonBlock items={homework.comparisonItems} />
-        )}
+          {/* Comparison: student vs correct */}
+          {homework.comparisonItems && homework.comparisonItems.length > 0 && (
+            <ComparisonBlock items={homework.comparisonItems} />
+          )}
 
-        {/* AI Feedback */}
-        {homework.aiFeedback ? (
-          <FeedbackBubble
-            text={homework.aiFeedback}
-            type="ai"
-            timestamp={
-              homework.submissions.length > 0
-                ? homework.submissions[homework.submissions.length - 1].submittedAt
-                : new Date()
-            }
-          />
-        ) : (
-          <Card style={styles.noFeedback}>
-            <Text style={styles.noFeedbackEmoji}>🤖</Text>
-            <Text style={[styles.noFeedbackText, { color: theme.colors.textSecondary }]}>
-              ИИ-отзыв пока отсутствует
-            </Text>
-          </Card>
-        )}
+          {/* Твое фото */}
+          {studentPhotos.length > 0 && (
+            <View style={styles.yourPhotoSection}>
+              <Text style={styles.yourPhotoTitle}>Твое фото</Text>
+              <View style={styles.yourPhotoContainer}>
+                <Image
+                  source={{ uri: studentPhotos[0] }}
+                  style={styles.yourPhotoImage}
+                />
+                <View
+                  style={[
+                    styles.expandPhotoBtn,
+                    { backgroundColor: theme.colors.primary },
+                  ]}
+                >
+                  <Text style={styles.expandPhotoBtnIcon}>⤢</Text>
+                </View>
+              </View>
+            </View>
+          )}
 
-        {/* Teacher Feedback */}
-        {homework.teacherFeedback ? (
-          <FeedbackBubble
-            text={homework.teacherFeedback}
-            type="teacher"
-            timestamp={homework.createdAt}
-          />
-        ) : (
-          <Card style={styles.noFeedback}>
-            <Avatar size={40} neutral />
-            <Text style={[styles.noFeedbackText, { color: theme.colors.textSecondary }]}>
-              Учитель ещё не оставил отзыв
-            </Text>
-          </Card>
-        )}
-
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Назад к списку ДЗ"
-            icon="📚"
-            variant="outline"
-            onPress={() => router.replace('/(tabs)/homework')}
-          />
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Назад к списку ДЗ"
+              icon="📚"
+              variant="outline"
+              onPress={() => router.replace('/(tabs)/homework')}
+            />
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -140,56 +166,171 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
   },
-  content: {
-    padding: 20,
+  contentGraded: {},
+  gradedContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 16,
+    paddingTop: 24,
     paddingBottom: 40,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  hwTitle: {
-    fontSize: 15,
-    marginBottom: 24,
-  },
-  gradeCard: {
-    alignItems: 'center',
-    paddingVertical: 20,
+  gradedHeaderTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#272443',
+    textAlign: 'center',
+    lineHeight: 24,
     marginBottom: 16,
   },
-  gradeTitle: {
-    fontSize: 16,
+  titleCenter: {
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 24,
+  },
+  subjectBadge: {
+    paddingHorizontal: 4,
+    height: 16,
+    borderRadius: 4,
+    justifyContent: 'center',
+  },
+  subjectBadgeText: {
+    fontSize: 11,
     fontWeight: '700',
+    color: '#414651',
+    textAlign: 'center',
+    letterSpacing: 0.4,
+  },
+  gradedTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1F1D2B',
+    textAlign: 'center',
+    lineHeight: 32,
+  },
+  gradeCardNew: {
+    borderRadius: 12,
+    overflow: 'hidden',
     marginBottom: 8,
   },
-  gradeRow: {
+  gradeBar: {
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  gradeBarInner: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
-  gradeEmoji: {
-    fontSize: 32,
-    marginRight: 10,
+  gradeBarText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+    lineHeight: 26,
   },
-  gradeValue: {
-    fontSize: 32,
-    fontWeight: '800',
-  },
-  gradeLabel: {
-    fontSize: 14,
-    marginTop: 6,
-  },
-  noFeedback: {
+  gradeNumberBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: '#F8F8F8',
+    justifyContent: 'center',
     alignItems: 'center',
+  },
+  gradeNumber: {
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: -0.9,
+  },
+  stickerArea: {
+    height: 120,
+    backgroundColor: '#EBEFF8',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    overflow: 'hidden',
+  },
+  stickerEmoji: {
+    fontSize: 60,
+  },
+  stickerTextWrap: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  stickerText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#272443',
+    textAlign: 'center',
+    lineHeight: 12,
+  },
+  feedbackCardNew: {
+    backgroundColor: '#FAFBFE',
+    borderRadius: 12,
+    paddingHorizontal: 20,
     paddingVertical: 24,
-    marginBottom: 12,
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 24,
   },
-  noFeedbackEmoji: {
-    fontSize: 36,
-    marginBottom: 8,
+  feedbackBadge: {
+    paddingHorizontal: 8,
+    paddingBottom: 1,
+    height: 16,
+    borderRadius: 4,
+    justifyContent: 'center',
   },
-  noFeedbackText: {
-    fontSize: 14,
+  feedbackBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#1E1E1E',
+    letterSpacing: 0.4,
+  },
+  feedbackText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1F1D2B',
+    textAlign: 'center',
+    lineHeight: 15,
+  },
+  yourPhotoSection: {
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  yourPhotoTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#272443',
+    textAlign: 'center',
+  },
+  yourPhotoContainer: {
+    backgroundColor: '#FAFBFE',
+    borderRadius: 12,
+    padding: 16,
+    paddingTop: 10,
+    paddingBottom: 16,
+    alignItems: 'center',
+    width: '100%',
+  },
+  yourPhotoImage: {
+    width: 120,
+    height: 119,
+    borderRadius: 3,
+  },
+  expandPhotoBtn: {
+    position: 'absolute',
+    bottom: 8,
+    right: 7,
+    width: 32,
+    height: 32,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  expandPhotoBtnIcon: {
+    color: '#fff',
+    fontSize: 16,
   },
   buttonContainer: {
     marginTop: 24,

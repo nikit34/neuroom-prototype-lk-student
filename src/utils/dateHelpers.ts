@@ -96,3 +96,11 @@ function pluralize(n: number, one: string, few: string, many: string): string {
 function pluralizeDays(n: number): string {
   return pluralize(n, 'день', 'дня', 'дней');
 }
+
+/**
+ * Форматирует дату в короткий вид DD.MM.YY.
+ * Пример: «21.09.25»
+ */
+export function formatDateShortRu(date: Date): string {
+  return format(date, 'dd.MM.yy');
+}

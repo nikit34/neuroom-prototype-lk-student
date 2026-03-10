@@ -27,7 +27,7 @@ import ComparisonBlock from '@/src/components/homework/ComparisonBlock';
 import AppealBottomSheet from '@/src/components/homework/AppealBottomSheet';
 import AppealStatusCard from '@/src/components/homework/AppealStatusCard';
 import { getGradeColor, getGradeEmoji, getGradeLabel } from '@/src/utils/gradeHelpers';
-import { formatDateRu } from '@/src/utils/dateHelpers';
+import { formatDateShortRu } from '@/src/utils/dateHelpers';
 
 export default function HomeworkDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -68,25 +68,37 @@ export default function HomeworkDetailScreen() {
     }
   };
 
+  // Student submission photos
+  const studentPhotos = homework.submissions.flatMap((sub) =>
+    sub.files.filter((f) => f.type === 'photo').map((f) => f.uri)
+  );
+
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView
+      style={[
+        styles.safe,
+        { backgroundColor: isGraded ? '#EBEFF8' : theme.colors.background },
+      ]}
+    >
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={isGraded ? styles.contentGraded : styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.headerRow}>
-          <StatusChip status={homework.status} />
-        </View>
-        <Text style={[styles.title, { color: theme.colors.text }]}>
-          {homework.subject}
-        </Text>
-
-        {/* Description (задание) */}
-        <Text style={[styles.description, { color: theme.colors.text }]}>
-          {homework.description}
-        </Text>
+        {/* Non-graded header */}
+        {!isGraded && (
+          <>
+            <View style={styles.headerRow}>
+              <StatusChip status={homework.status} />
+            </View>
+            <Text style={[styles.title, { color: theme.colors.text }]}>
+              {homework.subject}
+            </Text>
+            <Text style={[styles.description, { color: theme.colors.text }]}>
+              {homework.description}
+            </Text>
+          </>
+        )}
 
         {/* Teacher attachments (photos) — only in non-graded flow */}
         {!isGraded && homework.attachments && homework.attachments.length > 0 && (
@@ -134,32 +146,74 @@ export default function HomeworkDetailScreen() {
           </Pressable>
         </Modal>
 
-        {/* Graded flow */}
+        {/* ===== GRADED FLOW ===== */}
         {isGraded && (
-          <>
-            {/* Grade */}
+          <View style={styles.gradedContainer}>
+            {/* Header */}
+            <Text style={styles.gradedHeaderTitle}>
+              Оценка и обратная связь
+            </Text>
+
+            {/* Subject badge + Date */}
+            <View style={styles.titleCenter}>
+              <View
+                style={[
+                  styles.subjectBadge,
+                  { backgroundColor: theme.colors.primary + '33' },
+                ]}
+              >
+                <Text style={styles.subjectBadgeText}>{homework.subject}</Text>
+              </View>
+              <Text style={styles.gradedTitle}>
+                Задание от {formatDateShortRu(homework.createdAt)}
+              </Text>
+            </View>
+
+            {/* Grade card — purple bar + sticker area */}
             {homework.grade !== undefined && (
-              <Card style={styles.gradeCard}>
-                <Text style={[styles.sectionTitle, { color: theme.colors.text, marginTop: 0 }]}>
-                  Оценка
-                </Text>
-                <View style={styles.gradeRow}>
-                  <Text style={styles.gradeEmoji}>
+              <View style={styles.gradeCardNew}>
+                <View
+                  style={[styles.gradeBar, { backgroundColor: theme.colors.primary }]}
+                >
+                  <View style={styles.gradeBarInner}>
+                    <Text style={styles.gradeBarText}>Твоя оценка :</Text>
+                    <View style={styles.gradeNumberBox}>
+                      <Text style={[styles.gradeNumber, { color: theme.colors.primary }]}>
+                        {homework.grade}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                <View style={styles.stickerArea}>
+                  <Text style={styles.stickerEmoji}>
                     {getGradeEmoji(homework.grade, homework.maxGrade)}
                   </Text>
-                  <Text
-                    style={[
-                      styles.gradeValue,
-                      { color: getGradeColor(homework.grade, homework.maxGrade) },
-                    ]}
-                  >
-                    {homework.grade}/{homework.maxGrade}
+                  <View style={styles.stickerTextWrap}>
+                    <Text style={styles.stickerText}>
+                      {getGradeLabel(homework.grade, homework.maxGrade)}!
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* Feedback card — Резюме */}
+            {(homework.aiFeedback || homework.teacherFeedback) && (
+              <View style={styles.feedbackCardNew}>
+                <View
+                  style={[
+                    styles.feedbackBadge,
+                    { backgroundColor: theme.colors.primary + '33' },
+                  ]}
+                >
+                  <Text style={styles.feedbackBadgeText}>
+                    Резюме по этой работе:
                   </Text>
                 </View>
-                <Text style={[styles.gradeLabel, { color: theme.colors.textSecondary }]}>
-                  {getGradeLabel(homework.grade, homework.maxGrade)}
+                <Text style={styles.feedbackText}>
+                  {homework.aiFeedback || homework.teacherFeedback}
                 </Text>
-              </Card>
+              </View>
             )}
 
             {/* Comparison: student vs correct */}
@@ -167,17 +221,28 @@ export default function HomeworkDetailScreen() {
               <ComparisonBlock items={homework.comparisonItems} />
             )}
 
-            {/* AI Feedback */}
-            {homework.aiFeedback && (
-              <FeedbackBubble
-                text={homework.aiFeedback}
-                type="ai"
-                timestamp={
-                  homework.submissions.length > 0
-                    ? homework.submissions[homework.submissions.length - 1].submittedAt
-                    : homework.createdAt
-                }
-              />
+            {/* Твое фото */}
+            {studentPhotos.length > 0 && (
+              <View style={styles.yourPhotoSection}>
+                <Text style={styles.yourPhotoTitle}>Твое фото</Text>
+                <View style={styles.yourPhotoContainer}>
+                  <Pressable onPress={() => setPreviewImage(studentPhotos[0])}>
+                    <Image
+                      source={{ uri: studentPhotos[0] }}
+                      style={styles.yourPhotoImage}
+                    />
+                  </Pressable>
+                  <Pressable
+                    style={[
+                      styles.expandPhotoBtn,
+                      { backgroundColor: theme.colors.primary },
+                    ]}
+                    onPress={() => setPreviewImage(studentPhotos[0])}
+                  >
+                    <Text style={styles.expandPhotoBtnIcon}>⤢</Text>
+                  </Pressable>
+                </View>
+              </View>
             )}
 
             {/* Appeal status or dispute button */}
@@ -209,35 +274,6 @@ export default function HomeworkDetailScreen() {
               </View>
             )}
 
-            {/* Teacher attachments (photos) — in graded flow, after deep analysis */}
-            {homework.attachments && homework.attachments.length > 0 && (
-              <>
-                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-                  Фото задания ({homework.attachments.length})
-                </Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.attachmentsScroll}
-                  contentContainerStyle={styles.attachmentsContainer}
-                >
-                  {homework.attachments
-                    .filter((a) => a.type === 'photo')
-                    .map((attachment, index) => (
-                      <Pressable
-                        key={index}
-                        onPress={() => setPreviewImage(attachment.uri)}
-                      >
-                        <Image
-                          source={{ uri: attachment.uri }}
-                          style={[styles.attachmentThumb, { borderColor: theme.colors.border }]}
-                        />
-                      </Pressable>
-                    ))}
-                </ScrollView>
-              </>
-            )}
-
             {/* Appeal bottom sheet */}
             <AppealBottomSheet
               visible={appealSheetVisible}
@@ -263,12 +299,16 @@ export default function HomeworkDetailScreen() {
               <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
                 Срок сдачи
               </Text>
-              <DeadlineIndicator deadline={homework.deadline} status={homework.status} submissions={homework.submissions} />
+              <DeadlineIndicator
+                deadline={homework.deadline}
+                status={homework.status}
+                submissions={homework.submissions}
+              />
             </Card>
-          </>
+          </View>
         )}
 
-        {/* Non-graded flow */}
+        {/* ===== NON-GRADED FLOW ===== */}
         {!isGraded && (
           <>
             {/* Resubmit reason */}
@@ -276,7 +316,12 @@ export default function HomeworkDetailScreen() {
               <>
                 {homework.grade !== undefined && (
                   <Card style={styles.gradeCard}>
-                    <Text style={[styles.sectionTitle, { color: theme.colors.text, marginTop: 0 }]}>
+                    <Text
+                      style={[
+                        styles.sectionTitle,
+                        { color: theme.colors.text, marginTop: 0 },
+                      ]}
+                    >
                       Оценка
                     </Text>
                     <View style={styles.gradeRow}>
@@ -311,7 +356,6 @@ export default function HomeworkDetailScreen() {
               </>
             )}
 
-
             {/* Actions */}
             <View style={styles.actions}>
               {canSubmit ? (
@@ -326,7 +370,11 @@ export default function HomeworkDetailScreen() {
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.actionBtn, { backgroundColor: theme.colors.accent }]}
-                    onPress={() => router.push(`/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}`)}
+                    onPress={() =>
+                      router.push(
+                        `/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}`
+                      )
+                    }
                     activeOpacity={0.7}
                   >
                     <Text style={styles.actionBtnIcon}>💬</Text>
@@ -335,13 +383,22 @@ export default function HomeworkDetailScreen() {
                 </View>
               ) : homework.status === 'submitted' ? (
                 <View style={styles.actionBtnsRow}>
-                  <View style={[styles.actionBtn, { backgroundColor: theme.colors.border, opacity: 0.6 }]}>
+                  <View
+                    style={[
+                      styles.actionBtn,
+                      { backgroundColor: theme.colors.border, opacity: 0.6 },
+                    ]}
+                  >
                     <Text style={styles.actionBtnIcon}>✅</Text>
                     <Text style={styles.actionBtnLabel}>Сдано</Text>
                   </View>
                   <TouchableOpacity
                     style={[styles.actionBtn, { backgroundColor: theme.colors.accent }]}
-                    onPress={() => router.push(`/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}`)}
+                    onPress={() =>
+                      router.push(
+                        `/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}`
+                      )
+                    }
                     activeOpacity={0.7}
                   >
                     <Text style={styles.actionBtnIcon}>💬</Text>
@@ -356,37 +413,36 @@ export default function HomeworkDetailScreen() {
               <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
                 Срок сдачи
               </Text>
-              <DeadlineIndicator deadline={homework.deadline} status={homework.status} submissions={homework.submissions} />
+              <DeadlineIndicator
+                deadline={homework.deadline}
+                status={homework.status}
+                submissions={homework.submissions}
+              />
             </Card>
 
             {/* Submissions — photo thumbnails */}
-            {homework.submissions.length > 0 && (() => {
-              const photos = homework.submissions.flatMap((sub) =>
-                sub.files.filter((f) => f.type === 'photo').map((f) => f.uri)
-              );
-              return photos.length > 0 ? (
-                <>
-                  <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-                    Фото решения
-                  </Text>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.attachmentsScroll}
-                    contentContainerStyle={styles.attachmentsContainer}
-                  >
-                    {photos.map((uri, index) => (
-                      <Pressable key={index} onPress={() => setPreviewImage(uri)}>
-                        <Image
-                          source={{ uri }}
-                          style={[styles.attachmentThumb, { borderColor: theme.colors.border }]}
-                        />
-                      </Pressable>
-                    ))}
-                  </ScrollView>
-                </>
-              ) : null;
-            })()}
+            {studentPhotos.length > 0 && (
+              <>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                  Фото решения
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.attachmentsScroll}
+                  contentContainerStyle={styles.attachmentsContainer}
+                >
+                  {studentPhotos.map((uri, index) => (
+                    <Pressable key={index} onPress={() => setPreviewImage(uri)}>
+                      <Image
+                        source={{ uri }}
+                        style={[styles.attachmentThumb, { borderColor: theme.colors.border }]}
+                      />
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </>
+            )}
           </>
         )}
 
@@ -411,6 +467,9 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
   },
+  contentGraded: {
+    // No horizontal padding — the white container handles it
+  },
   headerRow: {
     flexDirection: 'row',
     marginBottom: 8,
@@ -419,20 +478,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     marginBottom: 4,
-  },
-  infoCard: {
-    marginBottom: 10,
-  },
-  infoLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    marginBottom: 6,
-    letterSpacing: 0.5,
-  },
-  infoValue: {
-    fontSize: 16,
-    fontWeight: '500',
   },
   description: {
     fontSize: 15,
@@ -445,25 +490,191 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 10,
   },
-  submissionCard: {
+  infoCard: {
+    marginBottom: 10,
+  },
+  infoLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+
+  /* ── Graded flow ────────────────────────────────────────────── */
+  gradedContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: 32,
+  },
+  gradedHeaderTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#272443',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 16,
+  },
+  titleCenter: {
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 24,
+  },
+  subjectBadge: {
+    paddingHorizontal: 4,
+    height: 16,
+    borderRadius: 4,
+    justifyContent: 'center',
+  },
+  subjectBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#414651',
+    textAlign: 'center',
+    letterSpacing: 0.4,
+  },
+  gradedTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1F1D2B',
+    textAlign: 'center',
+    lineHeight: 32,
+  },
+
+  /* Grade card — purple bar + sticker area */
+  gradeCardNew: {
+    borderRadius: 12,
+    overflow: 'hidden',
     marginBottom: 8,
   },
-  submissionRow: {
-    flexDirection: 'row',
+  gradeBar: {
+    height: 44,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  submissionIcon: {
-    fontSize: 24,
-    marginRight: 12,
+  gradeBarInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  submissionType: {
-    fontSize: 14,
+  gradeBarText: {
+    fontSize: 18,
     fontWeight: '600',
+    color: '#fff',
+    lineHeight: 26,
   },
-  submissionDate: {
+  gradeNumberBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: '#F8F8F8',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  gradeNumber: {
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: -0.9,
+  },
+  stickerArea: {
+    height: 120,
+    backgroundColor: '#EBEFF8',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    overflow: 'hidden',
+  },
+  stickerEmoji: {
+    fontSize: 60,
+  },
+  stickerTextWrap: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  stickerText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#272443',
+    textAlign: 'center',
+    lineHeight: 12,
+  },
+
+  /* Feedback card — Резюме */
+  feedbackCardNew: {
+    backgroundColor: '#FAFBFE',
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 24,
+  },
+  feedbackBadge: {
+    paddingHorizontal: 8,
+    paddingBottom: 1,
+    height: 16,
+    borderRadius: 4,
+    justifyContent: 'center',
+  },
+  feedbackBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#1E1E1E',
+    letterSpacing: 0.4,
+  },
+  feedbackText: {
     fontSize: 12,
-    marginTop: 2,
+    fontWeight: '600',
+    color: '#1F1D2B',
+    textAlign: 'center',
+    lineHeight: 15,
   },
+
+  /* Твое фото */
+  yourPhotoSection: {
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  yourPhotoTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#272443',
+    textAlign: 'center',
+  },
+  yourPhotoContainer: {
+    backgroundColor: '#FAFBFE',
+    borderRadius: 12,
+    padding: 16,
+    paddingTop: 10,
+    paddingBottom: 16,
+    alignItems: 'center',
+    width: '100%',
+  },
+  yourPhotoImage: {
+    width: 120,
+    height: 119,
+    borderRadius: 3,
+  },
+  expandPhotoBtn: {
+    position: 'absolute',
+    bottom: 8,
+    right: 7,
+    width: 32,
+    height: 32,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  expandPhotoBtnIcon: {
+    color: '#fff',
+    fontSize: 16,
+  },
+
+  /* ── Non-graded flow (resubmit grade card) ─────────────────── */
   gradeCard: {
     alignItems: 'center',
     marginBottom: 16,
@@ -482,10 +693,8 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '800',
   },
-  gradeLabel: {
-    fontSize: 14,
-    marginTop: 4,
-  },
+
+  /* ── Shared ─────────────────────────────────────────────────── */
   actions: {
     marginTop: 24,
     marginBottom: 16,
@@ -509,9 +718,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     marginTop: 2,
-  },
-  actionGap: {
-    marginTop: 10,
   },
   bottomSpacer: {
     height: 40,

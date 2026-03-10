@@ -54,6 +54,14 @@ function RootLayoutNav() {
   const responseListener = useRef<{ remove: () => void } | null>(null);
   const wasOnboardingCompleted = useRef(isOnboardingCompleted);
 
+  // If onboarding was already completed on app start (not a fresh completion),
+  // skip chat onboarding (gender/theme/character selection)
+  useEffect(() => {
+    if (wasOnboardingCompleted.current && chatOnboardingStep !== 'done') {
+      useChatStore.setState({ chatOnboardingStep: 'done' });
+    }
+  }, []);
+
   useEffect(() => {
     if (!wasOnboardingCompleted.current && isOnboardingCompleted && chatOnboardingStep !== 'done') {
       router.replace(`/chat/${AI_TUTOR_ID}` as any);
