@@ -61,7 +61,19 @@ export default function DuelDetailScreen() {
     return (
       <View style={[styles.safe, { backgroundColor: theme.colors.background }]}>
         <View style={styles.center}>
-          <Text style={[styles.errorText, { color: theme.colors.textSecondary }]}>Дуэль не найдена</Text>
+          <Text style={{ fontSize: 48, marginBottom: 12 }}>⏰</Text>
+          <Text style={[styles.errorText, { color: theme.colors.text, fontWeight: '700', fontSize: 18, marginBottom: 8 }]}>
+            Дуэль отменена
+          </Text>
+          <Text style={[styles.errorText, { color: theme.colors.textSecondary }]}>
+            Время ожидания истекло
+          </Text>
+          <TouchableOpacity
+            style={{ marginTop: 20, paddingVertical: 12, paddingHorizontal: 24, backgroundColor: theme.colors.primary, borderRadius: 12 }}
+            onPress={() => router.back()}
+          >
+            <Text style={{ color: '#FFF', fontSize: 15, fontWeight: '600' }}>Назад</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );

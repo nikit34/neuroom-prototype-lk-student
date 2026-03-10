@@ -8,6 +8,8 @@ type DuelFilter = 'all' | 'pending' | 'active' | 'finished';
 type QuestFilter = 'all' | 'active' | 'available' | 'completed';
 type ChallengeFilter = 'all' | 'active' | 'available' | 'completed' | 'expired';
 
+const DUEL_TIMEOUT_MS = 20 * 60 * 1000; // 20 minutes
+
 interface ArenaState {
   section: ArenaSection;
   setSection: (s: ArenaSection) => void;
@@ -28,6 +30,8 @@ interface ArenaState {
   answerDuelQuestion: (duelId: string, answerIndex: number) => void;
   getDuelStats: () => { wins: number; losses: number; draws: number; active: number };
   createDuel: (opponent: Classmate, subject: string) => string;
+  /** Remove pending duels older than 20 min. Returns expired duel IDs. */
+  expireOldDuels: () => string[];
 
   // Quests
   quests: Quest[];
@@ -163,6 +167,21 @@ export const useArenaStore = create<ArenaState>((set, get) => ({
 
     set((state) => ({ duels: [newDuel, ...state.duels] }));
     return id;
+  },
+
+  expireOldDuels: () => {
+    const now = Date.now();
+    const expired: string[] = [];
+    const { duels } = get();
+    const remaining = duels.filter((d) => {
+      if (d.status === 'pending' && now - new Date(d.createdAt).getTime() >= DUEL_TIMEOUT_MS) {
+        expired.push(d.id);
+        return false;
+      }
+      return true;
+    });
+    if (expired.length > 0) set({ duels: remaining });
+    return expired;
   },
 
   // ─── Quests ─────────────────────────────────────────────────────

@@ -63,6 +63,8 @@ interface NotificationState {
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   setNotifications: (notifications: AppNotification[]) => void;
+  removeNotification: (id: string) => void;
+  removeNotificationsByRoute: (routePrefix: string) => void;
 }
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
@@ -83,4 +85,16 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     })),
 
   setNotifications: (notifications) => set({ notifications }),
+
+  removeNotification: (id) =>
+    set((state) => ({
+      notifications: state.notifications.filter((n) => n.id !== id),
+    })),
+
+  removeNotificationsByRoute: (routePrefix) =>
+    set((state) => ({
+      notifications: state.notifications.filter(
+        (n) => !n.route || !n.route.startsWith(routePrefix),
+      ),
+    })),
 }));

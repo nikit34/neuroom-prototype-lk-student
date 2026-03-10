@@ -47,6 +47,7 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
   const router = useRouter();
   const canSubmit = homework.status === 'pending' || homework.status === 'resubmit';
   const overdue = isOverdue(homework.deadline) && homework.status === 'pending';
+  const isChecked = homework.status === 'graded' || homework.status === 'ai_reviewed';
 
   const pulseValue = useSharedValue(1);
 
@@ -68,11 +69,11 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
   }));
 
   return (
-    <Animated.View style={[styles.animatedWrapper, animatedBorderStyle, { borderRadius: 16 }]}>
+    <Animated.View style={[styles.animatedWrapper, animatedBorderStyle, { borderRadius: 16 }, isChecked && { opacity: 0.55 }]}>
       <Card style={styles.card} onPress={onPress}>
         <View style={styles.header}>
           <View style={styles.headerText}>
-            <Text style={[styles.title, { color: theme.colors.text }]} numberOfLines={1}>
+            <Text style={[styles.title, { color: isChecked ? theme.colors.textSecondary : theme.colors.text }]} numberOfLines={1}>
               {homework.subject}
             </Text>
             <Text style={[styles.subject, { color: theme.colors.textSecondary }]} numberOfLines={1}>

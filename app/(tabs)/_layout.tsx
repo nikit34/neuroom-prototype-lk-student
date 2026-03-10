@@ -3,10 +3,13 @@ import { Text } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAppVersionStore } from '@/src/config/appVersion';
+import { useDuelExpiration } from '@/src/hooks/useDuelExpiration';
 
 export default function TabLayout() {
   const theme = useAppTheme();
   const appVersion = useAppVersionStore((s) => s.appVersion);
+
+  useDuelExpiration();
 
   return (
     <Tabs
