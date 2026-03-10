@@ -11,8 +11,8 @@ import {
   Modal,
   Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { AI_TUTOR_ID } from '@/src/stores/chatStore';
@@ -32,14 +32,17 @@ import { formatDateShortRu } from '@/src/utils/dateHelpers';
 export default function HomeworkDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const assignments = useHomeworkStore((s) => s.assignments);
   const homework = assignments.find((a) => a.id === id);
   const appeal = useAppealStore((s) => s.getAppeal(id!));
+  const getErrorAppeal = useAppealStore((s) => s.getErrorAppeal);
   const submitAppeal = useAppealStore((s) => s.submitAppeal);
   const [analyzing, setAnalyzing] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [appealSheetVisible, setAppealSheetVisible] = useState(false);
+  const [disputeErrorIndex, setDisputeErrorIndex] = useState<number | null>(null);
 
   if (!homework) {
     return (
@@ -68,18 +71,62 @@ export default function HomeworkDetailScreen() {
     }
   };
 
+  const handleDisputeError = (index: number) => {
+    setDisputeErrorIndex(index);
+    setAppealSheetVisible(true);
+  };
+
+  const handleAppealSubmit = (data: {
+    disagreementPoints: string[];
+    reviewType: 'whole' | 'specific';
+    comment: string;
+    attachments: { uri: string; name: string; type: 'photo' | 'document' }[];
+  }) => {
+    const errorLabel =
+      disputeErrorIndex !== null && homework.comparisonItems
+        ? homework.comparisonItems[disputeErrorIndex].label
+        : undefined;
+
+    submitAppeal({
+      homeworkId: homework.id,
+      disagreementPoints: data.disagreementPoints,
+      reviewType: 'specific',
+      comment: data.comment,
+      oldGrade: homework.grade ?? 0,
+      errorIndex: disputeErrorIndex ?? undefined,
+      errorLabel,
+    });
+
+    setAppealSheetVisible(false);
+    setDisputeErrorIndex(null);
+    Alert.alert(
+      'Запрос отправлен',
+      'Мы уведомим тебя, когда учитель примет решение',
+    );
+  };
+
   // Student submission photos
   const studentPhotos = homework.submissions.flatMap((sub) =>
     sub.files.filter((f) => f.type === 'photo').map((f) => f.uri)
   );
 
   return (
-    <SafeAreaView
+    <View
       style={[
         styles.safe,
-        { backgroundColor: isGraded ? '#EBEFF8' : theme.colors.background },
+        { backgroundColor: isGraded ? theme.colors.surface : theme.colors.background },
       ]}
     >
+      <Stack.Screen
+        options={{
+          headerTransparent: isGraded,
+          headerTitle: isGraded ? '' : 'Детали задания',
+          headerStyle: isGraded
+            ? { backgroundColor: 'transparent' }
+            : { backgroundColor: theme.colors.surface },
+          headerShadowVisible: !isGraded,
+        }}
+      />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={isGraded ? styles.contentGraded : styles.content}
@@ -148,9 +195,9 @@ export default function HomeworkDetailScreen() {
 
         {/* ===== GRADED FLOW ===== */}
         {isGraded && (
-          <View style={styles.gradedContainer}>
+          <View style={[styles.gradedContainer, { backgroundColor: theme.colors.card, paddingTop: insets.top + 48 }]}>
             {/* Header */}
-            <Text style={styles.gradedHeaderTitle}>
+            <Text style={[styles.gradedHeaderTitle, { color: theme.colors.text }]}>
               Оценка и обратная связь
             </Text>
 
@@ -162,9 +209,11 @@ export default function HomeworkDetailScreen() {
                   { backgroundColor: theme.colors.primary + '33' },
                 ]}
               >
-                <Text style={styles.subjectBadgeText}>{homework.subject}</Text>
+                <Text style={[styles.subjectBadgeText, { color: theme.colors.textSecondary }]}>
+                  {homework.subject}
+                </Text>
               </View>
-              <Text style={styles.gradedTitle}>
+              <Text style={[styles.gradedTitle, { color: theme.colors.text }]}>
                 Задание от {formatDateShortRu(homework.createdAt)}
               </Text>
             </View>
@@ -177,19 +226,19 @@ export default function HomeworkDetailScreen() {
                 >
                   <View style={styles.gradeBarInner}>
                     <Text style={styles.gradeBarText}>Твоя оценка :</Text>
-                    <View style={styles.gradeNumberBox}>
+                    <View style={[styles.gradeNumberBox, { backgroundColor: theme.colors.surface }]}>
                       <Text style={[styles.gradeNumber, { color: theme.colors.primary }]}>
                         {homework.grade}
                       </Text>
                     </View>
                   </View>
                 </View>
-                <View style={styles.stickerArea}>
+                <View style={[styles.stickerArea, { backgroundColor: theme.colors.surface }]}>
                   <Text style={styles.stickerEmoji}>
                     {getGradeEmoji(homework.grade, homework.maxGrade)}
                   </Text>
                   <View style={styles.stickerTextWrap}>
-                    <Text style={styles.stickerText}>
+                    <Text style={[styles.stickerText, { color: theme.colors.text }]}>
                       {getGradeLabel(homework.grade, homework.maxGrade)}!
                     </Text>
                   </View>
@@ -199,33 +248,39 @@ export default function HomeworkDetailScreen() {
 
             {/* Feedback card — Резюме */}
             {(homework.aiFeedback || homework.teacherFeedback) && (
-              <View style={styles.feedbackCardNew}>
+              <View style={[styles.feedbackCardNew, { backgroundColor: theme.colors.surface }]}>
                 <View
                   style={[
                     styles.feedbackBadge,
                     { backgroundColor: theme.colors.primary + '33' },
                   ]}
                 >
-                  <Text style={styles.feedbackBadgeText}>
+                  <Text style={[styles.feedbackBadgeText, { color: theme.colors.text }]}>
                     Резюме по этой работе:
                   </Text>
                 </View>
-                <Text style={styles.feedbackText}>
+                <Text style={[styles.feedbackText, { color: theme.colors.text }]}>
                   {homework.aiFeedback || homework.teacherFeedback}
                 </Text>
               </View>
             )}
 
-            {/* Comparison: student vs correct */}
+            {/* Comparison: student vs correct — with per-error dispute */}
             {homework.comparisonItems && homework.comparisonItems.length > 0 && (
-              <ComparisonBlock items={homework.comparisonItems} />
+              <ComparisonBlock
+                items={homework.comparisonItems}
+                onDisputeError={handleDisputeError}
+                getErrorAppeal={(index: number) => getErrorAppeal(homework.id, index)}
+              />
             )}
 
             {/* Твое фото */}
             {studentPhotos.length > 0 && (
               <View style={styles.yourPhotoSection}>
-                <Text style={styles.yourPhotoTitle}>Твое фото</Text>
-                <View style={styles.yourPhotoContainer}>
+                <Text style={[styles.yourPhotoTitle, { color: theme.colors.text }]}>
+                  Твое фото
+                </Text>
+                <View style={[styles.yourPhotoContainer, { backgroundColor: theme.colors.surface }]}>
                   <Pressable onPress={() => setPreviewImage(studentPhotos[0])}>
                     <Image
                       source={{ uri: studentPhotos[0] }}
@@ -245,19 +300,10 @@ export default function HomeworkDetailScreen() {
               </View>
             )}
 
-            {/* Appeal status or dispute button */}
-            {appeal ? (
+            {/* Homework-level appeal status (if exists) */}
+            {appeal && (
               <View style={styles.actions}>
                 <AppealStatusCard appeal={appeal} />
-              </View>
-            ) : (
-              <View style={styles.actions}>
-                <Button
-                  title="Оспорить оценку"
-                  icon="💬"
-                  variant="outline"
-                  onPress={() => setAppealSheetVisible(true)}
-                />
               </View>
             )}
 
@@ -277,21 +323,21 @@ export default function HomeworkDetailScreen() {
             {/* Appeal bottom sheet */}
             <AppealBottomSheet
               visible={appealSheetVisible}
-              onClose={() => setAppealSheetVisible(false)}
-              onSubmit={(data) => {
-                submitAppeal({
-                  homeworkId: homework.id,
-                  disagreementPoints: data.disagreementPoints,
-                  reviewType: data.reviewType,
-                  comment: data.comment,
-                  oldGrade: homework.grade ?? 0,
-                });
+              errorContext={
+                disputeErrorIndex !== null && homework.comparisonItems
+                  ? {
+                      label: homework.comparisonItems[disputeErrorIndex].label,
+                      studentAnswer: homework.comparisonItems[disputeErrorIndex].studentVersion.content,
+                      correctAnswer: homework.comparisonItems[disputeErrorIndex].correctVersion.content,
+                      description: homework.comparisonItems[disputeErrorIndex].description,
+                    }
+                  : undefined
+              }
+              onClose={() => {
                 setAppealSheetVisible(false);
-                Alert.alert(
-                  'Запрос отправлен',
-                  'Мы уведомим тебя, когда учитель примет решение',
-                );
+                setDisputeErrorIndex(null);
               }}
+              onSubmit={handleAppealSubmit}
             />
 
             {/* Срок сдачи */}
@@ -448,7 +494,8 @@ export default function HomeworkDetailScreen() {
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
-    </SafeAreaView>
+
+    </View>
   );
 }
 
@@ -503,7 +550,6 @@ const styles = StyleSheet.create({
 
   /* ── Graded flow ────────────────────────────────────────────── */
   gradedContainer: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
     paddingHorizontal: 16,
@@ -513,7 +559,6 @@ const styles = StyleSheet.create({
   gradedHeaderTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#272443',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 16,
@@ -532,14 +577,12 @@ const styles = StyleSheet.create({
   subjectBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#414651',
     textAlign: 'center',
     letterSpacing: 0.4,
   },
   gradedTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1F1D2B',
     textAlign: 'center',
     lineHeight: 32,
   },
@@ -570,7 +613,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 8,
-    backgroundColor: '#F8F8F8',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -581,7 +623,6 @@ const styles = StyleSheet.create({
   },
   stickerArea: {
     height: 120,
-    backgroundColor: '#EBEFF8',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -597,14 +638,12 @@ const styles = StyleSheet.create({
   stickerText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#272443',
     textAlign: 'center',
     lineHeight: 12,
   },
 
   /* Feedback card — Резюме */
   feedbackCardNew: {
-    backgroundColor: '#FAFBFE',
     borderRadius: 12,
     paddingHorizontal: 20,
     paddingVertical: 24,
@@ -622,13 +661,11 @@ const styles = StyleSheet.create({
   feedbackBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#1E1E1E',
     letterSpacing: 0.4,
   },
   feedbackText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#1F1D2B',
     textAlign: 'center',
     lineHeight: 15,
   },
@@ -642,11 +679,9 @@ const styles = StyleSheet.create({
   yourPhotoTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#272443',
     textAlign: 'center',
   },
   yourPhotoContainer: {
-    backgroundColor: '#FAFBFE',
     borderRadius: 12,
     padding: 16,
     paddingTop: 10,
@@ -752,4 +787,5 @@ const styles = StyleSheet.create({
     marginTop: 24,
     padding: 12,
   },
+
 });

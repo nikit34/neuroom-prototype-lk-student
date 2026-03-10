@@ -316,6 +316,8 @@ export interface Appeal {
   teacherComment?: string;
   teacherTaskResponses?: AppealTaskResponse[];
   decisionDate?: string;
+  errorIndex?: number;
+  errorLabel?: string;
 }
 
 // ─── Notifications ──────────────────────────────────────────────

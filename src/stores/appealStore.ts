@@ -4,14 +4,17 @@ import { Appeal, AppealStatus } from '../types';
 interface AppealState {
   appeals: Record<string, Appeal>;
   getAppeal: (homeworkId: string) => Appeal | undefined;
+  getErrorAppeal: (homeworkId: string, errorIndex: number) => Appeal | undefined;
   submitAppeal: (data: {
     homeworkId: string;
     disagreementPoints: string[];
     reviewType: 'whole' | 'specific';
     comment: string;
     oldGrade: number;
+    errorIndex?: number;
+    errorLabel?: string;
   }) => void;
-  simulateDecision: (homeworkId: string) => void;
+  simulateDecision: (key: string) => void;
 }
 
 const MOCK_TEACHER_COMMENTS = [
@@ -20,12 +23,20 @@ const MOCK_TEACHER_COMMENTS = [
   'Частично согласна с замечаниями. Исправила оценку.',
 ];
 
+function appealKey(homeworkId: string, errorIndex?: number): string {
+  return errorIndex !== undefined ? `${homeworkId}:error:${errorIndex}` : homeworkId;
+}
+
 export const useAppealStore = create<AppealState>((set, get) => ({
   appeals: {},
 
   getAppeal: (homeworkId) => get().appeals[homeworkId],
 
-  submitAppeal: ({ homeworkId, disagreementPoints, reviewType, comment, oldGrade }) => {
+  getErrorAppeal: (homeworkId, errorIndex) =>
+    get().appeals[appealKey(homeworkId, errorIndex)],
+
+  submitAppeal: ({ homeworkId, disagreementPoints, reviewType, comment, oldGrade, errorIndex, errorLabel }) => {
+    const key = appealKey(homeworkId, errorIndex);
     const appeal: Appeal = {
       homeworkId,
       status: 'pending',
@@ -34,18 +45,20 @@ export const useAppealStore = create<AppealState>((set, get) => ({
       comment,
       submittedAt: new Date(),
       oldGrade,
+      errorIndex,
+      errorLabel,
     };
 
     set((state) => ({
-      appeals: { ...state.appeals, [homeworkId]: appeal },
+      appeals: { ...state.appeals, [key]: appeal },
     }));
 
     // Simulate teacher decision after 3 seconds
-    setTimeout(() => get().simulateDecision(homeworkId), 3000);
+    setTimeout(() => get().simulateDecision(key), 3000);
   },
 
-  simulateDecision: (homeworkId) => {
-    const appeal = get().appeals[homeworkId];
+  simulateDecision: (key) => {
+    const appeal = get().appeals[key];
     if (!appeal || appeal.status !== 'pending') return;
 
     const rand = Math.random();
@@ -81,8 +94,8 @@ export const useAppealStore = create<AppealState>((set, get) => ({
     set((state) => ({
       appeals: {
         ...state.appeals,
-        [homeworkId]: {
-          ...state.appeals[homeworkId],
+        [key]: {
+          ...state.appeals[key],
           status,
           newGrade,
           teacherComment,

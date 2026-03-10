@@ -12,6 +12,7 @@ import {
   Platform,
   Image,
   Alert,
+  Dimensions,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -34,8 +35,16 @@ interface Attachment {
   type: 'photo' | 'document';
 }
 
+interface ErrorContext {
+  label: string;
+  studentAnswer: string;
+  correctAnswer: string;
+  description?: string;
+}
+
 interface AppealBottomSheetProps {
   visible: boolean;
+  errorContext?: ErrorContext;
   onClose: () => void;
   onSubmit: (data: {
     disagreementPoints: string[];
@@ -47,6 +56,7 @@ interface AppealBottomSheetProps {
 
 export default function AppealBottomSheet({
   visible,
+  errorContext,
   onClose,
   onSubmit,
 }: AppealBottomSheetProps) {
@@ -153,9 +163,9 @@ export default function AppealBottomSheet({
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.keyboardView}
         >
-          <Pressable
+          <View
             style={[styles.sheet, { backgroundColor: theme.colors.card }]}
-            onPress={() => {}}
+            onStartShouldSetResponder={() => true}
           >
             {/* Handle */}
             <View style={styles.handleRow}>
@@ -168,7 +178,7 @@ export default function AppealBottomSheet({
                 Попросить перепроверить
               </Text>
               <Text style={[styles.headerDesc, { color: theme.colors.textSecondary }]}>
-                Опиши, что кажется неверным. Учитель рассмотрит обращение в течение 72 часов.
+                Опиши, что кажется неверным. Учитель рассмотрит обращение в течение 72 часов и исправит оценку.
               </Text>
             </View>
 
@@ -181,7 +191,7 @@ export default function AppealBottomSheet({
             >
               {/* Disagreement points */}
               <Text style={[styles.label, { color: theme.colors.text }]}>
-                С чем вы не согласны? <Text style={styles.required}>*</Text>
+                Причина обращения <Text style={styles.required}>*</Text>
               </Text>
               <View
                 style={[
@@ -240,6 +250,43 @@ export default function AppealBottomSheet({
               {errors.disagreementPoints ? (
                 <Text style={styles.errorText}>{errors.disagreementPoints}</Text>
               ) : null}
+
+              {/* Error context block */}
+              {errorContext && (
+                <>
+                  <Text
+                    style={[styles.label, { color: theme.colors.text, marginTop: 20 }]}
+                  >
+                    Ошибка для перепроверки <Text style={styles.required}>*</Text>
+                  </Text>
+                  <View
+                    style={[
+                      styles.errorContextBox,
+                      {
+                        backgroundColor: theme.colors.surface,
+                        borderColor: theme.colors.border,
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.errorContextLabel, { color: theme.colors.textSecondary }]}>
+                      Задание-команда:{' '}
+                      <Text style={[styles.errorContextValue, { color: theme.colors.text }]}>
+                        {errorContext.label}
+                      </Text>
+                    </Text>
+                    <Text style={[styles.errorContextLabel, { color: theme.colors.textSecondary }]}>
+                      Ошибка:{' '}
+                      <Text style={[styles.errorContextValue, { color: theme.colors.overdue }]}>
+                        {errorContext.studentAnswer}
+                      </Text>
+                      {' — '}
+                      <Text style={[styles.errorContextHint, { color: theme.colors.text }]}>
+                        {errorContext.description || `Правильно: ${errorContext.correctAnswer}`}
+                      </Text>
+                    </Text>
+                  </View>
+                </>
+              )}
 
               {/* Comment */}
               <Text
@@ -316,7 +363,7 @@ export default function AppealBottomSheet({
                 </View>
               ))}
 
-              {/* Upload buttons */}
+              {/* Upload button */}
               {attachments.length < MAX_ATTACHMENTS && (
                 <View style={styles.uploadRow}>
                   <TouchableOpacity
@@ -327,28 +374,18 @@ export default function AppealBottomSheet({
                         backgroundColor: theme.colors.surface,
                       },
                     ]}
-                    onPress={pickPhoto}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.uploadIcon}>📷</Text>
-                    <Text style={[styles.uploadText, { color: theme.colors.primary }]}>
-                      Фото
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.uploadBtn,
-                      {
-                        borderColor: theme.colors.primary,
-                        backgroundColor: theme.colors.surface,
-                      },
-                    ]}
-                    onPress={pickDocument}
+                    onPress={() => {
+                      Alert.alert('Загрузить файл', 'Выбери источник', [
+                        { text: 'Фото из галереи', onPress: pickPhoto },
+                        { text: 'Документ', onPress: pickDocument },
+                        { text: 'Отмена', style: 'cancel' },
+                      ]);
+                    }}
                     activeOpacity={0.7}
                   >
                     <Text style={styles.uploadIcon}>📎</Text>
                     <Text style={[styles.uploadText, { color: theme.colors.primary }]}>
-                      Файл
+                      Загрузить файл
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -386,10 +423,10 @@ export default function AppealBottomSheet({
                 onPress={handleSubmit}
                 activeOpacity={0.7}
               >
-                <Text style={styles.submitText}>Отправить</Text>
+                <Text style={styles.submitText}>Отправить запрос</Text>
               </TouchableOpacity>
             </View>
-          </Pressable>
+          </View>
         </KeyboardAvoidingView>
       </Pressable>
     </Modal>
@@ -409,8 +446,7 @@ const styles = StyleSheet.create({
   sheet: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '90%',
-    overflow: 'hidden',
+    height: Dimensions.get('window').height * 0.85,
   },
   handleRow: {
     alignItems: 'center',
@@ -552,6 +588,24 @@ const styles = StyleSheet.create({
   uploadText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  errorContextBox: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 14,
+    gap: 8,
+  },
+  errorContextLabel: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  errorContextValue: {
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  errorContextHint: {
+    fontSize: 13,
+    fontStyle: 'italic',
   },
   footer: {
     flexDirection: 'row',

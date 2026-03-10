@@ -40,15 +40,15 @@ export default function FeedbackScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: '#EBEFF8' }]}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.surface }]}>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.contentGraded}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.gradedContainer}>
+        <View style={[styles.gradedContainer, { backgroundColor: theme.colors.card }]}>
           {/* Header */}
-          <Text style={styles.gradedHeaderTitle}>
+          <Text style={[styles.gradedHeaderTitle, { color: theme.colors.text }]}>
             Оценка и обратная связь
           </Text>
 
@@ -60,9 +60,11 @@ export default function FeedbackScreen() {
                 { backgroundColor: theme.colors.primary + '33' },
               ]}
             >
-              <Text style={styles.subjectBadgeText}>{homework.subject}</Text>
+              <Text style={[styles.subjectBadgeText, { color: theme.colors.textSecondary }]}>
+                {homework.subject}
+              </Text>
             </View>
-            <Text style={styles.gradedTitle}>
+            <Text style={[styles.gradedTitle, { color: theme.colors.text }]}>
               Задание от {formatDateShortRu(homework.createdAt)}
             </Text>
           </View>
@@ -75,19 +77,19 @@ export default function FeedbackScreen() {
               >
                 <View style={styles.gradeBarInner}>
                   <Text style={styles.gradeBarText}>Твоя оценка :</Text>
-                  <View style={styles.gradeNumberBox}>
+                  <View style={[styles.gradeNumberBox, { backgroundColor: theme.colors.surface }]}>
                     <Text style={[styles.gradeNumber, { color: theme.colors.primary }]}>
                       {homework.grade}
                     </Text>
                   </View>
                 </View>
               </View>
-              <View style={styles.stickerArea}>
+              <View style={[styles.stickerArea, { backgroundColor: theme.colors.surface }]}>
                 <Text style={styles.stickerEmoji}>
                   {getGradeEmoji(homework.grade, homework.maxGrade)}
                 </Text>
                 <View style={styles.stickerTextWrap}>
-                  <Text style={styles.stickerText}>
+                  <Text style={[styles.stickerText, { color: theme.colors.text }]}>
                     {getGradeLabel(homework.grade, homework.maxGrade)}!
                   </Text>
                 </View>
@@ -97,18 +99,18 @@ export default function FeedbackScreen() {
 
           {/* Feedback card — Резюме */}
           {(homework.aiFeedback || homework.teacherFeedback) && (
-            <View style={styles.feedbackCardNew}>
+            <View style={[styles.feedbackCardNew, { backgroundColor: theme.colors.surface }]}>
               <View
                 style={[
                   styles.feedbackBadge,
                   { backgroundColor: theme.colors.primary + '33' },
                 ]}
               >
-                <Text style={styles.feedbackBadgeText}>
+                <Text style={[styles.feedbackBadgeText, { color: theme.colors.text }]}>
                   Резюме по этой работе:
                 </Text>
               </View>
-              <Text style={styles.feedbackText}>
+              <Text style={[styles.feedbackText, { color: theme.colors.text }]}>
                 {homework.aiFeedback || homework.teacherFeedback}
               </Text>
             </View>
@@ -122,8 +124,10 @@ export default function FeedbackScreen() {
           {/* Твое фото */}
           {studentPhotos.length > 0 && (
             <View style={styles.yourPhotoSection}>
-              <Text style={styles.yourPhotoTitle}>Твое фото</Text>
-              <View style={styles.yourPhotoContainer}>
+              <Text style={[styles.yourPhotoTitle, { color: theme.colors.text }]}>
+                Твое фото
+              </Text>
+              <View style={[styles.yourPhotoContainer, { backgroundColor: theme.colors.surface }]}>
                 <Image
                   source={{ uri: studentPhotos[0] }}
                   style={styles.yourPhotoImage}
@@ -168,7 +172,6 @@ const styles = StyleSheet.create({
   },
   contentGraded: {},
   gradedContainer: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
     paddingHorizontal: 16,
@@ -178,7 +181,6 @@ const styles = StyleSheet.create({
   gradedHeaderTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#272443',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 16,
@@ -197,14 +199,12 @@ const styles = StyleSheet.create({
   subjectBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#414651',
     textAlign: 'center',
     letterSpacing: 0.4,
   },
   gradedTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1F1D2B',
     textAlign: 'center',
     lineHeight: 32,
   },
@@ -233,7 +233,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 8,
-    backgroundColor: '#F8F8F8',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -244,7 +243,6 @@ const styles = StyleSheet.create({
   },
   stickerArea: {
     height: 120,
-    backgroundColor: '#EBEFF8',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -260,12 +258,10 @@ const styles = StyleSheet.create({
   stickerText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#272443',
     textAlign: 'center',
     lineHeight: 12,
   },
   feedbackCardNew: {
-    backgroundColor: '#FAFBFE',
     borderRadius: 12,
     paddingHorizontal: 20,
     paddingVertical: 24,
@@ -283,13 +279,11 @@ const styles = StyleSheet.create({
   feedbackBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#1E1E1E',
     letterSpacing: 0.4,
   },
   feedbackText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#1F1D2B',
     textAlign: 'center',
     lineHeight: 15,
   },
@@ -301,11 +295,9 @@ const styles = StyleSheet.create({
   yourPhotoTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#272443',
     textAlign: 'center',
   },
   yourPhotoContainer: {
-    backgroundColor: '#FAFBFE',
     borderRadius: 12,
     padding: 16,
     paddingTop: 10,
