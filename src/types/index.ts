@@ -324,7 +324,14 @@ export interface Appeal {
 }
 
 // ─── Notifications ──────────────────────────────────────────────
-export type NotificationType = 'chat_reply' | 'duel_challenge' | 'homework_graded' | 'duel_result';
+export type NotificationType =
+  | 'homework_new'
+  | 'homework_graded'
+  | 'homework_mark'
+  | 'chat_reply'
+  | 'duel_challenge'
+  | 'duel_result'
+  | 'achievement';
 
 export interface AppNotification {
   id: string;

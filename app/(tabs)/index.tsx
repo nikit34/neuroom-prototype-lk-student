@@ -59,12 +59,23 @@ export default function HomeScreen() {
   const markAsRead = useNotificationStore((s) => s.markAsRead);
   const teacherChatEnabled = useChatStore((s) => s.teacherChatEnabled);
 
-  const recentNotifications = useMemo(
-    () => teacherChatEnabled
+  const recentNotifications = useMemo(() => {
+    const PRIORITY: Record<string, number> = {
+      homework_new: 0,
+      homework_graded: 0,
+      homework_mark: 0,
+      duel_challenge: 1,
+      duel_result: 1,
+      achievement: 2,
+      chat_reply: 3,
+    };
+    const filtered = teacherChatEnabled
       ? notifications
-      : notifications.filter((n) => n.type !== 'chat_reply'),
-    [notifications, teacherChatEnabled],
-  );
+      : notifications.filter((n) => n.type !== 'chat_reply');
+    return [...filtered].sort(
+      (a, b) => (PRIORITY[a.type] ?? 9) - (PRIORITY[b.type] ?? 9),
+    );
+  }, [notifications, teacherChatEnabled]);
 
   const { height: screenHeight } = useWindowDimensions();
   const topBlockHeight = Math.round(screenHeight / 5);
