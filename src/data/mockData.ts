@@ -606,7 +606,7 @@ export const mockAchievements: Achievement[] = [
     progress: 100,
     isLocked: false,
     unlockedAt: new Date(now - DAY * 2),
-    source: { type: 'early_streak', earlyCount: 5, description: 'Сдал 5 домашних заданий до дедлайна подряд' },
+    source: { type: 'early_streak', earlyCount: 5, description: 'Сдал 5 домашних заданий до срока сдачи подряд' },
   },
   {
     id: 'ach-3',
@@ -621,7 +621,7 @@ export const mockAchievements: Achievement[] = [
   },
   {
     id: 'ach-4',
-    title: 'Мастер дедлайнов',
+    title: 'Мастер сроков',
     description: 'Сдайте 20 заданий вовремя подряд',
     icon: '🎯',
     rarity: 'epic',
@@ -774,7 +774,7 @@ export const mockAchievements: Achievement[] = [
   {
     id: 'ach-17',
     title: 'Ранняя пташка',
-    description: 'Сдайте 10 заданий за день до дедлайна',
+    description: 'Сдайте 10 заданий за день до срока сдачи',
     icon: '🐦',
     rarity: 'rare',
     category: 'homework',

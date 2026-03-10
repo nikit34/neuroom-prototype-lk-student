@@ -10,11 +10,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
-import { useChatStore, AI_TUTOR_ID } from '@/src/stores/chatStore';
+import { useChatStore } from '@/src/stores/chatStore';
 import { mockClassStudents, StudentListItem } from '@/src/data/mockData';
 import Avatar from '@/src/components/ui/Avatar';
 
@@ -73,9 +72,8 @@ export default function OnboardingScreen() {
       grade: 10,
       classId: '10A',
     });
-    completeOnboarding();
     initChatOnboarding();
-    router.replace(`/chat/${AI_TUTOR_ID}`);
+    completeOnboarding();
   };
 
   const handleNext = () => {
@@ -86,9 +84,8 @@ export default function OnboardingScreen() {
     if (step < TOTAL_STEPS - 1) {
       animateTransition(step + 1);
     } else {
-      completeOnboarding();
       initChatOnboarding();
-      router.replace(`/chat/${AI_TUTOR_ID}`);
+      completeOnboarding();
     }
   };
 

@@ -85,7 +85,7 @@ function buildSuggests(
         topic: 'hw_conditions',
       });
       result.push({
-        label: `⏰ «${t}» — продлить дедлайн`,
+        label: `⏰ «${t}» — продлить срок`,
         message: `Здравствуйте! Не успеваю сдать «${t}» вовремя. Можно ли продлить срок?`,
         topic: 'hw_deadline',
       });
@@ -496,7 +496,7 @@ export default function ChatScreen() {
           keyExtractor={(item) => item.id}
           renderItem={renderMessage}
           inverted
-          contentContainerStyle={styles.messagesList}
+          contentContainerStyle={[styles.messagesList, isOnboarding && styles.onboardingList]}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
             hwPromptText ? (
@@ -718,6 +718,10 @@ const styles = StyleSheet.create({
   },
   emptyChatText: {
     fontSize: 14,
+  },
+
+  onboardingList: {
+    paddingTop: 80,
   },
 
   // ── Onboarding options ──

@@ -163,15 +163,15 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ── Deadlines ── */}
+        {/* ── Active assignments ── */}
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          Ближайшие дедлайны
+          Активные задания
         </Text>
 
         {upcomingDeadlines.length === 0 ? (
           <Card>
             <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
-              🎉 Нет предстоящих дедлайнов!
+              🎉 Нет активных заданий!
             </Text>
           </Card>
         ) : (
@@ -232,7 +232,7 @@ export default function HomeScreen() {
                         </Text>
                       </View>
                     ))}
-                    <DeadlineIndicator deadline={hw.deadline} />
+                    <DeadlineIndicator deadline={hw.deadline} status={hw.status} submissions={hw.submissions} />
                   </View>
                 </TouchableOpacity>
 
@@ -252,7 +252,7 @@ export default function HomeScreen() {
                       activeOpacity={0.7}
                     >
                       <Text style={styles.cameraBtnIcon}>💬</Text>
-                      <Text style={styles.cameraBtnLabel}>Вопрос</Text>
+                      <Text style={styles.cameraBtnLabel}>Обсудить</Text>
                     </TouchableOpacity>
                   </View>
                 ) : (
@@ -455,8 +455,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   cameraBtn: {
-    width: 56,
-    height: 56,
+    width: 64,
+    height: 64,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',

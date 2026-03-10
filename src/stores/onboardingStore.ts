@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface OnboardingState {
   isCompleted: boolean;
+  _hasHydrated: boolean;
   complete: () => void;
   reset: () => void;
 }
@@ -12,6 +13,7 @@ export const useOnboardingStore = create<OnboardingState>()(
   persist(
     (set) => ({
       isCompleted: false,
+      _hasHydrated: false,
 
       complete: () => set({ isCompleted: true }),
 
@@ -20,6 +22,10 @@ export const useOnboardingStore = create<OnboardingState>()(
     {
       name: 'neuroom-onboarding',
       storage: createJSONStorage(() => AsyncStorage),
+      onRehydrateStorage: () => () => {
+        useOnboardingStore.setState({ _hasHydrated: true });
+      },
+      partialize: (state) => ({ isCompleted: state.isCompleted }),
     }
   )
 );

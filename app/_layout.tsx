@@ -7,6 +7,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
+import { useChatStore, AI_TUTOR_ID } from '@/src/stores/chatStore';
+import OnboardingScreen from './onboarding';
 import DevModeOverlay from '@/src/components/dev/DevModeOverlay';
 import CelebrationOverlay from '@/src/components/CelebrationOverlay';
 import LootChestOverlay from '@/src/components/rewards/LootChestOverlay';
@@ -26,18 +28,19 @@ export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+  const hasHydrated = useOnboardingStore((s) => s._hasHydrated);
 
   useEffect(() => {
     if (error) throw error;
   }, [error]);
 
   useEffect(() => {
-    if (loaded) {
+    if (loaded && hasHydrated) {
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  }, [loaded, hasHydrated]);
 
-  if (!loaded) {
+  if (!loaded || !hasHydrated) {
     return null;
   }
 
@@ -47,13 +50,16 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const theme = useAppTheme();
   const isOnboardingCompleted = useOnboardingStore((s) => s.isCompleted);
+  const chatOnboardingStep = useChatStore((s) => s.chatOnboardingStep);
   const responseListener = useRef<{ remove: () => void } | null>(null);
+  const wasOnboardingCompleted = useRef(isOnboardingCompleted);
 
   useEffect(() => {
-    if (!isOnboardingCompleted) {
-      router.replace('/onboarding' as any);
+    if (!wasOnboardingCompleted.current && isOnboardingCompleted && chatOnboardingStep !== 'done') {
+      router.replace(`/chat/${AI_TUTOR_ID}` as any);
     }
-  }, [isOnboardingCompleted]);
+    wasOnboardingCompleted.current = isOnboardingCompleted;
+  }, [isOnboardingCompleted, chatOnboardingStep]);
 
   useEffect(() => {
     responseListener.current = addNotificationResponseListener((data) => {
@@ -66,6 +72,10 @@ function RootLayoutNav() {
       responseListener.current?.remove();
     };
   }, []);
+
+  if (!isOnboardingCompleted) {
+    return <OnboardingScreen />;
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: theme.colors.background }}>

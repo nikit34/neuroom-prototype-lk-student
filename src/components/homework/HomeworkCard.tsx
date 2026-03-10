@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -7,10 +7,12 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
+import { useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { HomeworkAssignment } from '@/src/types';
 import { isOverdue } from '@/src/utils/dateHelpers';
 import { getGradeColor, getGradeEmoji } from '@/src/utils/gradeHelpers';
+import { AI_TUTOR_ID } from '@/src/stores/chatStore';
 import Card from '@/src/components/ui/Card';
 import StatusChip from '@/src/components/ui/StatusChip';
 import DeadlineIndicator from './DeadlineIndicator';
@@ -42,6 +44,8 @@ function getSubjectEmoji(subject: string): string {
 
 export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
   const theme = useAppTheme();
+  const router = useRouter();
+  const canSubmit = homework.status === 'pending' || homework.status === 'resubmit';
   const overdue = isOverdue(homework.deadline) && homework.status === 'pending';
 
   const pulseValue = useSharedValue(1);
@@ -79,7 +83,7 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
         </View>
 
         <View style={styles.footer}>
-          <DeadlineIndicator deadline={homework.deadline} />
+          <DeadlineIndicator deadline={homework.deadline} status={homework.status} submissions={homework.submissions} />
           <View style={styles.footerRight}>
 {homework.grade !== undefined && (
               <View style={styles.gradeContainer}>
@@ -97,6 +101,32 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
               </View>
             )}
           </View>
+        </View>
+
+        <View style={styles.actionBtnsRow}>
+          {canSubmit ? (
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: theme.colors.primary }]}
+              onPress={() => router.push(`/homework/submit/${homework.id}`)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.actionBtnIcon}>📸</Text>
+              <Text style={styles.actionBtnLabel}>Сдать</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={[styles.actionBtn, { backgroundColor: theme.colors.border, opacity: 0.5 }]}>
+              <Text style={styles.actionBtnIcon}>✅</Text>
+              <Text style={styles.actionBtnLabel}>Сдано</Text>
+            </View>
+          )}
+          <TouchableOpacity
+            style={[styles.actionBtn, { backgroundColor: theme.colors.accent }]}
+            onPress={() => router.push(`/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}`)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.actionBtnIcon}>💬</Text>
+            <Text style={styles.actionBtnLabel}>Обсудить</Text>
+          </TouchableOpacity>
         </View>
       </Card>
     </Animated.View>
@@ -157,6 +187,28 @@ gradeContainer: {
   },
   gradeText: {
     fontSize: 14,
+    fontWeight: '700',
+  },
+  actionBtnsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  actionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    height: 34,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  actionBtnIcon: {
+    fontSize: 14,
+  },
+  actionBtnLabel: {
+    color: '#fff',
+    fontSize: 12,
     fontWeight: '700',
   },
 });

@@ -7,6 +7,7 @@ import {
   Alert,
   Image,
   Pressable,
+  TouchableOpacity,
   Modal,
   Dimensions,
 } from 'react-native';
@@ -14,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
+import { AI_TUTOR_ID } from '@/src/stores/chatStore';
 import { useAppealStore } from '@/src/stores/appealStore';
 import { deepAnalysis } from '@/src/services/aiService';
 import Card from '@/src/components/ui/Card';
@@ -178,15 +180,6 @@ export default function HomeworkDetailScreen() {
               />
             )}
 
-            {/* Teacher Feedback */}
-            {homework.teacherFeedback && (
-              <FeedbackBubble
-                text={homework.teacherFeedback}
-                type="teacher"
-                timestamp={homework.createdAt}
-              />
-            )}
-
             {/* Appeal status or dispute button */}
             {appeal ? (
               <View style={styles.actions}>
@@ -204,7 +197,7 @@ export default function HomeworkDetailScreen() {
             )}
 
             {/* Deep analysis */}
-            {(homework.aiFeedback || homework.teacherFeedback) && (
+            {homework.aiFeedback && (
               <View style={{ marginBottom: 16 }}>
                 <Button
                   title="Разобрать ошибки"
@@ -265,12 +258,12 @@ export default function HomeworkDetailScreen() {
               }}
             />
 
-            {/* Deadline */}
+            {/* Срок сдачи */}
             <Card style={styles.infoCard}>
               <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
-                Дедлайн
+                Срок сдачи
               </Text>
-              <DeadlineIndicator deadline={homework.deadline} />
+              <DeadlineIndicator deadline={homework.deadline} status={homework.status} submissions={homework.submissions} />
             </Card>
           </>
         )}
@@ -315,34 +308,55 @@ export default function HomeworkDetailScreen() {
                     }
                   />
                 )}
-                {homework.teacherFeedback && (
-                  <FeedbackBubble
-                    text={homework.teacherFeedback}
-                    type="teacher"
-                    timestamp={homework.createdAt}
-                  />
-                )}
               </>
             )}
 
 
             {/* Actions */}
             <View style={styles.actions}>
-              {canSubmit && (
-                <Button
-                  title="Сдать работу"
-                  icon="📤"
-                  onPress={() => router.push(`/homework/submit/${homework.id}`)}
-                />
-              )}
+              {canSubmit ? (
+                <View style={styles.actionBtnsRow}>
+                  <TouchableOpacity
+                    style={[styles.actionBtn, { backgroundColor: theme.colors.primary }]}
+                    onPress={() => router.push(`/homework/submit/${homework.id}`)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.actionBtnIcon}>📸</Text>
+                    <Text style={styles.actionBtnLabel}>Сдать</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionBtn, { backgroundColor: theme.colors.accent }]}
+                    onPress={() => router.push(`/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}`)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.actionBtnIcon}>💬</Text>
+                    <Text style={styles.actionBtnLabel}>Обсудить</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : homework.status === 'submitted' ? (
+                <View style={styles.actionBtnsRow}>
+                  <View style={[styles.actionBtn, { backgroundColor: theme.colors.border, opacity: 0.6 }]}>
+                    <Text style={styles.actionBtnIcon}>✅</Text>
+                    <Text style={styles.actionBtnLabel}>Сдано</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={[styles.actionBtn, { backgroundColor: theme.colors.accent }]}
+                    onPress={() => router.push(`/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}`)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.actionBtnIcon}>💬</Text>
+                    <Text style={styles.actionBtnLabel}>Обсудить</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
             </View>
 
-            {/* Deadline */}
+            {/* Срок сдачи */}
             <Card style={styles.infoCard}>
               <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>
-                Дедлайн
+                Срок сдачи
               </Text>
-              <DeadlineIndicator deadline={homework.deadline} />
+              <DeadlineIndicator deadline={homework.deadline} status={homework.status} submissions={homework.submissions} />
             </Card>
 
             {/* Submissions — photo thumbnails */}
@@ -475,6 +489,26 @@ const styles = StyleSheet.create({
   actions: {
     marginTop: 24,
     marginBottom: 16,
+  },
+  actionBtnsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionBtn: {
+    flex: 1,
+    height: 64,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionBtnIcon: {
+    fontSize: 22,
+  },
+  actionBtnLabel: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 2,
   },
   actionGap: {
     marginTop: 10,

@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChatMessage, ChatAttachment } from '../types';
 import { mockTeachers, mockStudent } from '../data/mockData';
 import { useStudentStore } from './studentStore';
@@ -41,8 +43,8 @@ const aiTutorReplies: TopicReplies = {
     'Обрати внимание на единицы измерения и ограничения в условии — обычно в них кроется подсказка.',
   ],
   hw_deadline: [
-    'Я не могу продлить дедлайн, но могу помочь решить задание быстрее! Давай разберём его вместе.',
-    'По поводу дедлайна лучше написать учителю. А я могу помочь тебе ускориться — присылай задания!',
+    'Я не могу продлить срок сдачи, но могу помочь решить задание быстрее! Давай разберём его вместе.',
+    'По поводу сроков лучше написать учителю. А я могу помочь тебе ускориться — присылай задания!',
   ],
   hw_grade: [
     'Давай разберёмся, за что снизили. Покажи задание и своё решение — я покажу, где были ошибки и как их исправить.',
@@ -94,7 +96,7 @@ const topicReplies: TopicReplies = {
     'Обратите внимание на ключевые слова в условии — обычно в них и кроется суть.',
   ],
   hw_deadline: [
-    'К сожалению, я не могу продлить дедлайн для одного ученика. Постарайтесь успеть вовремя!',
+    'К сожалению, я не могу продлить срок сдачи для одного ученика. Постарайтесь успеть вовремя!',
     'Давайте обсудим. Напишите причину, и я подумаю, что можно сделать.',
     'Если есть уважительная причина, я могу дать дополнительный день. Объясните ситуацию.',
     'Рекомендую начинать задание заранее. Но если что-то случилось — пишите.',
@@ -114,7 +116,7 @@ const topicReplies: TopicReplies = {
   general: [
     'Спасибо за сообщение! Я посмотрю и отвечу подробнее позже.',
     'Хороший вопрос. Давайте обсудим это на следующем уроке.',
-    'Принято. Не забудьте про дедлайн!',
+    'Принято. Не забудьте про сроки сдачи!',
     'Молодец, что интересуешься! Рекомендую почитать дополнительный материал в учебнике.',
     'Я проверю вашу работу сегодня вечером.',
     'Попробуйте решить задачу ещё раз, используя другой метод.',
@@ -149,7 +151,7 @@ interface ChatState {
   resetChatOnboarding: () => void;
 }
 
-export const useChatStore = create<ChatState>((set, get) => ({
+export const useChatStore = create<ChatState>()(persist((set, get) => ({
   messages: {},
   teacherChatEnabled: false,
   aiTutorQuestionsUsed: 0,
@@ -356,31 +358,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   confirmOnboarding: () => {
-    const state = get();
-    const messages = [...(state.messages[AI_TUTOR_ID] ?? [])];
-    const now = Date.now();
-
-    // Mark confirm message as selected
-    if (messages.length > 0) {
-      const last = messages[messages.length - 1];
-      messages[messages.length - 1] = { ...last, selectedOptionId: 'confirmed' };
-    }
-
-    const student = useStudentStore.getState().student;
-
-    const studentMsg: ChatMessage = {
-      id: `msg-onb-${now}-s`,
-      senderId: student.id,
-      senderName: `${student.firstName} ${student.lastName}`,
-      text: 'Подтверждаю!',
-      timestamp: new Date(),
-      isStudent: true,
-    };
-
-    set({
+    set((state) => ({
       chatOnboardingStep: 'done',
-      messages: { ...state.messages, [AI_TUTOR_ID]: [...messages, studentMsg] },
-    });
+      messages: { ...state.messages, [AI_TUTOR_ID]: [] },
+    }));
   },
 
   resetChatOnboarding: () => {
@@ -450,4 +431,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   setMessages: (messages) => set({ messages }),
+}), {
+  name: 'neuroom-chat',
+  storage: createJSONStorage(() => AsyncStorage),
+  partialize: (state) => ({ chatOnboardingStep: state.chatOnboardingStep }),
 }));

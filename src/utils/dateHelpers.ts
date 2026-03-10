@@ -25,7 +25,7 @@ export function timeAgoRu(date: Date): string {
 }
 
 /**
- * Проверяет, просрочен ли дедлайн.
+ * Проверяет, просрочен ли срок сдачи.
  */
 export function isOverdue(deadline: Date): boolean {
   return isPast(deadline);
@@ -49,7 +49,7 @@ export function getTimeRemaining(deadline: Date): string {
 }
 
 /**
- * Возвращает короткую строку для дедлайна: «Сегодня», «Завтра», «Просрочено» или дату.
+ * Возвращает короткую строку для срока сдачи: «Сегодня», «Завтра», «Просрочено» или дату.
  */
 export function getDeadlineLabel(deadline: Date): string {
   const now = new Date();

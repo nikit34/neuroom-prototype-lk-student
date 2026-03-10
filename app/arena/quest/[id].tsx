@@ -39,7 +39,7 @@ export default function QuestDetailScreen() {
           {quest.status !== 'completed' && (
             <View style={[styles.metaBadge, { backgroundColor: daysLeft <= 2 ? theme.colors.overdue + '22' : theme.colors.surface, borderColor: theme.colors.border }]}>
               <Text style={[styles.metaText, { color: daysLeft <= 2 ? theme.colors.overdue : theme.colors.textSecondary }]}>
-                {daysLeft} дн. до дедлайна
+                {daysLeft} дн. до срока сдачи
               </Text>
             </View>
           )}

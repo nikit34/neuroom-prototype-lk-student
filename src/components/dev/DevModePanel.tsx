@@ -8,7 +8,6 @@ import Animated, {
   withSpring,
   runOnJS,
 } from 'react-native-reanimated';
-import { useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useThemeStore } from '@/src/stores/themeStore';
@@ -405,7 +404,6 @@ function ResetHomeworkButton() {
 function RestartOnboardingButton({ onClose }: { onClose?: () => void }) {
   const resetOnboarding = useOnboardingStore((s) => s.reset);
   const resetChatOnboarding = useChatStore((s) => s.resetChatOnboarding);
-  const router = useRouter();
 
   return (
     <TouchableOpacity
@@ -414,7 +412,6 @@ function RestartOnboardingButton({ onClose }: { onClose?: () => void }) {
         onClose?.();
         resetOnboarding();
         resetChatOnboarding();
-        router.replace('/onboarding');
       }}
       activeOpacity={0.7}
     >
