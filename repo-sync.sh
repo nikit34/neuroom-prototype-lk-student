@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_DIR="/Users/anastasia/neuroom-prototype-lk-student"
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 BRANCH="main"
 
 cd "$REPO_DIR"
@@ -26,6 +26,14 @@ while true; do
     else
       npm i --silent
     fi
+
+    # Сбросить кэш Metro и заставить watchman пересканировать файлы,
+    # чтобы запущенный Metro подхватил изменения без перезапуска
+    rm -rf /tmp/metro-* node_modules/.cache .expo/web/cache
+    watchman watch-del "$REPO_DIR" 2>/dev/null || true
+    watchman watch-project "$REPO_DIR" 2>/dev/null || true
+
+    echo "[sync] cache cleared, metro should pick up changes"
   fi
 
   sleep 5
