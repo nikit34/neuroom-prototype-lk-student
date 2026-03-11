@@ -13,6 +13,7 @@ import { HomeworkAssignment } from '@/src/types';
 import { isOverdue } from '@/src/utils/dateHelpers';
 import { getGradeColor, getGradeEmoji } from '@/src/utils/gradeHelpers';
 import { AI_TUTOR_ID } from '@/src/stores/chatStore';
+import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import Card from '@/src/components/ui/Card';
 import StatusChip from '@/src/components/ui/StatusChip';
 import DeadlineIndicator from './DeadlineIndicator';
@@ -45,9 +46,11 @@ function getSubjectEmoji(subject: string): string {
 export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
   const theme = useAppTheme();
   const router = useRouter();
+  const viewedCheckedIds = useHomeworkStore((s) => s.viewedCheckedIds);
   const canSubmit = homework.status === 'pending' || homework.status === 'resubmit';
   const overdue = isOverdue(homework.deadline) && homework.status === 'pending';
   const isChecked = homework.status === 'graded' || homework.status === 'ai_reviewed';
+  const isDimmed = isChecked && viewedCheckedIds.includes(homework.id);
 
   const pulseValue = useSharedValue(1);
 
@@ -69,11 +72,11 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
   }));
 
   return (
-    <Animated.View style={[styles.animatedWrapper, animatedBorderStyle, { borderRadius: 16 }, isChecked && { opacity: 0.55 }]}>
+    <Animated.View style={[styles.animatedWrapper, animatedBorderStyle, { borderRadius: 16 }, isDimmed && { opacity: 0.55 }]}>
       <Card style={styles.card} onPress={onPress}>
         <View style={styles.header}>
           <View style={styles.headerText}>
-            <Text style={[styles.title, { color: isChecked ? theme.colors.textSecondary : theme.colors.text }]} numberOfLines={1}>
+            <Text style={[styles.title, { color: isDimmed ? theme.colors.textSecondary : theme.colors.text }]} numberOfLines={1}>
               {homework.subject}
             </Text>
             <Text style={[styles.subject, { color: theme.colors.textSecondary }]} numberOfLines={1}>

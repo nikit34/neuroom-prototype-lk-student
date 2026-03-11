@@ -19,7 +19,7 @@ const FILTERS: { key: FilterType; label: string }[] = [
   { key: 'all', label: 'Все' },
   { key: 'active', label: 'Активные' },
   { key: 'overdue', label: 'Просроченные' },
-  { key: 'done', label: 'Готово' },
+  { key: 'done', label: 'Проверено' },
 ];
 
 export default function HomeworkScreen() {

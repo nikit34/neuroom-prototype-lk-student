@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,14 @@ export default function FeedbackScreen() {
   const theme = useAppTheme();
   const router = useRouter();
   const assignments = useHomeworkStore((s) => s.assignments);
+  const markCheckedViewed = useHomeworkStore((s) => s.markCheckedViewed);
   const homework = assignments.find((a) => a.id === id);
+
+  useEffect(() => {
+    if (homework && (homework.status === 'graded' || homework.status === 'ai_reviewed')) {
+      markCheckedViewed(homework.id);
+    }
+  }, [homework?.id, homework?.status]);
 
   if (!homework) {
     return (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -41,8 +41,15 @@ export default function HomeworkDetailScreen() {
   const submitAppeal = useAppealStore((s) => s.submitAppeal);
   const [analyzing, setAnalyzing] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const markCheckedViewed = useHomeworkStore((s) => s.markCheckedViewed);
   const [appealSheetVisible, setAppealSheetVisible] = useState(false);
   const [disputeErrorIndex, setDisputeErrorIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (homework && (homework.status === 'graded' || homework.status === 'ai_reviewed')) {
+      markCheckedViewed(homework.id);
+    }
+  }, [homework?.id, homework?.status]);
 
   if (!homework) {
     return (

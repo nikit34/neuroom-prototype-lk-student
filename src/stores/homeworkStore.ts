@@ -8,18 +8,21 @@ type FilterType = 'all' | 'active' | 'overdue' | 'done';
 interface HomeworkState {
   assignments: HomeworkAssignment[];
   filter: FilterType;
+  viewedCheckedIds: string[];
   setFilter: (f: FilterType) => void;
   getFiltered: () => HomeworkAssignment[];
   submitHomework: (id: string, submission: Submission) => void;
   updateStatus: (id: string, status: HomeworkStatus) => void;
   setGrade: (id: string, grade: number, feedback: string) => void;
   setAiFeedback: (id: string, feedback: string) => void;
+  markCheckedViewed: (id: string) => void;
   resetAssignments: () => void;
 }
 
 export const useHomeworkStore = create<HomeworkState>((set, get) => ({
   assignments: [...mockHomework],
   filter: 'all',
+  viewedCheckedIds: [],
 
   setFilter: (f) => set({ filter: f }),
 
@@ -42,10 +45,7 @@ export const useHomeworkStore = create<HomeworkState>((set, get) => ({
         );
       case 'done':
         return assignments.filter(
-          (a) =>
-            a.status === 'graded' ||
-            a.status === 'submitted' ||
-            a.status === 'ai_reviewed'
+          (a) => a.status === 'graded'
         );
       default:
         return assignments;
@@ -109,6 +109,13 @@ export const useHomeworkStore = create<HomeworkState>((set, get) => ({
       ),
     })),
 
+  markCheckedViewed: (id) =>
+    set((state) =>
+      state.viewedCheckedIds.includes(id)
+        ? state
+        : { viewedCheckedIds: [...state.viewedCheckedIds, id] }
+    ),
+
   resetAssignments: () => {
     const offset = Date.now() - MOCK_BASE_TIME;
     const fresh = mockHomework.map((hw) => ({
@@ -120,6 +127,6 @@ export const useHomeworkStore = create<HomeworkState>((set, get) => ({
         submittedAt: new Date(s.submittedAt.getTime() + offset),
       })),
     }));
-    set({ assignments: fresh });
+    set({ assignments: fresh, viewedCheckedIds: [] });
   },
 }));
