@@ -198,11 +198,11 @@ export default function ChatScreen() {
     : assignments.filter((hw) => hw.teacher.id === teacherId);
 
   const allAiSuggests: (Suggest & { forStatus?: string[] })[] = useMemo(() => [
-    { label: '📖 Объясни тему', message: 'Привет! Можешь объяснить мне текущую тему простым языком?', topic: 'topic_help', forStatus: ['pending', 'submitted'] },
-    { label: '📊 Почему такая оценка', message: 'Привет! Не понимаю, почему мне поставили такую оценку. Можешь объяснить, что было не так?', topic: 'hw_grade_explain', forStatus: ['ai_reviewed', 'resubmit', 'graded'] },
-    { label: '📈 Как улучшить оценки', message: 'Привет! Хочу получать оценки лучше. Можешь посмотреть мои прошлые работы и подсказать, что исправить?', topic: 'hw_improve_general', forStatus: ['graded'] },
-    { label: '❓ Помоги с задачей', message: 'У меня не получается решить задачу. Можешь помочь разобраться?', topic: 'hw_error', forStatus: ['pending', 'ai_reviewed', 'resubmit'] },
-    { label: '📝 Проверь моё решение', message: 'Можешь проверить моё решение и сказать, есть ли ошибки?', topic: 'hw_error', forStatus: ['ai_reviewed', 'resubmit'] },
+    { label: 'Объясни тему', message: 'Привет! Можешь объяснить мне текущую тему простым языком?', topic: 'topic_help', forStatus: ['pending', 'submitted'] },
+    { label: 'Почему такая оценка', message: 'Привет! Не понимаю, почему мне поставили такую оценку. Можешь объяснить, что было не так?', topic: 'hw_grade_explain', forStatus: ['ai_reviewed', 'resubmit', 'graded'] },
+    { label: 'Как улучшить оценки', message: 'Привет! Хочу получать оценки лучше. Можешь посмотреть мои прошлые работы и подсказать, что исправить?', topic: 'hw_improve_general', forStatus: ['graded'] },
+    { label: 'Помоги с задачей', message: 'У меня не получается решить задачу. Можешь помочь разобраться?', topic: 'hw_error', forStatus: ['pending', 'ai_reviewed', 'resubmit'] },
+    { label: 'Проверь моё решение', message: 'Можешь проверить моё решение и сказать, есть ли ошибки?', topic: 'hw_error', forStatus: ['ai_reviewed', 'resubmit'] },
   ], []);
 
   const aiSuggests: Suggest[] = useMemo(() => {
@@ -971,6 +971,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   suggestChip: {
+    flexGrow: 1,
+    alignItems: 'center',
     paddingHorizontal: 11,
     paddingVertical: 7,
     borderRadius: 14,
