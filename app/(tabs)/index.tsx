@@ -30,7 +30,6 @@ export default function HomeScreen() {
   const appVersion = useAppVersionStore((s) => s.appVersion);
 
   const notifications = useNotificationStore((s) => s.notifications);
-  const unreadCount = useNotificationStore((s) => s.unreadCount);
   const markAsRead = useNotificationStore((s) => s.markAsRead);
   const teacherChatEnabled = useChatStore((s) => s.teacherChatEnabled);
 
@@ -51,6 +50,11 @@ export default function HomeScreen() {
       (a, b) => (PRIORITY[a.type] ?? 9) - (PRIORITY[b.type] ?? 9),
     );
   }, [notifications, teacherChatEnabled]);
+
+  const filteredUnreadCount = useMemo(
+    () => recentNotifications.filter((n) => !n.isRead).length,
+    [recentNotifications],
+  );
 
   const [bellOpen, setBellOpen] = useState(false);
 
@@ -98,9 +102,9 @@ export default function HomeScreen() {
               activeOpacity={0.7}
             >
               <Ionicons name="notifications-outline" size={26} color={theme.colors.text} />
-              {unreadCount() > 0 && (
+              {filteredUnreadCount > 0 && (
                 <View style={[styles.bellBadge, { backgroundColor: theme.colors.primary }]}>
-                  <Text style={styles.bellBadgeText}>{unreadCount()}</Text>
+                  <Text style={styles.bellBadgeText}>{filteredUnreadCount}</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -177,43 +181,45 @@ export default function HomeScreen() {
                   Всё прочитано
                 </Text>
               ) : (
-                recentNotifications.map((notif) => (
-                  <TouchableOpacity
-                    key={notif.id}
-                    style={[
-                      styles.notifItem,
-                      { backgroundColor: notif.isRead ? 'transparent' : theme.colors.primary + '10' },
-                    ]}
-                    onPress={() => {
-                      markAsRead(notif.id);
-                      setBellOpen(false);
-                      if (notif.route) router.push(notif.route as any);
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.notifIcon}>{notif.icon}</Text>
-                    <View style={{ flex: 1 }}>
-                      <Text
-                        style={[
-                          styles.notifItemTitle,
-                          { color: theme.colors.text, fontWeight: notif.isRead ? '500' : '700' },
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {notif.title}
-                      </Text>
-                      <Text
-                        style={[styles.notifItemMsg, { color: theme.colors.textSecondary }]}
-                        numberOfLines={1}
-                      >
-                        {notif.message}
-                      </Text>
-                    </View>
-                    {!notif.isRead && (
-                      <View style={[styles.notifDot, { backgroundColor: theme.colors.primary }]} />
-                    )}
-                  </TouchableOpacity>
-                ))
+                <ScrollView nestedScrollEnabled showsVerticalScrollIndicator>
+                  {recentNotifications.map((notif) => (
+                    <TouchableOpacity
+                      key={notif.id}
+                      style={[
+                        styles.notifItem,
+                        { backgroundColor: notif.isRead ? 'transparent' : theme.colors.primary + '10' },
+                      ]}
+                      onPress={() => {
+                        markAsRead(notif.id);
+                        setBellOpen(false);
+                        if (notif.route) router.push(notif.route as any);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.notifIcon}>{notif.icon}</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={[
+                            styles.notifItemTitle,
+                            { color: theme.colors.text, fontWeight: notif.isRead ? '500' : '700' },
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {notif.title}
+                        </Text>
+                        <Text
+                          style={[styles.notifItemMsg, { color: theme.colors.textSecondary }]}
+                          numberOfLines={1}
+                        >
+                          {notif.message}
+                        </Text>
+                      </View>
+                      {!notif.isRead && (
+                        <View style={[styles.notifDot, { backgroundColor: theme.colors.primary }]} />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
               )}
             </View>
           </TouchableOpacity>
@@ -272,14 +278,14 @@ const styles = StyleSheet.create({
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'flex-start',
-    paddingTop: 100,
-    paddingHorizontal: 16,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
   },
   notifDropdown: {
     borderRadius: 16,
     padding: 14,
-    maxHeight: 400,
+    maxHeight: '70%',
+    overflow: 'hidden',
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
