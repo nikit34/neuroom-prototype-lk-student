@@ -19,6 +19,7 @@ while true; do
 
     git reset --hard "origin/$BRANCH" --quiet
 
+    rm -rf node_modules
     if [[ -f package-lock.json ]]; then
       npm ci --silent || npm i --silent
     elif [[ -f yarn.lock ]]; then
