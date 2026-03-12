@@ -425,7 +425,7 @@ export default function HomeworkDetailScreen() {
                     style={[styles.actionBtn, { backgroundColor: theme.colors.accent }]}
                     onPress={() =>
                       router.push(
-                        `/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}`
+                        `/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}&hwStatus=${homework.status}`
                       )
                     }
                     activeOpacity={0.7}
@@ -449,7 +449,7 @@ export default function HomeworkDetailScreen() {
                     style={[styles.actionBtn, { backgroundColor: theme.colors.accent }]}
                     onPress={() =>
                       router.push(
-                        `/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}`
+                        `/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}&hwStatus=${homework.status}`
                       )
                     }
                     activeOpacity={0.7}

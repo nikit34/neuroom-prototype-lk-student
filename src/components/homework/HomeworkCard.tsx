@@ -125,7 +125,7 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
           )}
           <TouchableOpacity
             style={[styles.actionBtn, { backgroundColor: theme.colors.accent }]}
-            onPress={() => router.push(`/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}`)}
+            onPress={() => router.push(`/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}&hwStatus=${homework.status}`)}
             activeOpacity={0.7}
           >
             <Text style={styles.actionBtnIcon}>💬</Text>

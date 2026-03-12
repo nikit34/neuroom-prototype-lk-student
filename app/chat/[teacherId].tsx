@@ -133,13 +133,14 @@ function buildSuggests(
 }
 
 export default function ChatScreen() {
-  const { teacherId, dispute, hwTitle, grade, hwPromptSubject, hwPromptText } = useLocalSearchParams<{
+  const { teacherId, dispute, hwTitle, grade, hwPromptSubject, hwPromptText, hwStatus } = useLocalSearchParams<{
     teacherId: string;
     dispute?: string;
     hwTitle?: string;
     grade?: string;
     hwPromptSubject?: string;
     hwPromptText?: string;
+    hwStatus?: string;
   }>();
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
@@ -196,14 +197,18 @@ export default function ChatScreen() {
     ? assignments
     : assignments.filter((hw) => hw.teacher.id === teacherId);
 
-  const aiSuggests: Suggest[] = useMemo(() => [
-    { label: '📖 Объясни тему', message: 'Привет! Можешь объяснить мне текущую тему простым языком?', topic: 'topic_help' },
-    { label: '📊 Почему такая оценка', message: 'Привет! Не понимаю, почему мне поставили такую оценку. Можешь объяснить, что было не так?', topic: 'hw_grade_explain' },
-    { label: '📈 Как улучшить оценки', message: 'Привет! Хочу получать оценки лучше. Можешь посмотреть мои прошлые работы и подсказать, что исправить?', topic: 'hw_improve_general' },
-    { label: '❓ Помоги с задачей', message: 'У меня не получается решить задачу. Можешь помочь разобраться?', topic: 'hw_error' },
-    { label: '📝 Проверь моё решение', message: 'Можешь проверить моё решение и сказать, есть ли ошибки?', topic: 'hw_error' },
-    { label: '🧠 Подготовка к контрольной', message: 'Помоги подготовиться к контрольной! С чего начать?', topic: 'topic_help' },
+  const allAiSuggests: (Suggest & { forStatus?: string[] })[] = useMemo(() => [
+    { label: '📖 Объясни тему', message: 'Привет! Можешь объяснить мне текущую тему простым языком?', topic: 'topic_help', forStatus: ['pending', 'submitted'] },
+    { label: '📊 Почему такая оценка', message: 'Привет! Не понимаю, почему мне поставили такую оценку. Можешь объяснить, что было не так?', topic: 'hw_grade_explain', forStatus: ['ai_reviewed', 'resubmit', 'graded'] },
+    { label: '📈 Как улучшить оценки', message: 'Привет! Хочу получать оценки лучше. Можешь посмотреть мои прошлые работы и подсказать, что исправить?', topic: 'hw_improve_general', forStatus: ['graded'] },
+    { label: '❓ Помоги с задачей', message: 'У меня не получается решить задачу. Можешь помочь разобраться?', topic: 'hw_error', forStatus: ['pending', 'ai_reviewed', 'resubmit'] },
+    { label: '📝 Проверь моё решение', message: 'Можешь проверить моё решение и сказать, есть ли ошибки?', topic: 'hw_error', forStatus: ['ai_reviewed', 'resubmit'] },
   ], []);
+
+  const aiSuggests: Suggest[] = useMemo(() => {
+    if (!hwStatus) return allAiSuggests;
+    return allAiSuggests.filter((s) => !s.forStatus || s.forStatus.includes(hwStatus));
+  }, [allAiSuggests, hwStatus]);
 
   const suggests = useMemo(
     () => packSuggests(isAiTutor ? aiSuggests : buildSuggests(teacherHomework, teacher?.subject ?? '')),
@@ -569,7 +574,10 @@ export default function ChatScreen() {
             {suggests.map((s, i) => (
               <TouchableOpacity
                 key={i}
-                style={[styles.suggestChip, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+                style={[
+                  styles.suggestChip,
+                  { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+                ]}
                 onPress={() => handleSuggest(s)}
                 activeOpacity={0.7}
               >
@@ -963,13 +971,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   suggestChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
     borderRadius: 14,
     borderWidth: 1,
   },
   suggestText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
   },
   // Attachment previews

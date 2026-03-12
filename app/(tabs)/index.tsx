@@ -204,14 +204,12 @@ export default function HomeScreen() {
                       {hw.description.split('\n')[0]}
                     </Text>
                     {appVersion >= 1 && (reward ? (
-                      <TouchableOpacity
-                        style={[styles.rewardHint, { backgroundColor: theme.colors.primary + '10', borderColor: theme.colors.primary + '40' }]}
-                        onPress={() => router.push(`/achievements/${reward.achievement.id}`)}
-                        activeOpacity={0.7}
+                      <View
+                        style={[styles.rewardHint, { backgroundColor: theme.colors.textSecondary + '08', borderColor: 'transparent' }]}
                       >
-                        <Text style={styles.rewardHintIcon}>{reward.achievement.icon}</Text>
+                        <Text style={[styles.rewardHintIcon, { opacity: 0.5 }]}>{reward.achievement.icon}</Text>
                         <View style={styles.rewardHintBody}>
-                          <Text style={[styles.rewardHintText, { color: theme.colors.primary }]} numberOfLines={1}>
+                          <Text style={[styles.rewardHintText, { color: theme.colors.textSecondary }]} numberOfLines={1}>
                             {willComplete
                               ? `Выполни и получи награду «${reward.achievement.title}»!`
                               : `+${reward.contribution}% к награде «${reward.achievement.title}»`}
@@ -220,13 +218,13 @@ export default function HomeScreen() {
                             <View
                               style={[styles.rewardBarFill, {
                                 width: `${reward.achievement.progress}%`,
-                                backgroundColor: theme.colors.primary,
+                                backgroundColor: theme.colors.textSecondary + '60',
                               }]}
                             />
                             <View
                               style={[styles.rewardBarGain, {
                                 width: `${Math.min(reward.contribution, 100 - reward.achievement.progress)}%`,
-                                backgroundColor: theme.colors.primary + '50',
+                                backgroundColor: theme.colors.textSecondary + '30',
                               }]}
                             />
                           </View>
@@ -234,11 +232,11 @@ export default function HomeScreen() {
                             {reward.achievement.progress}% → {Math.min(reward.achievement.progress + reward.contribution, 100)}%
                           </Text>
                         </View>
-                      </TouchableOpacity>
+                      </View>
                     ) : (
-                      <View style={[styles.rewardHint, { backgroundColor: theme.colors.success + '10', borderColor: theme.colors.success + '40' }]}>
-                        <Text style={styles.rewardHintIcon}>💚</Text>
-                        <Text style={[styles.rewardHintText, { color: theme.colors.success }]} numberOfLines={2}>
+                      <View style={[styles.rewardHint, { backgroundColor: theme.colors.textSecondary + '08', borderColor: 'transparent' }]}>
+                        <Text style={[styles.rewardHintIcon, { opacity: 0.5 }]}>💚</Text>
+                        <Text style={[styles.rewardHintText, { color: theme.colors.textSecondary }]} numberOfLines={2}>
                           Сдай вовремя и получи +Здоровье персонажу
                         </Text>
                       </View>
@@ -259,7 +257,7 @@ export default function HomeScreen() {
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.cameraBtn, { backgroundColor: theme.colors.accent }]}
-                      onPress={() => router.push(`/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(hw.subject)}&hwPromptText=${encodeURIComponent(hw.description)}`)}
+                      onPress={() => router.push(`/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(hw.subject)}&hwPromptText=${encodeURIComponent(hw.description)}&hwStatus=${hw.status}`)}
                       activeOpacity={0.7}
                     >
                       <Text style={styles.cameraBtnIcon}>💬</Text>
