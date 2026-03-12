@@ -371,6 +371,43 @@ function AiTutorLimitReset() {
   );
 }
 
+function ProgressSummaryToggle() {
+  const theme = useAppTheme();
+  const devShowProgressSummary = useHomeworkStore((s) => s.devShowProgressSummary);
+  const setDevShowProgressSummary = useHomeworkStore((s) => s.setDevShowProgressSummary);
+
+  return (
+    <View style={styles.toggleSection}>
+      <TouchableOpacity
+        style={[
+          styles.toggleRow,
+          {
+            backgroundColor: devShowProgressSummary ? theme.colors.primary + '20' : theme.colors.background,
+            borderColor: devShowProgressSummary ? theme.colors.primary : theme.colors.border,
+          },
+        ]}
+        onPress={() => setDevShowProgressSummary(!devShowProgressSummary)}
+        activeOpacity={0.7}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.toggleLabel, { color: theme.colors.text }]}>Саммари прогресса</Text>
+          <Text style={{ fontSize: 11, color: theme.colors.textSecondary, marginTop: 2 }}>
+            {devShowProgressSummary ? 'Рекомендация под прогресс-баром' : 'Скрыта'}
+          </Text>
+        </View>
+        <View
+          style={[
+            styles.toggleIndicator,
+            { backgroundColor: devShowProgressSummary ? theme.colors.primary : theme.colors.border },
+          ]}
+        >
+          <Text style={styles.toggleIndicatorText}>{devShowProgressSummary ? 'ON' : 'OFF'}</Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 function HideHomeworkToggle() {
   const theme = useAppTheme();
   const devHideHomework = useHomeworkStore((s) => s.devHideHomework);
@@ -632,6 +669,11 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
             ЗДОРОВЬЕ МАСКОТА
           </Text>
           <HealthSlider />
+
+          <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
+            ПРОГРЕСС
+          </Text>
+          <ProgressSummaryToggle />
 
           <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
             ДОМАШНИЕ ЗАДАНИЯ

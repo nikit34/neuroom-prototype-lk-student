@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useAgeStyles } from '@/src/hooks/useAgeStyles';
 import { Achievement, AchievementRarity, AchievementTier } from '@/src/types';
 import ProgressBar from '@/src/components/ui/ProgressBar';
 
@@ -43,6 +44,7 @@ function getTierIndex(tier?: string): number {
 
 export default function AchievementBadge({ achievement }: AchievementBadgeProps) {
   const theme = useAppTheme();
+  const age = useAgeStyles();
   const borderColor = RARITY_COLORS[achievement.rarity];
   const isLocked = achievement.isLocked;
   const hasTiers = !!achievement.tierThresholds;
@@ -59,6 +61,9 @@ export default function AchievementBadge({ achievement }: AchievementBadgeProps)
           backgroundColor: theme.colors.card,
           borderColor: hasTiers && achievement.tier ? activeBorderColor : borderColor,
           borderWidth: 2,
+          borderRadius: age.isJunior ? 18 : 14,
+          padding: age.isJunior ? 14 : 12,
+          minHeight: age.isJunior ? 160 : 140,
         },
       ]}
     >
@@ -80,19 +85,19 @@ export default function AchievementBadge({ achievement }: AchievementBadgeProps)
         <Text style={styles.unlockedBadge}>✅</Text>
       )}
 
-      <Text style={[styles.icon, isLocked && styles.lockedIcon]}>
+      <Text style={[styles.icon, isLocked && styles.lockedIcon, { fontSize: age.isJunior ? 42 : 36 }]}>
         {achievement.icon}
       </Text>
       <Text
         style={[
           styles.title,
-          { color: isLocked ? theme.colors.textSecondary : theme.colors.text },
+          { color: isLocked ? theme.colors.textSecondary : theme.colors.text, fontSize: age.isJunior ? 14 : 12 },
         ]}
         numberOfLines={2}
       >
         {achievement.title}
       </Text>
-      <Text style={[styles.rarity, { color: borderColor }]}>
+      <Text style={[styles.rarity, { color: borderColor, fontSize: age.isJunior ? 11 : 10 }]}>
         {RARITY_LABELS[achievement.rarity]}
       </Text>
 

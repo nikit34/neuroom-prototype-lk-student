@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useAgeStyles } from '@/src/hooks/useAgeStyles';
 import { formatDateRu } from '@/src/utils/dateHelpers';
 import { differenceInHours, isPast } from 'date-fns';
 import { HomeworkStatus, Submission } from '@/src/types';
@@ -28,21 +29,22 @@ function wasSubmittedOnTime(deadline: Date, submissions?: Submission[]): boolean
 
 export default function DeadlineIndicator({ deadline, status, submissions }: DeadlineIndicatorProps) {
   const theme = useAppTheme();
+  const age = useAgeStyles();
   const isActive = ACTIVE_STATUSES.includes(status);
+  const dotSize = age.isJunior ? 10 : 8;
 
   if (isActive) {
     const color = getActiveDotColor(deadline, theme);
     return (
       <View style={styles.container}>
-        <View style={[styles.dot, { backgroundColor: color }]} />
-        <Text style={[styles.dateText, { color: theme.colors.textSecondary }]}>
+        <View style={[styles.dot, { backgroundColor: color, width: dotSize, height: dotSize, borderRadius: dotSize / 2 }]} />
+        <Text style={[styles.dateText, { color: theme.colors.textSecondary, fontSize: age.smallSize }]}>
           {isPast(deadline) ? 'Просрочено' : `до ${formatDateRu(deadline)}`}
         </Text>
       </View>
     );
   }
 
-  // Completed/checked: only show green (on time) or red (late) marker
   const onTime = wasSubmittedOnTime(deadline, submissions);
   const markerColor = onTime ? theme.colors.success : theme.colors.overdue;
   const submittedDate = submissions?.[0]?.submittedAt
@@ -51,8 +53,8 @@ export default function DeadlineIndicator({ deadline, status, submissions }: Dea
 
   return (
     <View style={styles.container}>
-      <View style={[styles.dot, { backgroundColor: markerColor }]} />
-      <Text style={[styles.statusLabel, { color: markerColor }]}>
+      <View style={[styles.dot, { backgroundColor: markerColor, width: dotSize, height: dotSize, borderRadius: dotSize / 2 }]} />
+      <Text style={[styles.statusLabel, { color: markerColor, fontSize: age.isJunior ? 14 : 12 }]}>
         {onTime ? `сдано ${submittedDate}` : 'Не в срок'}
       </Text>
     </View>
@@ -65,17 +67,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
     marginRight: 8,
   },
   dateText: {
-    fontSize: 13,
     fontWeight: '500',
   },
   statusLabel: {
-    fontSize: 12,
     fontWeight: '600',
   },
 });

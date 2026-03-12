@@ -14,9 +14,11 @@ import { mockTeachers } from '@/src/data/mockData';
 import { Teacher } from '@/src/types';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
 import Avatar from '@/src/components/ui/Avatar';
+import { useAgeStyles } from '@/src/hooks/useAgeStyles';
 
 export default function ChatListScreen() {
   const theme = useAppTheme();
+  const age = useAgeStyles();
   const router = useRouter();
   const allMessages = useChatStore((s) => s.messages);
   const teacherChatEnabled = useChatStore((s) => s.teacherChatEnabled);
@@ -80,8 +82,10 @@ export default function ChatListScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
       <ThemeBackground />
-      <View style={styles.container}>
-        <Text style={[styles.header, { color: theme.colors.text }]}>Чат</Text>
+      <View style={[styles.container, { paddingHorizontal: age.contentPadding }]}>
+        <Text style={[styles.header, { color: theme.colors.text, fontSize: age.headerSize }]}>
+          {age.isJunior ? '💬 Чат' : 'Чат'}
+        </Text>
 
         {/* AI-Репетитор */}
         <TouchableOpacity

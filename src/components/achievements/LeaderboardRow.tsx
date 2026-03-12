@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useAgeStyles } from '@/src/hooks/useAgeStyles';
 import Avatar from '@/src/components/ui/Avatar';
 
 interface LeaderboardRowProps {
@@ -28,6 +29,7 @@ export default function LeaderboardRow({
   onPress,
 }: LeaderboardRowProps) {
   const theme = useAppTheme();
+  const age = useAgeStyles();
 
   const Wrapper = onPress ? TouchableOpacity : View;
   const wrapperProps = onPress ? { onPress, activeOpacity: 0.7 } : {};
@@ -43,16 +45,18 @@ export default function LeaderboardRow({
             : theme.colors.card,
           borderColor: isCurrentUser ? theme.colors.primary : theme.colors.border,
           borderWidth: isCurrentUser ? 1.5 : 1,
+          padding: age.isJunior ? 14 : 12,
+          borderRadius: age.cardBorderRadius,
         },
       ]}
     >
       <View style={styles.rankContainer}>
-        <Text style={[styles.rank, { color: theme.colors.text }]}>
+        <Text style={[styles.rank, { color: theme.colors.text, fontSize: age.isJunior ? 19 : 16 }]}>
           {getRankDecoration(rank) || `#${rank}`}
         </Text>
       </View>
 
-      <Avatar emoji={avatarEmoji} size={36} backgroundColor={theme.colors.surface} />
+      <Avatar emoji={avatarEmoji} size={age.isJunior ? 42 : 36} backgroundColor={theme.colors.surface} />
 
       <Text
         style={[
@@ -60,6 +64,7 @@ export default function LeaderboardRow({
           {
             color: theme.colors.text,
             fontWeight: isCurrentUser ? '700' : '500',
+            fontSize: age.isJunior ? 17 : 15,
           },
         ]}
         numberOfLines={1}
@@ -68,7 +73,7 @@ export default function LeaderboardRow({
         {isCurrentUser ? ' (Вы)' : ''}
       </Text>
 
-      <Text style={[styles.points, { color: theme.colors.primary }]}>
+      <Text style={[styles.points, { color: theme.colors.primary, fontSize: age.isJunior ? 16 : 14 }]}>
         {points} очков
       </Text>
     </Wrapper>
@@ -79,8 +84,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 12,
     marginBottom: 8,
   },
   rankContainer: {
@@ -89,16 +92,13 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   rank: {
-    fontSize: 16,
     fontWeight: '700',
   },
   name: {
     flex: 1,
-    fontSize: 15,
     marginLeft: 10,
   },
   points: {
-    fontSize: 14,
     fontWeight: '700',
     marginLeft: 8,
   },

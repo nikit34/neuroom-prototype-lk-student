@@ -22,6 +22,7 @@ import LeaderboardRow from '@/src/components/achievements/LeaderboardRow';
 import AchievementBadge from '@/src/components/achievements/AchievementBadge';
 import Card from '@/src/components/ui/Card';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
+import { useAgeStyles } from '@/src/hooks/useAgeStyles';
 
 type Section = 'duels' | 'leaderboard' | 'quests' | 'challenges' | 'achievements';
 
@@ -69,6 +70,7 @@ const CATEGORY_TABS: { key: CategoryFilter; label: string; emoji: string }[] = [
 export default function ArenaScreen() {
   const theme = useAppTheme();
   const router = useRouter();
+  const age = useAgeStyles();
 
   const section = useArenaStore((s) => s.section);
   const setSection = useArenaStore((s) => s.setSection);
@@ -420,7 +422,9 @@ export default function ArenaScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
       <ThemeBackground />
       <View style={styles.container}>
-        <Text style={[styles.header, { color: theme.colors.text }]}>Арена</Text>
+        <Text style={[styles.header, { color: theme.colors.text, fontSize: age.headerSize }]}>
+          {age.isJunior ? '⚔️ Арена' : 'Арена'}
+        </Text>
 
         {/* Section tabs */}
         <ScrollView

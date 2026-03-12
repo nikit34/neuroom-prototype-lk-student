@@ -12,11 +12,13 @@ import { useStudentStore } from '@/src/stores/studentStore';
 import { mockClassmates } from '@/src/data/mockData';
 import LeaderboardRow from '@/src/components/achievements/LeaderboardRow';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
+import { useAgeStyles } from '@/src/hooks/useAgeStyles';
 
 const ROW_HEIGHT = 60 + 8;
 
 export default function LeaderboardScreen() {
   const theme = useAppTheme();
+  const age = useAgeStyles();
   const student = useStudentStore((s) => s.student);
   const [tipVisible, setTipVisible] = useState(false);
   const leaderboardRef = useRef<FlatList>(null);
@@ -71,7 +73,9 @@ export default function LeaderboardScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
       <ThemeBackground />
       <View style={styles.container}>
-        <Text style={[styles.header, { color: theme.colors.text }]}>Рейтинг</Text>
+        <Text style={[styles.header, { color: theme.colors.text, fontSize: age.headerSize }]}>
+          {age.isJunior ? '🏆 Рейтинг' : 'Рейтинг'}
+        </Text>
 
         <FlatList
           ref={leaderboardRef}

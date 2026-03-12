@@ -17,12 +17,17 @@ while true; do
   if [[ "$LOCAL" != "$REMOTE" ]]; then
     echo "[sync] update: $LOCAL -> $REMOTE"
 
-    # Остановить watchman ДО удаления node_modules,
-    # чтобы Metro не увидел пропавшие модули и не упал
+    # 1. Убить Metro, чтобы он не резолвил модули из удалённого node_modules
+    pkill -f "metro" 2>/dev/null || true
+    pkill -f "expo start" 2>/dev/null || true
+
+    # 2. Остановить watchman
     watchman watch-del "$REPO_DIR" 2>/dev/null || true
 
+    # 3. Подтянуть код
     git reset --hard "origin/$BRANCH" --quiet
 
+    # 4. Переустановить зависимости
     rm -rf node_modules
     if [[ -f package-lock.json ]]; then
       npm ci --silent || npm i --silent
@@ -32,11 +37,15 @@ while true; do
       npm i --silent
     fi
 
-    # Сбросить кэш Metro и вернуть watchman
-    rm -rf /tmp/metro-* node_modules/.cache .expo/web/cache
+    # 5. Сбросить все кэши
+    rm -rf /tmp/metro-* node_modules/.cache .expo/web/cache /tmp/haste-map-*
+
+    # 6. Вернуть watchman
     watchman watch-project "$REPO_DIR" 2>/dev/null || true
 
-    echo "[sync] cache cleared, metro should pick up changes"
+    # 7. Перезапустить Metro в фоне с чистым кэшем
+    nohup npx expo start --clear > /tmp/expo-metro.log 2>&1 &
+    echo "[sync] restarted metro (pid $!), log: /tmp/expo-metro.log"
   fi
 
   sleep 5

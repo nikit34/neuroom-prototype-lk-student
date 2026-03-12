@@ -4,10 +4,12 @@ import { Tabs } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAppVersionStore } from '@/src/config/appVersion';
 import { useDuelExpiration } from '@/src/hooks/useDuelExpiration';
+import { useAgeStyles } from '@/src/hooks/useAgeStyles';
 
 export default function TabLayout() {
   const theme = useAppTheme();
   const appVersion = useAppVersionStore((s) => s.appVersion);
+  const age = useAgeStyles();
 
   useDuelExpiration();
 
@@ -22,12 +24,12 @@ export default function TabLayout() {
           borderTopColor: theme.colors.border,
           borderTopWidth: 1,
           paddingTop: 4,
-          height: 88,
+          height: age.tabBarHeight,
         },
         tabBarActiveTintColor: theme.colors.tabBarActive,
         tabBarInactiveTintColor: theme.colors.tabBarInactive,
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: age.tabLabelSize,
           fontWeight: '600',
         },
       }}
@@ -38,7 +40,7 @@ export default function TabLayout() {
           title: 'Главная',
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.6 }}>🏠</Text>
+            <Text style={{ fontSize: age.tabIconSize, opacity: focused ? 1 : 0.6 }}>🏠</Text>
           ),
         }}
       />
@@ -48,7 +50,7 @@ export default function TabLayout() {
           title: 'ДЗ',
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.6 }}>📚</Text>
+            <Text style={{ fontSize: age.tabIconSize, opacity: focused ? 1 : 0.6 }}>📚</Text>
           ),
         }}
       />
@@ -60,7 +62,7 @@ export default function TabLayout() {
           headerShown: false,
           href: appVersion < 1 ? null : undefined,
           tabBarIcon: ({ focused }) => (
-            <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.6 }}>💬</Text>
+            <Text style={{ fontSize: age.tabIconSize, opacity: focused ? 1 : 0.6 }}>💬</Text>
           ),
         }}
       />
@@ -74,7 +76,7 @@ export default function TabLayout() {
           headerShown: false,
           href: appVersion >= 2 || appVersion < 1 ? null : undefined,
           tabBarIcon: ({ focused }) => (
-            <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.6 }}>🏆</Text>
+            <Text style={{ fontSize: age.tabIconSize, opacity: focused ? 1 : 0.6 }}>🏆</Text>
           ),
         }}
       />
@@ -85,7 +87,7 @@ export default function TabLayout() {
           headerShown: false,
           href: appVersion < 2 ? null : undefined,
           tabBarIcon: ({ focused }) => (
-            <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.6 }}>⚔️</Text>
+            <Text style={{ fontSize: age.tabIconSize, opacity: focused ? 1 : 0.6 }}>⚔️</Text>
           ),
         }}
       />
@@ -95,7 +97,7 @@ export default function TabLayout() {
           title: 'Профиль',
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.6 }}>👤</Text>
+            <Text style={{ fontSize: age.tabIconSize, opacity: focused ? 1 : 0.6 }}>👤</Text>
           ),
         }}
       />

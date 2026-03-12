@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useAgeStyles } from '@/src/hooks/useAgeStyles';
 import { AppTheme } from '@/src/types';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger';
@@ -31,7 +32,8 @@ export default function Button({
   icon,
 }: ButtonProps) {
   const theme = useAppTheme();
-  const styles = makeStyles(theme, variant, disabled);
+  const age = useAgeStyles();
+  const styles = makeStyles(theme, variant, disabled, age.isJunior);
 
   const content = (
     <>
@@ -80,14 +82,14 @@ export default function Button({
   );
 }
 
-function makeStyles(theme: AppTheme, variant: ButtonVariant, disabled: boolean) {
+function makeStyles(theme: AppTheme, variant: ButtonVariant, disabled: boolean, isJunior: boolean) {
   const baseContainer: ViewStyle = {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
+    paddingVertical: isJunior ? 17 : 14,
+    paddingHorizontal: isJunior ? 28 : 24,
+    borderRadius: isJunior ? 16 : 12,
     opacity: disabled ? 0.5 : 1,
   };
 
@@ -121,12 +123,12 @@ function makeStyles(theme: AppTheme, variant: ButtonVariant, disabled: boolean) 
       ...variantContainer[variant],
     },
     text: {
-      fontSize: 16,
+      fontSize: isJunior ? 18 : 16,
       fontWeight: '600',
       ...variantText[variant],
     },
     icon: {
-      fontSize: 18,
+      fontSize: isJunior ? 22 : 18,
       marginRight: 8,
     },
   });

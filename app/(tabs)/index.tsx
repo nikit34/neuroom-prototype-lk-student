@@ -12,6 +12,7 @@ import ThemeBackground from '@/src/components/theme/ThemeBackground';
 import HomeworkCard from '@/src/components/homework/HomeworkCard';
 import Mascot from '@/src/components/mascot/Mascot';
 import { useChatStore } from '@/src/stores/chatStore';
+import { useAgeStyles } from '@/src/hooks/useAgeStyles';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -27,7 +28,9 @@ export default function HomeScreen() {
   const student = useStudentStore((s) => s.student);
   const assignments = useHomeworkStore((s) => s.assignments);
   const devHideHomework = useHomeworkStore((s) => s.devHideHomework);
+  const devShowProgressSummary = useHomeworkStore((s) => s.devShowProgressSummary);
   const appVersion = useAppVersionStore((s) => s.appVersion);
+  const age = useAgeStyles();
 
   const notifications = useNotificationStore((s) => s.notifications);
   const markAsRead = useNotificationStore((s) => s.markAsRead);
@@ -81,18 +84,42 @@ export default function HomeScreen() {
     };
   }, [assignments]);
 
+  const progressSummary = useMemo(() => {
+    const graded = assignments.filter((a) => a.status === 'graded' && a.grade != null);
+    const avgGrade =
+      graded.length > 0
+        ? graded.reduce((sum, a) => sum + (a.grade! / a.maxGrade) * 100, 0) / graded.length
+        : null;
+    const overdueCount = assignments.filter(
+      (a) =>
+        (a.status === 'pending' || a.status === 'resubmit') &&
+        a.deadline.getTime() < Date.now(),
+    ).length;
+
+    if (avgGrade !== null && avgGrade >= 80 && overdueCount === 0) {
+      return 'Ты отлично усваиваешь материал! Главное — будь предельно внимателен. Одна потерянная цифра или пропущенное задание в упражнении может изменить итоговую оценку.';
+    }
+    if (avgGrade !== null && avgGrade >= 60) {
+      return 'Хороший темп! Обрати внимание на задания, где были ошибки — разбор ошибок поможет закрепить материал и поднять средний балл.';
+    }
+    if (overdueCount > 0) {
+      return `У тебя есть просроченные задания (${overdueCount}). Постарайся сдать их как можно скорее — это поможет не накапливать долги и сохранить хорошую оценку.`;
+    }
+    return 'Продолжай в том же духе! Регулярное выполнение заданий — залог отличных результатов. Не откладывай на последний момент.';
+  }, [assignments]);
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
       <ThemeBackground />
       <ScrollView
         style={styles.container}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { padding: age.contentPadding }]}
         showsVerticalScrollIndicator={false}
         nestedScrollEnabled
       >
         {/* ── Header: greeting + bell ── */}
         <View style={styles.headerRow}>
-          <Text style={[styles.greeting, { color: theme.colors.text }]}>
+          <Text style={[styles.greeting, { color: theme.colors.text, fontSize: age.greetingSize }]}>
             {getGreeting()}, {student.firstName}! 👋
           </Text>
           {appVersion >= 1 && (
@@ -114,28 +141,38 @@ export default function HomeScreen() {
         {/* ── Progress bar ── */}
         <View style={styles.progressContainer}>
           <View style={styles.progressLabelRow}>
-            <Text style={[styles.progressLabel, { color: theme.colors.text }]}>
-              Твой прогресс
+            <Text style={[styles.progressLabel, { color: theme.colors.text, fontSize: age.progressLabelSize }]}>
+              {age.isJunior ? '⭐ Твой прогресс' : 'Твой прогресс'}
             </Text>
-            <Text style={[styles.progressValue, { color: theme.colors.primary }]}>
+            <Text style={[styles.progressValue, { color: theme.colors.primary, fontSize: age.progressLabelSize }]}>
               {doneCount}/{totalCount}
             </Text>
           </View>
-          <View style={[styles.progressTrack, { backgroundColor: theme.colors.border }]}>
+          <View style={[styles.progressTrack, { backgroundColor: theme.colors.border, height: age.progressTrackHeight, borderRadius: age.progressTrackHeight / 2 }]}>
             <View
               style={[
                 styles.progressFill,
-                { width: `${progressPercent}%`, backgroundColor: theme.colors.primary },
+                { width: `${progressPercent}%`, backgroundColor: theme.colors.primary, borderRadius: age.progressTrackHeight / 2 },
               ]}
             />
           </View>
         </View>
 
+        {/* ── Progress summary (V1+) ── */}
+        {appVersion >= 1 && devShowProgressSummary && (
+          <View style={[styles.summaryContainer, { backgroundColor: theme.colors.primary + '10', borderColor: theme.colors.primary + '30', borderRadius: age.cardBorderRadius }]}>
+            <Ionicons name="bulb-outline" size={age.isJunior ? 22 : 18} color={theme.colors.primary} style={styles.summaryIcon} />
+            <Text style={[styles.summaryText, { color: theme.colors.textSecondary, fontSize: age.isJunior ? 15 : 13, lineHeight: age.isJunior ? 22 : 19 }]}>
+              {progressSummary}
+            </Text>
+          </View>
+        )}
+
         {/* ── Active assignments ── */}
         {(!devHideHomework && upcomingDeadlines.length > 0) ? (
           <>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-              Активные задания
+            <Text style={[styles.sectionTitle, { color: theme.colors.text, fontSize: age.sectionTitleSize }]}>
+              {age.isJunior ? '📋 Активные задания' : 'Активные задания'}
             </Text>
             {upcomingDeadlines.map((hw) => (
               <HomeworkCard
@@ -147,12 +184,12 @@ export default function HomeScreen() {
           </>
         ) : (
           <View style={styles.emptyState}>
-            <Mascot health={student.mascotHealth} emotion="happy" size={160} compact />
-            <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
-              На сегодня всё!
+            <Mascot health={student.mascotHealth} emotion="happy" size={age.emptyMascotSize} compact />
+            <Text style={[styles.emptyTitle, { color: theme.colors.text, fontSize: age.isJunior ? 26 : 22 }]}>
+              {age.isJunior ? '🎉 На сегодня всё!' : 'На сегодня всё!'}
             </Text>
-            <Text style={[styles.emptySubtitle, { color: theme.colors.textSecondary }]}>
-              Можешь отдыхать, ты большой молодец!
+            <Text style={[styles.emptySubtitle, { color: theme.colors.textSecondary, fontSize: age.bodySize }]}>
+              {age.isJunior ? 'Можешь отдыхать, ты супер-молодец! 🌟' : 'Можешь отдыхать, ты большой молодец!'}
             </Text>
           </View>
         )}
@@ -334,6 +371,23 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   // ── Progress bar ──
+  summaryContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 8,
+    gap: 8,
+  },
+  summaryIcon: {
+    marginTop: 1,
+  },
+  summaryText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 19,
+  },
   progressContainer: {
     marginBottom: 8,
   },

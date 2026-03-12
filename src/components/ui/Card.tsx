@@ -1,20 +1,22 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useAgeStyles } from '@/src/hooks/useAgeStyles';
 
 interface CardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   onPress?: () => void;
 }
 
 export default function Card({ children, style, onPress }: CardProps) {
   const theme = useAppTheme();
+  const age = useAgeStyles();
 
   const cardStyle: ViewStyle = {
     backgroundColor: theme.colors.card,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: age.cardBorderRadius,
+    padding: age.cardPadding,
     borderWidth: 1,
     borderColor: theme.colors.border,
     shadowColor: '#000',

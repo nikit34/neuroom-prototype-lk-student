@@ -17,6 +17,8 @@ import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import Card from '@/src/components/ui/Card';
 import StatusChip from '@/src/components/ui/StatusChip';
 import DeadlineIndicator from './DeadlineIndicator';
+import { useAgeStyles } from '@/src/hooks/useAgeStyles';
+import { useAppVersionStore } from '@/src/config/appVersion';
 
 interface HomeworkCardProps {
   homework: HomeworkAssignment;
@@ -46,6 +48,8 @@ function getSubjectEmoji(subject: string): string {
 export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
   const theme = useAppTheme();
   const router = useRouter();
+  const age = useAgeStyles();
+  const appVersion = useAppVersionStore((s) => s.appVersion);
   const viewedCheckedIds = useHomeworkStore((s) => s.viewedCheckedIds);
   const canSubmit = homework.status === 'pending' || homework.status === 'resubmit';
   const overdue = isOverdue(homework.deadline) && homework.status === 'pending';
@@ -72,14 +76,14 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
   }));
 
   return (
-    <Animated.View style={[styles.animatedWrapper, animatedBorderStyle, { borderRadius: 16 }, isDimmed && { opacity: 0.55 }]}>
-      <Card style={styles.card} onPress={onPress}>
+    <Animated.View style={[styles.animatedWrapper, animatedBorderStyle, { borderRadius: age.cardBorderRadius }, isDimmed && { opacity: 0.55 }]}>
+      <Card style={[styles.card, { padding: age.cardPadding }]} onPress={onPress}>
         <View style={styles.header}>
           <View style={styles.headerText}>
-            <Text style={[styles.title, { color: isDimmed ? theme.colors.textSecondary : theme.colors.text }]} numberOfLines={1}>
+            <Text style={[styles.title, { color: isDimmed ? theme.colors.textSecondary : theme.colors.text, fontSize: age.isJunior ? 17 : 15 }]} numberOfLines={1}>
               {homework.subject}
             </Text>
-            <Text style={[styles.subject, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+            <Text style={[styles.subject, { color: theme.colors.textSecondary, fontSize: age.smallSize }]} numberOfLines={1}>
               {homework.description.split('\n')[0]}
             </Text>
           </View>
@@ -91,13 +95,13 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
           <View style={styles.footerRight}>
 {homework.grade !== undefined && (
               <View style={styles.gradeContainer}>
-                <Text style={styles.gradeEmoji}>
+                <Text style={[styles.gradeEmoji, { fontSize: age.isJunior ? 20 : 16 }]}>
                   {getGradeEmoji(homework.grade, homework.maxGrade)}
                 </Text>
                 <Text
                   style={[
                     styles.gradeText,
-                    { color: getGradeColor(homework.grade, homework.maxGrade) },
+                    { color: getGradeColor(homework.grade, homework.maxGrade), fontSize: age.isJunior ? 16 : 14 },
                   ]}
                 >
                   {homework.grade}/{homework.maxGrade}
@@ -108,27 +112,29 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
         </View>
 
         <View style={styles.actionBtnsRow}>
-          <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: theme.colors.accent }]}
-            onPress={() => router.push(`/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}&hwStatus=${homework.status}`)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.actionBtnIcon}>💬</Text>
-            <Text style={styles.actionBtnLabel}>Обсудить</Text>
-          </TouchableOpacity>
+          {appVersion >= 1 && (
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: theme.colors.accent, height: age.actionBtnHeight, borderRadius: age.actionBtnRadius }]}
+              onPress={() => router.push(`/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}&hwStatus=${homework.status}`)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.actionBtnIcon, { fontSize: age.actionBtnIconSize }]}>💬</Text>
+              <Text style={[styles.actionBtnLabel, { fontSize: age.actionBtnLabelSize }]}>Обсудить</Text>
+            </TouchableOpacity>
+          )}
           {canSubmit ? (
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: theme.colors.primary }]}
+              style={[styles.actionBtn, { backgroundColor: theme.colors.primary, height: age.actionBtnHeight, borderRadius: age.actionBtnRadius }]}
               onPress={() => router.push(`/homework/submit/${homework.id}`)}
               activeOpacity={0.7}
             >
-              <Text style={styles.actionBtnIcon}>📸</Text>
-              <Text style={styles.actionBtnLabel}>Сдать</Text>
+              <Text style={[styles.actionBtnIcon, { fontSize: age.actionBtnIconSize }]}>📸</Text>
+              <Text style={[styles.actionBtnLabel, { fontSize: age.actionBtnLabelSize }]}>Сдать</Text>
             </TouchableOpacity>
           ) : (
-            <View style={[styles.actionBtn, { backgroundColor: theme.colors.border, opacity: 0.5 }]}>
-              <Text style={styles.actionBtnIcon}>✅</Text>
-              <Text style={styles.actionBtnLabel}>Сдано</Text>
+            <View style={[styles.actionBtn, { backgroundColor: theme.colors.border, opacity: 0.5, height: age.actionBtnHeight, borderRadius: age.actionBtnRadius }]}>
+              <Text style={[styles.actionBtnIcon, { fontSize: age.actionBtnIconSize }]}>✅</Text>
+              <Text style={[styles.actionBtnLabel, { fontSize: age.actionBtnLabelSize }]}>Сдано</Text>
             </View>
           )}
         </View>

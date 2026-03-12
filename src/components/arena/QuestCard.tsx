@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useAgeStyles } from '@/src/hooks/useAgeStyles';
 import Card from '@/src/components/ui/Card';
 import { Quest } from '@/src/types';
 
@@ -17,6 +18,7 @@ interface QuestCardProps {
 
 export default function QuestCard({ quest, onPress }: QuestCardProps) {
   const theme = useAppTheme();
+  const age = useAgeStyles();
   const completedSteps = quest.steps.filter((s) => s.isCompleted).length;
   const progress = quest.steps.length > 0 ? completedSteps / quest.steps.length : 0;
   const daysLeft = Math.max(0, Math.ceil((quest.deadline.getTime() - Date.now()) / 86400000));
@@ -24,14 +26,14 @@ export default function QuestCard({ quest, onPress }: QuestCardProps) {
   return (
     <Card style={styles.card} onPress={onPress}>
       <View style={styles.topRow}>
-        <Text style={[styles.subject, { color: theme.colors.textSecondary }]}>{quest.subject}</Text>
-        <Text style={[styles.status, { color: quest.status === 'completed' ? theme.colors.success : theme.colors.accent }]}>
+        <Text style={[styles.subject, { color: theme.colors.textSecondary, fontSize: age.isJunior ? 14 : 12 }]}>{quest.subject}</Text>
+        <Text style={[styles.status, { color: quest.status === 'completed' ? theme.colors.success : theme.colors.accent, fontSize: age.isJunior ? 14 : 12 }]}>
           {STATUS_LABEL[quest.status]}
         </Text>
       </View>
 
-      <Text style={[styles.title, { color: theme.colors.text }]}>{quest.title}</Text>
-      <Text style={[styles.desc, { color: theme.colors.textSecondary }]} numberOfLines={2}>
+      <Text style={[styles.title, { color: theme.colors.text, fontSize: age.isJunior ? 18 : 16 }]}>{quest.title}</Text>
+      <Text style={[styles.desc, { color: theme.colors.textSecondary, fontSize: age.smallSize, lineHeight: age.isJunior ? 21 : 18 }]} numberOfLines={2}>
         {quest.description}
       </Text>
 

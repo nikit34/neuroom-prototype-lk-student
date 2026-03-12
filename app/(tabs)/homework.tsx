@@ -12,6 +12,7 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import HomeworkCard from '@/src/components/homework/HomeworkCard';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
+import { useAgeStyles } from '@/src/hooks/useAgeStyles';
 
 type FilterType = 'all' | 'active' | 'overdue' | 'done';
 
@@ -28,15 +29,16 @@ export default function HomeworkScreen() {
   const filter = useHomeworkStore((s) => s.filter);
   const setFilter = useHomeworkStore((s) => s.setFilter);
   const getFiltered = useHomeworkStore((s) => s.getFiltered);
+  const age = useAgeStyles();
 
   const filtered = getFiltered();
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
       <ThemeBackground />
-      <View style={styles.container}>
-        <Text style={[styles.header, { color: theme.colors.text }]}>
-          Домашние задания
+      <View style={[styles.container, { paddingHorizontal: age.contentPadding }]}>
+        <Text style={[styles.header, { color: theme.colors.text, fontSize: age.headerSize }]}>
+          {age.isJunior ? '📚 Домашние задания' : 'Домашние задания'}
         </Text>
 
         <View style={styles.filterRow}>
@@ -54,6 +56,9 @@ export default function HomeworkScreen() {
                     borderColor: active
                       ? theme.colors.primary
                       : theme.colors.border,
+                    paddingHorizontal: age.filterBtnPaddingH,
+                    paddingVertical: age.filterBtnPaddingV,
+                    borderRadius: age.filterBtnRadius,
                   },
                 ]}
                 onPress={() => setFilter(f.key)}
@@ -62,7 +67,7 @@ export default function HomeworkScreen() {
                 <Text
                   style={[
                     styles.filterText,
-                    { color: active ? '#FFFFFF' : theme.colors.textSecondary },
+                    { color: active ? '#FFFFFF' : theme.colors.textSecondary, fontSize: age.filterTextSize },
                   ]}
                 >
                   {f.label}
@@ -85,9 +90,9 @@ export default function HomeworkScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyEmoji}>📭</Text>
-              <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
-                Нет заданий в этой категории
+              <Text style={[styles.emptyEmoji, { fontSize: age.isJunior ? 80 : 64 }]}>📭</Text>
+              <Text style={[styles.emptyText, { color: theme.colors.textSecondary, fontSize: age.bodySize }]}>
+                {age.isJunior ? 'Тут пока пусто!' : 'Нет заданий в этой категории'}
               </Text>
             </View>
           }

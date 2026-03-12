@@ -19,6 +19,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useAgeStyles } from '@/src/hooks/useAgeStyles';
 import { useChatStore, AI_TUTOR_ID, AI_TUTOR_FREE_LIMIT } from '@/src/stores/chatStore';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { mockTeachers } from '@/src/data/mockData';
@@ -143,6 +144,7 @@ export default function ChatScreen() {
     hwStatus?: string;
   }>();
   const theme = useAppTheme();
+  const age = useAgeStyles();
   const insets = useSafeAreaInsets();
   const isAiTutor = teacherId === AI_TUTOR_ID;
   const sendMessage = useChatStore((s) => s.sendMessage);
@@ -496,6 +498,8 @@ export default function ChatScreen() {
               borderColor: isStudent
                 ? theme.colors.primary
                 : theme.colors.border,
+              padding: age.isJunior ? 14 : 12,
+              borderRadius: age.isJunior ? 20 : 16,
             },
           ]}
         >
@@ -525,7 +529,7 @@ export default function ChatScreen() {
           <Text
             style={[
               styles.messageText,
-              { color: isStudent ? '#FFFFFF' : theme.colors.text },
+              { color: isStudent ? '#FFFFFF' : theme.colors.text, fontSize: age.bodySize, lineHeight: age.isJunior ? 24 : 21 },
             ]}
           >
             {item.text}
@@ -598,12 +602,18 @@ export default function ChatScreen() {
                 key={i}
                 style={[
                   styles.suggestChip,
-                  { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+                  {
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.border,
+                    paddingHorizontal: age.isJunior ? 14 : 11,
+                    paddingVertical: age.isJunior ? 9 : 7,
+                    borderRadius: age.isJunior ? 18 : 14,
+                  },
                 ]}
                 onPress={() => handleSuggest(s)}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.suggestText, { color: theme.colors.text }]}>{s.label}</Text>
+                <Text style={[styles.suggestText, { color: theme.colors.text, fontSize: age.smallSize }]}>{s.label}</Text>
               </TouchableOpacity>
             ))}
           </View>

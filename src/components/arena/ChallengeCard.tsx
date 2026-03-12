@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useAgeStyles } from '@/src/hooks/useAgeStyles';
 import Card from '@/src/components/ui/Card';
 import { Challenge } from '@/src/types';
 
@@ -25,6 +26,7 @@ interface ChallengeCardProps {
 
 export default function ChallengeCard({ challenge, onPress, onStart }: ChallengeCardProps) {
   const theme = useAppTheme();
+  const age = useAgeStyles();
   const progress = challenge.target > 0 ? challenge.progress / challenge.target : 0;
   const daysLeft = Math.max(0, Math.ceil((challenge.deadline.getTime() - Date.now()) / 86400000));
   const diff = DIFFICULTY_LABEL[challenge.difficulty];
@@ -32,14 +34,14 @@ export default function ChallengeCard({ challenge, onPress, onStart }: Challenge
   return (
     <Card style={styles.card} onPress={onPress}>
       <View style={styles.topRow}>
-        <Text style={[styles.diff, { color: diff.color }]}>{diff.label}</Text>
-        <Text style={[styles.status, { color: challenge.status === 'completed' ? theme.colors.success : challenge.status === 'expired' ? theme.colors.overdue : theme.colors.accent }]}>
+        <Text style={[styles.diff, { color: diff.color, fontSize: age.isJunior ? 14 : 12 }]}>{diff.label}</Text>
+        <Text style={[styles.status, { color: challenge.status === 'completed' ? theme.colors.success : challenge.status === 'expired' ? theme.colors.overdue : theme.colors.accent, fontSize: age.isJunior ? 14 : 12 }]}>
           {STATUS_LABEL[challenge.status]}
         </Text>
       </View>
 
-      <Text style={[styles.title, { color: theme.colors.text }]}>{challenge.title}</Text>
-      <Text style={[styles.desc, { color: theme.colors.textSecondary }]} numberOfLines={2}>
+      <Text style={[styles.title, { color: theme.colors.text, fontSize: age.isJunior ? 18 : 16 }]}>{challenge.title}</Text>
+      <Text style={[styles.desc, { color: theme.colors.textSecondary, fontSize: age.smallSize, lineHeight: age.isJunior ? 21 : 18 }]} numberOfLines={2}>
         {challenge.description}
       </Text>
 
@@ -70,10 +72,10 @@ export default function ChallengeCard({ challenge, onPress, onStart }: Challenge
 
       {challenge.status === 'available' && onStart && (
         <TouchableOpacity
-          style={[styles.startBtn, { backgroundColor: theme.colors.primary }]}
+          style={[styles.startBtn, { backgroundColor: theme.colors.primary, paddingVertical: age.isJunior ? 13 : 10, borderRadius: age.cardBorderRadius }]}
           onPress={onStart}
         >
-          <Text style={styles.startText}>Начать</Text>
+          <Text style={[styles.startText, { fontSize: age.isJunior ? 16 : 14 }]}>Начать</Text>
         </TouchableOpacity>
       )}
     </Card>

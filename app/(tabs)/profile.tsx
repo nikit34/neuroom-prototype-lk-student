@@ -20,6 +20,7 @@ import { AppTheme, ThemeCharacter } from '@/src/types';
 import Avatar from '@/src/components/ui/Avatar';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
 import { getLevel } from '@/src/utils/levelHelpers';
+import { useAgeStyles } from '@/src/hooks/useAgeStyles';
 
 export default function ProfileScreen() {
   const theme = useAppTheme();
@@ -43,28 +44,31 @@ export default function ProfileScreen() {
   const appVersion = useAppVersionStore((s) => s.appVersion);
   const ageLabel = ageGroup === 'senior' ? '8–11 класс' : '5–7 класс';
   const { level, currentLevelXp, xpForNextLevel, rank } = getLevel(student.totalPoints);
+  const age = useAgeStyles();
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
       <ThemeBackground />
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { padding: age.contentPadding }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.headerRow}>
-          <Text style={[styles.header, { color: theme.colors.text }]}>Профиль</Text>
+          <Text style={[styles.header, { color: theme.colors.text, fontSize: age.headerSize }]}>
+            {age.isJunior ? '👤 Профиль' : 'Профиль'}
+          </Text>
         </View>
 
         {/* Student Info */}
-        <Card style={styles.infoCard}>
+        <Card style={[styles.infoCard, { borderRadius: age.cardBorderRadius }]}>
           <View style={styles.avatarContainer}>
-            <Avatar size={80} neutral />
+            <Avatar size={age.isJunior ? 100 : 80} neutral />
           </View>
-          <Text style={[styles.studentName, { color: theme.colors.text }]}>
+          <Text style={[styles.studentName, { color: theme.colors.text, fontSize: age.isJunior ? 26 : 22 }]}>
             {student.firstName} {student.lastName}
           </Text>
-          <Text style={[styles.classInfo, { color: theme.colors.textSecondary }]}>
+          <Text style={[styles.classInfo, { color: theme.colors.textSecondary, fontSize: age.bodySize }]}>
             {student.classId.replace(/(\d+)(\D)/, '$1-$2')} класс
           </Text>
 
@@ -106,18 +110,18 @@ export default function ProfileScreen() {
         {/* Mascot (V1+) */}
         {appVersion >= 1 && (
           <>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-              Мой персонаж
+            <Text style={[styles.sectionTitle, { color: theme.colors.text, fontSize: age.sectionTitleSize }]}>
+              {age.isJunior ? '🐾 Мой персонаж' : 'Мой персонаж'}
             </Text>
-            <Card>
-              <Mascot health={student.mascotHealth} showHealthBar={false} size={70} compact />
+            <Card style={{ borderRadius: age.cardBorderRadius }}>
+              <Mascot health={student.mascotHealth} showHealthBar={false} size={age.mascotSize} compact />
             </Card>
           </>
         )}
 
         {/* Character Selection */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          Выбор персонажа
+        <Text style={[styles.sectionTitle, { color: theme.colors.text, fontSize: age.sectionTitleSize }]}>
+          {age.isJunior ? '🎭 Выбор персонажа' : 'Выбор персонажа'}
         </Text>
         <ScrollView
           horizontal
@@ -130,8 +134,8 @@ export default function ProfileScreen() {
         </ScrollView>
 
         {/* Theme Selection */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          Выбор темы
+        <Text style={[styles.sectionTitle, { color: theme.colors.text, fontSize: age.sectionTitleSize }]}>
+          {age.isJunior ? '🎨 Выбор темы' : 'Выбор темы'}
         </Text>
 
         <Text style={[styles.ageGroupLabel, { color: theme.colors.textSecondary }]}>

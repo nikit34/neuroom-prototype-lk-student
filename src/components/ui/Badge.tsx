@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useAgeStyles } from '@/src/hooks/useAgeStyles';
 
 interface BadgeProps {
   text: string;
@@ -9,6 +10,7 @@ interface BadgeProps {
 
 export default function Badge({ text, color, variant = 'filled' }: BadgeProps) {
   const isFilled = variant === 'filled';
+  const age = useAgeStyles();
 
   return (
     <View
@@ -18,13 +20,15 @@ export default function Badge({ text, color, variant = 'filled' }: BadgeProps) {
           backgroundColor: isFilled ? color : 'transparent',
           borderColor: color,
           borderWidth: isFilled ? 0 : 1.5,
+          paddingHorizontal: age.isJunior ? 13 : 10,
+          paddingVertical: age.isJunior ? 6 : 4,
         },
       ]}
     >
       <Text
         style={[
           styles.text,
-          { color: isFilled ? '#FFFFFF' : color },
+          { color: isFilled ? '#FFFFFF' : color, fontSize: age.isJunior ? 14 : 12 },
         ]}
       >
         {text}
@@ -35,13 +39,10 @@ export default function Badge({ text, color, variant = 'filled' }: BadgeProps) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
     borderRadius: 20,
     alignSelf: 'flex-start',
   },
   text: {
-    fontSize: 12,
     fontWeight: '600',
   },
 });

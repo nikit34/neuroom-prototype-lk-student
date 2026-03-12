@@ -10,8 +10,10 @@ interface HomeworkState {
   filter: FilterType;
   viewedCheckedIds: string[];
   devHideHomework: boolean;
+  devShowProgressSummary: boolean;
   setFilter: (f: FilterType) => void;
   setDevHideHomework: (v: boolean) => void;
+  setDevShowProgressSummary: (v: boolean) => void;
   getFiltered: () => HomeworkAssignment[];
   submitHomework: (id: string, submission: Submission) => void;
   updateStatus: (id: string, status: HomeworkStatus) => void;
@@ -26,9 +28,11 @@ export const useHomeworkStore = create<HomeworkState>((set, get) => ({
   filter: 'all',
   viewedCheckedIds: [],
   devHideHomework: false,
+  devShowProgressSummary: true,
 
   setFilter: (f) => set({ filter: f }),
   setDevHideHomework: (v) => set({ devHideHomework: v }),
+  setDevShowProgressSummary: (v) => set({ devShowProgressSummary: v }),
 
   getFiltered: () => {
     const { assignments, filter } = get();
