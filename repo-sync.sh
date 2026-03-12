@@ -17,6 +17,10 @@ while true; do
   if [[ "$LOCAL" != "$REMOTE" ]]; then
     echo "[sync] update: $LOCAL -> $REMOTE"
 
+    # Остановить watchman ДО удаления node_modules,
+    # чтобы Metro не увидел пропавшие модули и не упал
+    watchman watch-del "$REPO_DIR" 2>/dev/null || true
+
     git reset --hard "origin/$BRANCH" --quiet
 
     rm -rf node_modules
@@ -28,10 +32,8 @@ while true; do
       npm i --silent
     fi
 
-    # Сбросить кэш Metro и заставить watchman пересканировать файлы,
-    # чтобы запущенный Metro подхватил изменения без перезапуска
+    # Сбросить кэш Metro и вернуть watchman
     rm -rf /tmp/metro-* node_modules/.cache .expo/web/cache
-    watchman watch-del "$REPO_DIR" 2>/dev/null || true
     watchman watch-project "$REPO_DIR" 2>/dev/null || true
 
     echo "[sync] cache cleared, metro should pick up changes"
