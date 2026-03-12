@@ -414,6 +414,18 @@ export default function HomeworkDetailScreen() {
               {canSubmit ? (
                 <View style={styles.actionBtnsRow}>
                   <TouchableOpacity
+                    style={[styles.actionBtn, { backgroundColor: theme.colors.accent }]}
+                    onPress={() =>
+                      router.push(
+                        `/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}&hwStatus=${homework.status}`
+                      )
+                    }
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.actionBtnIcon}>💬</Text>
+                    <Text style={styles.actionBtnLabel}>Обсудить</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
                     style={[styles.actionBtn, { backgroundColor: theme.colors.primary }]}
                     onPress={() => router.push(`/homework/submit/${homework.id}`)}
                     activeOpacity={0.7}
@@ -421,6 +433,9 @@ export default function HomeworkDetailScreen() {
                     <Text style={styles.actionBtnIcon}>📸</Text>
                     <Text style={styles.actionBtnLabel}>Сдать</Text>
                   </TouchableOpacity>
+                </View>
+              ) : homework.status === 'submitted' ? (
+                <View style={styles.actionBtnsRow}>
                   <TouchableOpacity
                     style={[styles.actionBtn, { backgroundColor: theme.colors.accent }]}
                     onPress={() =>
@@ -433,9 +448,6 @@ export default function HomeworkDetailScreen() {
                     <Text style={styles.actionBtnIcon}>💬</Text>
                     <Text style={styles.actionBtnLabel}>Обсудить</Text>
                   </TouchableOpacity>
-                </View>
-              ) : homework.status === 'submitted' ? (
-                <View style={styles.actionBtnsRow}>
                   <View
                     style={[
                       styles.actionBtn,
@@ -445,18 +457,6 @@ export default function HomeworkDetailScreen() {
                     <Text style={styles.actionBtnIcon}>✅</Text>
                     <Text style={styles.actionBtnLabel}>Сдано</Text>
                   </View>
-                  <TouchableOpacity
-                    style={[styles.actionBtn, { backgroundColor: theme.colors.accent }]}
-                    onPress={() =>
-                      router.push(
-                        `/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}&hwStatus=${homework.status}`
-                      )
-                    }
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.actionBtnIcon}>💬</Text>
-                    <Text style={styles.actionBtnLabel}>Обсудить</Text>
-                  </TouchableOpacity>
                 </View>
               ) : null}
             </View>

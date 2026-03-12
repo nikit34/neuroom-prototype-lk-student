@@ -255,12 +255,15 @@ function AgeGroupSwitch() {
 
 function ArenaFeatureToggles() {
   const theme = useAppTheme();
+  const achievementsEnabled = useArenaStore((s) => s.achievementsEnabled);
   const questsEnabled = useArenaStore((s) => s.questsEnabled);
   const challengesEnabled = useArenaStore((s) => s.challengesEnabled);
+  const setAchievementsEnabled = useArenaStore((s) => s.setAchievementsEnabled);
   const setQuestsEnabled = useArenaStore((s) => s.setQuestsEnabled);
   const setChallengesEnabled = useArenaStore((s) => s.setChallengesEnabled);
 
   const toggles = [
+    { label: 'Достижения', enabled: achievementsEnabled, onToggle: () => setAchievementsEnabled(!achievementsEnabled) },
     { label: 'Квесты', enabled: questsEnabled, onToggle: () => setQuestsEnabled(!questsEnabled) },
     { label: 'Испытания', enabled: challengesEnabled, onToggle: () => setChallengesEnabled(!challengesEnabled) },
   ];
@@ -362,6 +365,43 @@ function AiTutorLimitReset() {
           <Text style={{ fontSize: 11, color: done ? '#10B981' : theme.colors.textSecondary, marginTop: 2 }}>
             {unlocked ? 'Полный доступ активен' : `Использовано: ${questionsUsed}/10`}
           </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function HideHomeworkToggle() {
+  const theme = useAppTheme();
+  const devHideHomework = useHomeworkStore((s) => s.devHideHomework);
+  const setDevHideHomework = useHomeworkStore((s) => s.setDevHideHomework);
+
+  return (
+    <View style={styles.toggleSection}>
+      <TouchableOpacity
+        style={[
+          styles.toggleRow,
+          {
+            backgroundColor: devHideHomework ? theme.colors.primary + '20' : theme.colors.background,
+            borderColor: devHideHomework ? theme.colors.primary : theme.colors.border,
+          },
+        ]}
+        onPress={() => setDevHideHomework(!devHideHomework)}
+        activeOpacity={0.7}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.toggleLabel, { color: theme.colors.text }]}>Скрыть ДЗ на главной</Text>
+          <Text style={{ fontSize: 11, color: theme.colors.textSecondary, marginTop: 2 }}>
+            {devHideHomework ? 'Показывается пустое состояние' : 'Показываются активные задания'}
+          </Text>
+        </View>
+        <View
+          style={[
+            styles.toggleIndicator,
+            { backgroundColor: devHideHomework ? theme.colors.primary : theme.colors.border },
+          ]}
+        >
+          <Text style={styles.toggleIndicatorText}>{devHideHomework ? 'ON' : 'OFF'}</Text>
         </View>
       </TouchableOpacity>
     </View>
@@ -563,6 +603,7 @@ function ScreenGroup({ title, emoji, children }: { title: string; emoji: string;
 export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAwardBadgeSeries, onClose }: DevModePanelProps) {
   const theme = useAppTheme();
   const appVersion = useAppVersionStore((s) => s.appVersion);
+  const achievementsEnabled = useArenaStore((s) => s.achievementsEnabled);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
@@ -595,6 +636,8 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
           <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
             ДОМАШНИЕ ЗАДАНИЯ
           </Text>
+          <HideHomeworkToggle />
+          <View style={{ height: 8 }} />
           <ResetHomeworkButton />
 
           <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
@@ -631,41 +674,43 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
         </Text>
         <ArenaFeatureToggles />
 
-        <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
-          ВЫДАТЬ БЕЙДЖ
-        </Text>
-        <View style={styles.badgeGrid}>
-          {BADGE_SAMPLES.map((b) => (
+        {achievementsEnabled && (<>
+          <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
+            ВЫДАТЬ БЕЙДЖ
+          </Text>
+          <View style={styles.badgeGrid}>
+            {BADGE_SAMPLES.map((b) => (
+              <TouchableOpacity
+                key={b.rarity}
+                style={[styles.badgeBtn, { backgroundColor: b.color + '20', borderColor: b.color }]}
+                onPress={() => onAwardBadge(b.rarity)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.badgeBtnText, { color: b.color }]}>{b.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <View style={styles.specialRow}>
             <TouchableOpacity
-              key={b.rarity}
-              style={[styles.badgeBtn, { backgroundColor: b.color + '20', borderColor: b.color }]}
-              onPress={() => onAwardBadge(b.rarity)}
+              style={[styles.specialBtn, { backgroundColor: theme.colors.primary + '20', borderColor: theme.colors.primary }]}
+              onPress={onAwardRandomBadge}
               activeOpacity={0.7}
             >
-              <Text style={[styles.badgeBtnText, { color: b.color }]}>{b.label}</Text>
+              <Text style={[styles.specialBtnText, { color: theme.colors.primary }]}>
+                🎲 Случайный
+              </Text>
             </TouchableOpacity>
-          ))}
-        </View>
-        <View style={styles.specialRow}>
-          <TouchableOpacity
-            style={[styles.specialBtn, { backgroundColor: theme.colors.primary + '20', borderColor: theme.colors.primary }]}
-            onPress={onAwardRandomBadge}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.specialBtnText, { color: theme.colors.primary }]}>
-              🎲 Случайный
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.specialBtn, { backgroundColor: '#F59E0B20', borderColor: '#F59E0B' }]}
-            onPress={onAwardBadgeSeries}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.specialBtnText, { color: '#F59E0B' }]}>
-              🔥 Серия x3
-            </Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={[styles.specialBtn, { backgroundColor: '#F59E0B20', borderColor: '#F59E0B' }]}
+              onPress={onAwardBadgeSeries}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.specialBtnText, { color: '#F59E0B' }]}>
+                🔥 Серия x3
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </>)}
       </ScreenGroup>}
     </View>
   );

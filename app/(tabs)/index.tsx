@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, Pressable } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,9 +8,9 @@ import { useStudentStore } from '@/src/stores/studentStore';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { useNotificationStore } from '@/src/stores/notificationStore';
 import { useAppVersionStore } from '@/src/config/appVersion';
-import Card from '@/src/components/ui/Card';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
 import HomeworkCard from '@/src/components/homework/HomeworkCard';
+import Mascot from '@/src/components/mascot/Mascot';
 import { useChatStore } from '@/src/stores/chatStore';
 
 function getGreeting(): string {
@@ -26,6 +26,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const student = useStudentStore((s) => s.student);
   const assignments = useHomeworkStore((s) => s.assignments);
+  const devHideHomework = useHomeworkStore((s) => s.devHideHomework);
   const appVersion = useAppVersionStore((s) => s.appVersion);
 
   const notifications = useNotificationStore((s) => s.notifications);
@@ -126,92 +127,98 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* ── Notifications dropdown (modal) ── */}
-        {appVersion >= 1 && (
-          <Modal visible={bellOpen} transparent animationType="fade" onRequestClose={() => setBellOpen(false)}>
-            <Pressable style={styles.modalBackdrop} onPress={() => setBellOpen(false)}>
-              <Pressable
-                style={[styles.notifDropdown, { backgroundColor: theme.colors.surface }]}
-                onPress={(e) => e.stopPropagation()}
-              >
-                <View style={styles.notifHeader}>
-                  <Text style={[styles.notifTitle, { color: theme.colors.text }]}>Уведомления</Text>
-                  <TouchableOpacity onPress={() => setBellOpen(false)}>
-                    <Ionicons name="close" size={22} color={theme.colors.textSecondary} />
-                  </TouchableOpacity>
-                </View>
-                {recentNotifications.length === 0 ? (
-                  <Text style={[styles.notifEmpty, { color: theme.colors.textSecondary }]}>
-                    Всё прочитано
-                  </Text>
-                ) : (
-                  <ScrollView style={styles.notifScroll} showsVerticalScrollIndicator={recentNotifications.length > 5}>
-                    {recentNotifications.map((notif) => (
-                      <TouchableOpacity
-                        key={notif.id}
-                        style={[
-                          styles.notifItem,
-                          { backgroundColor: notif.isRead ? 'transparent' : theme.colors.primary + '10' },
-                        ]}
-                        onPress={() => {
-                          markAsRead(notif.id);
-                          setBellOpen(false);
-                          if (notif.route) router.push(notif.route as any);
-                        }}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={styles.notifIcon}>{notif.icon}</Text>
-                        <View style={{ flex: 1 }}>
-                          <Text
-                            style={[
-                              styles.notifItemTitle,
-                              { color: theme.colors.text, fontWeight: notif.isRead ? '500' : '700' },
-                            ]}
-                            numberOfLines={1}
-                          >
-                            {notif.title}
-                          </Text>
-                          <Text
-                            style={[styles.notifItemMsg, { color: theme.colors.textSecondary }]}
-                            numberOfLines={1}
-                          >
-                            {notif.message}
-                          </Text>
-                        </View>
-                        {!notif.isRead && (
-                          <View style={[styles.notifDot, { backgroundColor: theme.colors.primary }]} />
-                        )}
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                )}
-              </Pressable>
-            </Pressable>
-          </Modal>
-        )}
-
         {/* ── Active assignments ── */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          Активные задания
-        </Text>
-
-        {upcomingDeadlines.length === 0 ? (
-          <Card>
-            <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
-              🎉 Нет активных заданий!
+        {(!devHideHomework && upcomingDeadlines.length > 0) ? (
+          <>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+              Активные задания
             </Text>
-          </Card>
+            {upcomingDeadlines.map((hw) => (
+              <HomeworkCard
+                key={hw.id}
+                homework={hw}
+                onPress={() => router.push(`/homework/${hw.id}`)}
+              />
+            ))}
+          </>
         ) : (
-          upcomingDeadlines.map((hw) => (
-            <HomeworkCard
-              key={hw.id}
-              homework={hw}
-              onPress={() => router.push(`/homework/${hw.id}`)}
-            />
-          ))
+          <View style={styles.emptyState}>
+            <Mascot health={student.mascotHealth} emotion="happy" size={160} compact />
+            <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
+              На сегодня всё!
+            </Text>
+            <Text style={[styles.emptySubtitle, { color: theme.colors.textSecondary }]}>
+              Можешь отдыхать, ты большой молодец!
+            </Text>
+          </View>
         )}
       </ScrollView>
 
+      {/* ── Notifications dropdown (modal) ── */}
+      {appVersion >= 1 && bellOpen && (
+        <Modal visible transparent animationType="fade" onRequestClose={() => setBellOpen(false)}>
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            activeOpacity={1}
+            onPress={() => setBellOpen(false)}
+          >
+            <View
+              style={[styles.notifDropdown, { backgroundColor: theme.colors.surface }]}
+              onStartShouldSetResponder={() => true}
+            >
+              <View style={styles.notifHeader}>
+                <Text style={[styles.notifTitle, { color: theme.colors.text }]}>Уведомления</Text>
+                <TouchableOpacity onPress={() => setBellOpen(false)}>
+                  <Ionicons name="close" size={22} color={theme.colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+              {recentNotifications.length === 0 ? (
+                <Text style={[styles.notifEmpty, { color: theme.colors.textSecondary }]}>
+                  Всё прочитано
+                </Text>
+              ) : (
+                recentNotifications.map((notif) => (
+                  <TouchableOpacity
+                    key={notif.id}
+                    style={[
+                      styles.notifItem,
+                      { backgroundColor: notif.isRead ? 'transparent' : theme.colors.primary + '10' },
+                    ]}
+                    onPress={() => {
+                      markAsRead(notif.id);
+                      setBellOpen(false);
+                      if (notif.route) router.push(notif.route as any);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.notifIcon}>{notif.icon}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={[
+                          styles.notifItemTitle,
+                          { color: theme.colors.text, fontWeight: notif.isRead ? '500' : '700' },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {notif.title}
+                      </Text>
+                      <Text
+                        style={[styles.notifItemMsg, { color: theme.colors.textSecondary }]}
+                        numberOfLines={1}
+                      >
+                        {notif.message}
+                      </Text>
+                    </View>
+                    {!notif.isRead && (
+                      <View style={[styles.notifDot, { backgroundColor: theme.colors.primary }]} />
+                    )}
+                  </TouchableOpacity>
+                ))
+              )}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
@@ -353,9 +360,22 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 12,
   },
-  emptyText: {
-    fontSize: 15,
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 40,
+    paddingBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginTop: 20,
     textAlign: 'center',
-    paddingVertical: 16,
+  },
+  emptySubtitle: {
+    fontSize: 15,
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });

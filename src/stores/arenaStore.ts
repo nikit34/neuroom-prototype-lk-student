@@ -15,8 +15,10 @@ interface ArenaState {
   setSection: (s: ArenaSection) => void;
 
   // Feature toggles (dev mode)
+  achievementsEnabled: boolean;
   questsEnabled: boolean;
   challengesEnabled: boolean;
+  setAchievementsEnabled: (v: boolean) => void;
   setQuestsEnabled: (v: boolean) => void;
   setChallengesEnabled: (v: boolean) => void;
 
@@ -54,8 +56,10 @@ export const useArenaStore = create<ArenaState>((set, get) => ({
   section: 'duels',
   setSection: (s) => set({ section: s }),
 
+  achievementsEnabled: false,
   questsEnabled: false,
   challengesEnabled: false,
+  setAchievementsEnabled: (v) => set({ achievementsEnabled: v }),
   setQuestsEnabled: (v) => set({ questsEnabled: v }),
   setChallengesEnabled: (v) => set({ challengesEnabled: v }),
 

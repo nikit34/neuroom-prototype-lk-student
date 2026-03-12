@@ -108,6 +108,14 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
         </View>
 
         <View style={styles.actionBtnsRow}>
+          <TouchableOpacity
+            style={[styles.actionBtn, { backgroundColor: theme.colors.accent }]}
+            onPress={() => router.push(`/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}&hwStatus=${homework.status}`)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.actionBtnIcon}>💬</Text>
+            <Text style={styles.actionBtnLabel}>Обсудить</Text>
+          </TouchableOpacity>
           {canSubmit ? (
             <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: theme.colors.primary }]}
@@ -123,14 +131,6 @@ export default function HomeworkCard({ homework, onPress }: HomeworkCardProps) {
               <Text style={styles.actionBtnLabel}>Сдано</Text>
             </View>
           )}
-          <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: theme.colors.accent }]}
-            onPress={() => router.push(`/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(homework.subject)}&hwPromptText=${encodeURIComponent(homework.description)}&hwStatus=${homework.status}`)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.actionBtnIcon}>💬</Text>
-            <Text style={styles.actionBtnLabel}>Обсудить</Text>
-          </TouchableOpacity>
         </View>
       </Card>
     </Animated.View>

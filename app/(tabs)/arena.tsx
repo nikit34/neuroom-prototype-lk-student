@@ -72,6 +72,7 @@ export default function ArenaScreen() {
 
   const section = useArenaStore((s) => s.section);
   const setSection = useArenaStore((s) => s.setSection);
+  const achievementsEnabled = useArenaStore((s) => s.achievementsEnabled);
   const questsEnabled = useArenaStore((s) => s.questsEnabled);
   const challengesEnabled = useArenaStore((s) => s.challengesEnabled);
 
@@ -79,6 +80,7 @@ export default function ArenaScreen() {
   const achievements = useAchievementStore((s) => s.achievements);
 
   const sections = ALL_SECTIONS.filter((s) => {
+    if (s.key === 'achievements') return achievementsEnabled;
     if (s.key === 'quests') return questsEnabled;
     if (s.key === 'challenges') return challengesEnabled;
     return true;
