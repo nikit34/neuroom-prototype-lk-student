@@ -159,12 +159,15 @@ export default function ChatScreen() {
   const chatOnboardingStep = useChatStore((s) => s.chatOnboardingStep);
   const initChatOnboarding = useChatStore((s) => s.initChatOnboarding);
   const selectOnboardingOption = useChatStore((s) => s.selectOnboardingOption);
+  const submitMultiSelectOnboarding = useChatStore((s) => s.submitMultiSelectOnboarding);
   const confirmOnboarding = useChatStore((s) => s.confirmOnboarding);
   const resetChatOnboarding = useChatStore((s) => s.resetChatOnboarding);
   const isOnboarding = isAiTutor && chatOnboardingStep !== 'done';
   const router = useRouter();
 
   const [text, setText] = useState('');
+  const [multiSelectIds, setMultiSelectIds] = useState<string[]>([]);
+  const [multiSelectCustomText, setMultiSelectCustomText] = useState('');
   const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
   const flatListRef = useRef<FlatList>(null);
   const hasSentDispute = useRef(false);
@@ -289,6 +292,8 @@ export default function ChatScreen() {
   };
 
   const handleChangeOnboarding = () => {
+    setMultiSelectIds([]);
+    setMultiSelectCustomText('');
     resetChatOnboarding();
     // Re-init after reset so the first question appears again
     setTimeout(() => {
@@ -346,72 +351,89 @@ export default function ChatScreen() {
       );
     }
 
-    if (item.optionType === 'theme') {
+    if (item.optionType === 'games' || item.optionType === 'shows') {
+      const toggleId = (id: string) => {
+        setMultiSelectIds((prev) =>
+          prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+        );
+      };
+      const handleSubmit = () => {
+        submitMultiSelectOnboarding(multiSelectIds, multiSelectCustomText.trim() || undefined);
+        setMultiSelectIds([]);
+        setMultiSelectCustomText('');
+      };
+      const handleSkip = () => {
+        submitMultiSelectOnboarding([], undefined);
+        setMultiSelectIds([]);
+        setMultiSelectCustomText('');
+      };
+
       return (
-        <View style={styles.themeOptionsGrid}>
-          {item.options.map((opt) => (
-            <TouchableOpacity
-              key={opt.id}
-              style={[
-                styles.themeOptionCard,
-                {
-                  backgroundColor: theme.colors.surface,
-                  borderColor: theme.colors.border,
-                },
-              ]}
-              onPress={() => selectOnboardingOption(opt.id)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.themeOptionEmoji}>{opt.emoji}</Text>
-              <Text
-                style={[styles.themeOptionLabel, { color: theme.colors.text }]}
-                numberOfLines={1}
-              >
-                {opt.label}
-              </Text>
-              {opt.colors && (
-                <View style={styles.colorDotsRow}>
-                  {opt.colors.map((c, i) => (
-                    <View key={i} style={[styles.colorDot, { backgroundColor: c }]} />
-                  ))}
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
+        <View style={styles.multiSelectContainer}>
+          <View style={styles.multiSelectChips}>
+            {item.options.map((opt) => {
+              const selected = multiSelectIds.includes(opt.id);
+              return (
+                <TouchableOpacity
+                  key={opt.id}
+                  style={[
+                    styles.multiSelectChip,
+                    {
+                      backgroundColor: selected ? theme.colors.primary : theme.colors.surface,
+                      borderColor: selected ? theme.colors.primary : theme.colors.border,
+                    },
+                  ]}
+                  onPress={() => toggleId(opt.id)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.multiSelectChipEmoji}>{opt.emoji}</Text>
+                  <Text
+                    style={[
+                      styles.multiSelectChipLabel,
+                      { color: selected ? '#FFFFFF' : theme.colors.text },
+                    ]}
+                  >
+                    {opt.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <TextInput
+            style={[
+              styles.multiSelectInput,
+              {
+                backgroundColor: theme.colors.surface,
+                color: theme.colors.text,
+                borderColor: theme.colors.border,
+              },
+            ]}
+            value={multiSelectCustomText}
+            onChangeText={setMultiSelectCustomText}
+            placeholder="Другое..."
+            placeholderTextColor={theme.colors.textSecondary}
+          />
+          <TouchableOpacity
+            style={[styles.multiSelectSubmitButton, { backgroundColor: theme.colors.primary }]}
+            onPress={handleSubmit}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.multiSelectSubmitText}>Далее</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.skipButton}
+            onPress={handleSkip}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.skipButtonText, { color: theme.colors.textSecondary }]}>
+              Пропустить
+            </Text>
+          </TouchableOpacity>
         </View>
       );
     }
 
-    if (item.optionType === 'character') {
-      return (
-        <View style={styles.characterOptionsGrid}>
-          {item.options.map((opt) => (
-            <TouchableOpacity
-              key={opt.id}
-              style={[
-                styles.characterOptionCard,
-                {
-                  backgroundColor: theme.colors.surface,
-                  borderColor: theme.colors.border,
-                },
-              ]}
-              onPress={() => selectOnboardingOption(opt.id)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.characterOptionEmoji}>{opt.emoji}</Text>
-              <Text
-                style={[styles.characterOptionLabel, { color: theme.colors.text }]}
-                numberOfLines={1}
-              >
-                {opt.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      );
-    }
-
-    if (item.optionType === 'motivation' || item.optionType === 'learning_style' || item.optionType === 'goal') {
+    if (item.optionType === 'goal') {
       return (
         <View style={styles.interestOptionsGrid}>
           {item.options.map((opt) => (
@@ -792,63 +814,50 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  themeOptionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+  // Multi-select (games/shows)
+  multiSelectContainer: {
     marginTop: 10,
     width: '100%',
   },
-  themeOptionCard: {
-    width: (SCREEN_WIDTH - 32 - 24) / 3,
-    paddingVertical: 12,
-    paddingHorizontal: 6,
-    borderRadius: 14,
-    borderWidth: 1.5,
+  multiSelectChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  multiSelectChip: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1.5,
   },
-  themeOptionEmoji: {
-    fontSize: 24,
+  multiSelectChipEmoji: {
+    fontSize: 18,
   },
-  themeOptionLabel: {
-    fontSize: 11,
+  multiSelectChipLabel: {
+    fontSize: 14,
     fontWeight: '600',
-    textAlign: 'center',
   },
-  colorDotsRow: {
-    flexDirection: 'row',
-    gap: 4,
-    marginTop: 2,
-  },
-  colorDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  characterOptionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+  multiSelectInput: {
     marginTop: 10,
-    width: '100%',
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 14,
   },
-  characterOptionCard: {
-    width: (SCREEN_WIDTH - 32 - 24) / 3,
+  multiSelectSubmitButton: {
+    marginTop: 10,
     paddingVertical: 14,
-    paddingHorizontal: 6,
     borderRadius: 14,
-    borderWidth: 1.5,
     alignItems: 'center',
-    gap: 4,
   },
-  characterOptionEmoji: {
-    fontSize: 28,
-  },
-  characterOptionLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    textAlign: 'center',
+  multiSelectSubmitText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
 
   // Interest options (2-column grid)

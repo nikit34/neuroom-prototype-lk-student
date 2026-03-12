@@ -1,42 +1,17 @@
-import React, { useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
-import { useAchievementStore } from '@/src/stores/achievementStore';
 import { useNotificationStore } from '@/src/stores/notificationStore';
 import { useAppVersionStore } from '@/src/config/appVersion';
-import Mascot from '@/src/components/mascot/Mascot';
 import Card from '@/src/components/ui/Card';
-import DeadlineIndicator from '@/src/components/homework/DeadlineIndicator';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
-import MascotHealthBar from '@/src/components/mascot/MascotHealthBar';
-import { AI_TUTOR_ID, useChatStore } from '@/src/stores/chatStore';
-import type { Achievement, HomeworkAssignment } from '@/src/types';
-
-/** Achievement IDs linked to homework subjects + how much each HW contributes */
-const SUBJECT_ACHIEVEMENT_MAP: Record<string, { ids: string[]; contribution: number }> = {
-  'Математика': { ids: ['ach-12'], contribution: 20 },
-  'Русский язык': { ids: ['ach-13'], contribution: 20 },
-  'Английский язык': { ids: ['ach-14'], contribution: 33 },
-  'Физика': { ids: ['ach-15'], contribution: 25 },
-  'История': { ids: ['ach-16'], contribution: 20 },
-};
-
-type LinkedReward = { achievement: Achievement; contribution: number };
-
-function getLinkedReward(
-  hw: HomeworkAssignment,
-  achievements: Achievement[],
-): LinkedReward | null {
-  const entry = SUBJECT_ACHIEVEMENT_MAP[hw.subject];
-  if (!entry) return null;
-  const achievement = achievements.find((a) => entry.ids.includes(a.id) && a.isLocked && a.progress > 0) ?? null;
-  if (!achievement) return null;
-  return { achievement, contribution: entry.contribution };
-}
+import HomeworkCard from '@/src/components/homework/HomeworkCard';
+import { useChatStore } from '@/src/stores/chatStore';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -51,7 +26,6 @@ export default function HomeScreen() {
   const router = useRouter();
   const student = useStudentStore((s) => s.student);
   const assignments = useHomeworkStore((s) => s.assignments);
-  const achievements = useAchievementStore((s) => s.achievements);
   const appVersion = useAppVersionStore((s) => s.appVersion);
 
   const notifications = useNotificationStore((s) => s.notifications);
@@ -77,8 +51,7 @@ export default function HomeScreen() {
     );
   }, [notifications, teacherChatEnabled]);
 
-  const { height: screenHeight } = useWindowDimensions();
-  const topBlockHeight = Math.round(screenHeight / 5);
+  const [bellOpen, setBellOpen] = useState(false);
 
   const upcomingDeadlines = useMemo(() => {
     const now = new Date();
@@ -91,6 +64,18 @@ export default function HomeScreen() {
       .sort((a, b) => a.deadline.getTime() - b.deadline.getTime());
   }, [assignments]);
 
+  const { doneCount, totalCount, progressPercent } = useMemo(() => {
+    const total = assignments.length;
+    const done = assignments.filter(
+      (a) => a.status === 'graded' || a.status === 'ai_reviewed' || a.status === 'submitted',
+    ).length;
+    return {
+      doneCount: done,
+      totalCount: total,
+      progressPercent: total > 0 ? Math.round((done / total) * 100) : 0,
+    };
+  }, [assignments]);
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
       <ThemeBackground />
@@ -100,78 +85,109 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         nestedScrollEnabled
       >
-        <Text style={[styles.greeting, { color: theme.colors.text }]}>
-          {getGreeting()}, {student.firstName}! 👋
-        </Text>
-
-        {/* ── Mascot + Health row (V1+) ── */}
-        {appVersion >= 1 && (
-          <View style={[styles.topRow, { height: topBlockHeight }]}>
-            <Card style={styles.notifCard}>
-              <View style={styles.notifHeader}>
-                <Text style={[styles.notifTitle, { color: theme.colors.text }]}>
-                  Уведомления
-                </Text>
-                {unreadCount() > 0 && (
-                  <View style={[styles.notifBadge, { backgroundColor: theme.colors.primary }]}>
-                    <Text style={styles.notifBadgeText}>{unreadCount()}</Text>
-                  </View>
-                )}
-              </View>
-              {recentNotifications.length === 0 ? (
-                <Text style={[styles.notifEmpty, { color: theme.colors.textSecondary }]}>
-                  Всё прочитано
-                </Text>
-              ) : (
-                <ScrollView style={styles.notifScroll} nestedScrollEnabled showsVerticalScrollIndicator={recentNotifications.length > 3}>
-                  {recentNotifications.map((notif) => (
-                    <TouchableOpacity
-                      key={notif.id}
-                      style={[
-                        styles.notifItem,
-                        { backgroundColor: notif.isRead ? 'transparent' : theme.colors.primary + '10' },
-                      ]}
-                      onPress={() => {
-                        markAsRead(notif.id);
-                        if (notif.route) router.push(notif.route as any);
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.notifIcon}>{notif.icon}</Text>
-                      <View style={{ flex: 1 }}>
-                        <Text
-                          style={[
-                            styles.notifItemTitle,
-                            { color: theme.colors.text, fontWeight: notif.isRead ? '500' : '700' },
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {notif.title}
-                        </Text>
-                        <Text
-                          style={[styles.notifItemMsg, { color: theme.colors.textSecondary }]}
-                          numberOfLines={1}
-                        >
-                          {notif.message}
-                        </Text>
-                      </View>
-                      {!notif.isRead && (
-                        <View style={[styles.notifDot, { backgroundColor: theme.colors.primary }]} />
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+        {/* ── Header: greeting + bell ── */}
+        <View style={styles.headerRow}>
+          <Text style={[styles.greeting, { color: theme.colors.text }]}>
+            {getGreeting()}, {student.firstName}! 👋
+          </Text>
+          {appVersion >= 1 && (
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() => setBellOpen(true)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="notifications-outline" size={26} color={theme.colors.text} />
+              {unreadCount() > 0 && (
+                <View style={[styles.bellBadge, { backgroundColor: theme.colors.primary }]}>
+                  <Text style={styles.bellBadgeText}>{unreadCount()}</Text>
+                </View>
               )}
-            </Card>
-            <View style={[styles.mascotColumn, { width: topBlockHeight }]}>
-              <View style={[styles.mascotContainer, { flex: 1 }]}>
-                <Mascot health={student.mascotHealth} showHealthBar={false} size={Math.round(topBlockHeight / 2)} compact />
-              </View>
-              <View style={styles.mascotHealth}>
-                <MascotHealthBar health={student.mascotHealth} />
-              </View>
-            </View>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* ── Progress bar ── */}
+        <View style={styles.progressContainer}>
+          <View style={styles.progressLabelRow}>
+            <Text style={[styles.progressLabel, { color: theme.colors.text }]}>
+              Твой прогресс
+            </Text>
+            <Text style={[styles.progressValue, { color: theme.colors.primary }]}>
+              {doneCount}/{totalCount}
+            </Text>
           </View>
+          <View style={[styles.progressTrack, { backgroundColor: theme.colors.border }]}>
+            <View
+              style={[
+                styles.progressFill,
+                { width: `${progressPercent}%`, backgroundColor: theme.colors.primary },
+              ]}
+            />
+          </View>
+        </View>
+
+        {/* ── Notifications dropdown (modal) ── */}
+        {appVersion >= 1 && (
+          <Modal visible={bellOpen} transparent animationType="fade" onRequestClose={() => setBellOpen(false)}>
+            <Pressable style={styles.modalBackdrop} onPress={() => setBellOpen(false)}>
+              <Pressable
+                style={[styles.notifDropdown, { backgroundColor: theme.colors.surface }]}
+                onPress={(e) => e.stopPropagation()}
+              >
+                <View style={styles.notifHeader}>
+                  <Text style={[styles.notifTitle, { color: theme.colors.text }]}>Уведомления</Text>
+                  <TouchableOpacity onPress={() => setBellOpen(false)}>
+                    <Ionicons name="close" size={22} color={theme.colors.textSecondary} />
+                  </TouchableOpacity>
+                </View>
+                {recentNotifications.length === 0 ? (
+                  <Text style={[styles.notifEmpty, { color: theme.colors.textSecondary }]}>
+                    Всё прочитано
+                  </Text>
+                ) : (
+                  <ScrollView style={styles.notifScroll} showsVerticalScrollIndicator={recentNotifications.length > 5}>
+                    {recentNotifications.map((notif) => (
+                      <TouchableOpacity
+                        key={notif.id}
+                        style={[
+                          styles.notifItem,
+                          { backgroundColor: notif.isRead ? 'transparent' : theme.colors.primary + '10' },
+                        ]}
+                        onPress={() => {
+                          markAsRead(notif.id);
+                          setBellOpen(false);
+                          if (notif.route) router.push(notif.route as any);
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.notifIcon}>{notif.icon}</Text>
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={[
+                              styles.notifItemTitle,
+                              { color: theme.colors.text, fontWeight: notif.isRead ? '500' : '700' },
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {notif.title}
+                          </Text>
+                          <Text
+                            style={[styles.notifItemMsg, { color: theme.colors.textSecondary }]}
+                            numberOfLines={1}
+                          >
+                            {notif.message}
+                          </Text>
+                        </View>
+                        {!notif.isRead && (
+                          <View style={[styles.notifDot, { backgroundColor: theme.colors.primary }]} />
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                )}
+              </Pressable>
+            </Pressable>
+          </Modal>
         )}
 
         {/* ── Active assignments ── */}
@@ -186,97 +202,13 @@ export default function HomeScreen() {
             </Text>
           </Card>
         ) : (
-          upcomingDeadlines.map((hw) => {
-            const reward = getLinkedReward(hw, achievements);
-            const willComplete = reward && (reward.achievement.progress + reward.contribution >= 100);
-            return (
-              <Card key={hw.id} style={styles.deadlineCard}>
-                <TouchableOpacity
-                  style={styles.cardContent}
-                  onPress={() => router.push(`/homework/${hw.id}`)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.cardInfo}>
-                    <Text style={[styles.hwTitle, { color: theme.colors.text }]} numberOfLines={1}>
-                      {hw.subject}
-                    </Text>
-                    <Text style={[styles.hwSubject, { color: theme.colors.textSecondary }]} numberOfLines={2}>
-                      {hw.description.split('\n')[0]}
-                    </Text>
-                    {appVersion >= 1 && (reward ? (
-                      <View
-                        style={[styles.rewardHint, { backgroundColor: theme.colors.textSecondary + '08', borderColor: 'transparent' }]}
-                      >
-                        <Text style={[styles.rewardHintIcon, { opacity: 0.5 }]}>{reward.achievement.icon}</Text>
-                        <View style={styles.rewardHintBody}>
-                          <Text style={[styles.rewardHintText, { color: theme.colors.textSecondary }]} numberOfLines={1}>
-                            {willComplete
-                              ? `Выполни и получи награду «${reward.achievement.title}»!`
-                              : `+${reward.contribution}% к награде «${reward.achievement.title}»`}
-                          </Text>
-                          <View style={[styles.rewardBar, { backgroundColor: theme.colors.border }]}>
-                            <View
-                              style={[styles.rewardBarFill, {
-                                width: `${reward.achievement.progress}%`,
-                                backgroundColor: theme.colors.textSecondary + '60',
-                              }]}
-                            />
-                            <View
-                              style={[styles.rewardBarGain, {
-                                width: `${Math.min(reward.contribution, 100 - reward.achievement.progress)}%`,
-                                backgroundColor: theme.colors.textSecondary + '30',
-                              }]}
-                            />
-                          </View>
-                          <Text style={[styles.rewardBarLabel, { color: theme.colors.textSecondary }]}>
-                            {reward.achievement.progress}% → {Math.min(reward.achievement.progress + reward.contribution, 100)}%
-                          </Text>
-                        </View>
-                      </View>
-                    ) : (
-                      <View style={[styles.rewardHint, { backgroundColor: theme.colors.textSecondary + '08', borderColor: 'transparent' }]}>
-                        <Text style={[styles.rewardHintIcon, { opacity: 0.5 }]}>💚</Text>
-                        <Text style={[styles.rewardHintText, { color: theme.colors.textSecondary }]} numberOfLines={2}>
-                          Сдай вовремя и получи +Здоровье персонажу
-                        </Text>
-                      </View>
-                    ))}
-                    <DeadlineIndicator deadline={hw.deadline} status={hw.status} submissions={hw.submissions} />
-                  </View>
-                </TouchableOpacity>
-
-                {appVersion >= 1 ? (
-                  <View style={styles.actionBtns}>
-                    <TouchableOpacity
-                      style={[styles.cameraBtn, { backgroundColor: theme.colors.primary }]}
-                      onPress={() => router.push(`/homework/submit/${hw.id}`)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.cameraBtnIcon}>📸</Text>
-                      <Text style={styles.cameraBtnLabel}>Сдать</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.cameraBtn, { backgroundColor: theme.colors.accent }]}
-                      onPress={() => router.push(`/chat/${AI_TUTOR_ID}?hwPromptSubject=${encodeURIComponent(hw.subject)}&hwPromptText=${encodeURIComponent(hw.description)}&hwStatus=${hw.status}`)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.cameraBtnIcon}>💬</Text>
-                      <Text style={styles.cameraBtnLabel}>Обсудить</Text>
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <TouchableOpacity
-                    style={[styles.cameraBtn, styles.cameraBtnSingle, { backgroundColor: theme.colors.primary }]}
-                    onPress={() => router.push(`/homework/submit/${hw.id}`)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.cameraBtnIcon}>📸</Text>
-                    <Text style={styles.cameraBtnLabel}>Сдать</Text>
-                  </TouchableOpacity>
-                )}
-              </Card>
-            );
-          })
+          upcomingDeadlines.map((hw) => (
+            <HomeworkCard
+              key={hw.id}
+              homework={hw}
+              onPress={() => router.push(`/homework/${hw.id}`)}
+            />
+          ))
         )}
       </ScrollView>
 
@@ -295,90 +227,125 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 100,
   },
-  greeting: {
-    fontSize: 26,
-    fontWeight: '700',
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginTop: 8,
     marginBottom: 12,
   },
-  // ── Top row ──
-  topRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 4,
-  },
-  notifCard: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    overflow: 'hidden',
-  },
-  notifHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 6,
-  },
-  notifTitle: {
-    fontSize: 13,
+  greeting: {
+    fontSize: 26,
     fontWeight: '700',
+    flex: 1,
   },
-  notifBadge: {
+  bellBtn: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bellBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
     minWidth: 18,
     height: 18,
     borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 5,
+    paddingHorizontal: 4,
   },
-  notifBadgeText: {
+  bellBadgeText: {
     color: '#fff',
     fontSize: 10,
+    fontWeight: '700',
+  },
+  // ── Notification dropdown ──
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'flex-start',
+    paddingTop: 100,
+    paddingHorizontal: 16,
+  },
+  notifDropdown: {
+    borderRadius: 16,
+    padding: 14,
+    maxHeight: 400,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+  },
+  notifHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  notifTitle: {
+    fontSize: 17,
     fontWeight: '700',
   },
   notifScroll: {
     flex: 1,
   },
   notifEmpty: {
-    fontSize: 11,
+    fontSize: 14,
     textAlign: 'center',
-    paddingVertical: 8,
+    paddingVertical: 16,
   },
   notifItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 6,
-    paddingVertical: 5,
-    borderRadius: 8,
-    gap: 6,
-    marginBottom: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    borderRadius: 10,
+    gap: 8,
+    marginBottom: 4,
   },
   notifIcon: {
-    fontSize: 16,
+    fontSize: 20,
   },
   notifItemTitle: {
-    fontSize: 11,
+    fontSize: 14,
   },
   notifItemMsg: {
-    fontSize: 9,
+    fontSize: 12,
   },
   notifDot: {
-    width: 7,
-    height: 7,
+    width: 8,
+    height: 8,
     borderRadius: 4,
   },
-  mascotColumn: {
-    justifyContent: 'flex-end',
+  // ── Progress bar ──
+  progressContainer: {
+    marginBottom: 8,
   },
-  mascotContainer: {
+  progressLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    borderRadius: 16,
+    marginBottom: 6,
   },
-  mascotHealth: {
-    paddingHorizontal: 4,
-    paddingBottom: 2,
+  progressLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  progressValue: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  progressTrack: {
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 4,
   },
   sectionTitle: {
     fontSize: 20,
@@ -386,100 +353,9 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 12,
   },
-  // ── Deadline cards ──
-  deadlineCard: {
-    marginBottom: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  cardContent: {
-    flex: 1,
-  },
-  cardInfo: {
-    flex: 1,
-  },
-  hwTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  hwSubRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    gap: 8,
-  },
-  hwSubject: {
-    fontSize: 13,
-  },
-  hwXp: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  rewardHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginTop: 6,
-    marginBottom: 6,
-    gap: 6,
-  },
-  rewardHintIcon: {
-    fontSize: 14,
-  },
-  rewardHintBody: {
-    flex: 1,
-  },
-  rewardHintText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  rewardBar: {
-    height: 6,
-    borderRadius: 3,
-    flexDirection: 'row',
-    overflow: 'hidden',
-    marginTop: 4,
-  },
-  rewardBarFill: {
-    height: 6,
-  },
-  rewardBarGain: {
-    height: 6,
-  },
-  rewardBarLabel: {
-    fontSize: 9,
-    marginTop: 2,
-  },
   emptyText: {
     fontSize: 15,
     textAlign: 'center',
     paddingVertical: 16,
-  },
-  actionBtns: {
-    marginLeft: 12,
-    gap: 6,
-  },
-  cameraBtn: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cameraBtnSingle: {
-    marginLeft: 12,
-  },
-  cameraBtnIcon: {
-    fontSize: 22,
-  },
-  cameraBtnLabel: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '700',
-    marginTop: 2,
   },
 });

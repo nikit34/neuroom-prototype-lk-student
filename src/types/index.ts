@@ -34,8 +34,8 @@ export interface Student {
   avatarUrl?: string;
   totalPoints: number;
   characterId?: string;
-  motivation?: string;
-  learningStyle?: string;
+  games?: string[];
+  shows?: string[];
   goal?: string;
 }
 
@@ -148,8 +148,9 @@ export interface ChatMessage {
   isStudent: boolean;
   attachments?: ChatAttachment[];
   options?: ChatMessageOption[];
-  optionType?: 'gender' | 'theme' | 'character' | 'motivation' | 'learning_style' | 'goal' | 'confirm';
+  optionType?: 'gender' | 'games' | 'shows' | 'goal' | 'confirm';
   selectedOptionId?: string;
+  selectedOptionIds?: string[];
 }
 
 export interface DuelChallenge {
