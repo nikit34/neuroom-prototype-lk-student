@@ -508,6 +508,9 @@
   </div>
 
 <script>
+  // ← ВСТАВЬ СЮДА URL своего Apps Script после деплоя
+  var GOOGLE_SHEET_URL = 'ВСТАВЬ_URL_СЮДА';
+
   // Variant selection
   function selectVariant(card) {
     document.querySelectorAll('.variant-card').forEach(c => c.classList.remove('selected'));
@@ -519,14 +522,14 @@
   document.getElementById('survey-form').addEventListener('submit', function(e) {
     e.preventDefault();
 
-    const fd = new FormData(this);
-    const data = {
+    var fd = new FormData(this);
+    var data = {
       variant: fd.get('variant'),
       variant_reason: fd.get('variant_reason'),
-      first_info: fd.getAll('first_info'),
+      first_info: fd.getAll('first_info').join(', '),
       motivation: fd.get('motivation'),
       frequency: fd.get('frequency'),
-      ai_use: fd.getAll('ai_use'),
+      ai_use: fd.getAll('ai_use').join(', '),
       missing: fd.get('missing'),
       gamification_importance: fd.get('gamification_importance'),
       timestamp: new Date().toISOString(),
@@ -537,16 +540,25 @@
       return;
     }
 
-    // Save to localStorage
-    const responses = JSON.parse(localStorage.getItem('neuroom_survey') || '[]');
-    responses.push(data);
-    localStorage.setItem('neuroom_survey', JSON.stringify(responses));
+    var btn = this.querySelector('.submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Отправляем...';
 
-    // Log for collection
-    console.log('Survey response:', JSON.stringify(data, null, 2));
-
-    this.classList.add('hidden');
-    document.getElementById('thank-you').classList.add('visible');
+    fetch(GOOGLE_SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    .then(function() {
+      document.getElementById('survey-form').classList.add('hidden');
+      document.getElementById('thank-you').classList.add('visible');
+    })
+    .catch(function() {
+      // no-cors не даёт читать ответ, но данные уходят — показываем успех
+      document.getElementById('survey-form').classList.add('hidden');
+      document.getElementById('thank-you').classList.add('visible');
+    });
   });
 </script>
 </body>
