@@ -638,6 +638,7 @@ function HomeLayoutSwitch() {
     { key: 'mascot', label: '🐾', desc: 'Персонаж' },
     { key: 'achievement', label: '🏆', desc: 'Ачивка' },
     { key: 'minimal', label: '📋', desc: 'Только ДЗ' },
+    { key: 'dashboard', label: '📊', desc: 'Дашборд' },
   ];
 
   return (

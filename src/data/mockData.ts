@@ -223,10 +223,10 @@ export const mockHomework: HomeworkAssignment[] = [
         submittedAt: new Date(now - DAY * 6),
       },
     ],
-    grade: 5,
+    grade: 4,
     maxGrade: 5,
     teacherFeedback:
-      'Отличная работа! Одна ошибка в задаче №7 — неверный знак при переносе.',
+      'Хорошо! Одна ошибка в задаче №7 — неверный знак при переносе.',
     aiFeedback: 'Решения оформлены аккуратно. Ошибка в знаке в задаче 7.',
     comparisonItems: [
       {
@@ -255,12 +255,12 @@ export const mockHomework: HomeworkAssignment[] = [
         submittedAt: new Date(now - DAY * 3),
       },
     ],
-    grade: 4,
+    grade: 5,
     maxGrade: 5,
     aiFeedback:
-      'Диктант написан грамотно. Обнаружены 3 ошибки в словах с суффиксами -онн- и -енн-. Рекомендую повторить правило: в прилагательных с этими суффиксами всегда пишется НН.',
+      'Диктант написан грамотно, без ошибок. Все суффиксы -онн- и -енн- написаны верно.',
     teacherFeedback:
-      'Хорошо, но допущены 3 ошибки в словах с суффиксами -онн- и -енн-.',
+      'Отлично! Ни одной ошибки.',
     comparisonItems: [
       {
         label: 'Ошибка 1 — суффикс -онн-',
@@ -314,11 +314,11 @@ export const mockHomework: HomeworkAssignment[] = [
         submittedAt: new Date(now - DAY * 7),
       },
     ],
-    grade: 5,
+    grade: 3,
     maxGrade: 5,
     aiFeedback:
-      'Таблица реформ составлена полно и подробно. Указаны все ключевые реформы: военная, административная, церковная, культурная. Годы и последствия обозначены корректно.',
-    teacherFeedback: 'Превосходная работа! Таблица полная и подробная.',
+      'Таблица неполная — пропущены церковная и культурная реформы. Годы военной реформы указаны неточно.',
+    teacherFeedback: 'Таблица неполная. Нужно добавить пропущенные реформы.',
     classmateSubmittedCount: 15,
     totalClassmates: 15,
     createdAt: new Date(now - DAY * 12),
@@ -340,12 +340,12 @@ export const mockHomework: HomeworkAssignment[] = [
         submittedAt: new Date(now - DAY * 5),
       },
     ],
-    grade: 2,
+    grade: 3,
     maxGrade: 5,
     aiFeedback:
-      'Систематические ошибки в Type 2 и Type 3. В Type 2 неверно используется would в условной части. В Type 3 перепутаны had + V3 и would have + V3.',
+      'Ошибки в Type 2 и Type 3. В Type 2 неверно используется would в условной части. Повтори правила.',
     teacherFeedback:
-      'Слишком много ошибок в Type 2 и Type 3. Перечитайте правила и пересдайте.',
+      'Есть ошибки в Type 2 и Type 3. Повтори правила условных предложений.',
     comparisonItems: [
       {
         label: 'Type 2: неверная форма глагола',
@@ -483,8 +483,8 @@ export const mockHomework: HomeworkAssignment[] = [
     grade: 5,
     maxGrade: 5,
     aiFeedback:
-      'Все задачи решены верно. Формулы применены правильно. Единственная неточность: в задаче №3 не переведены единицы в кОм.',
-    teacherFeedback: 'Отлично! Одна неточность в единицах измерения.',
+      'Все задачи решены верно. Формулы применены правильно. Единицы переведены корректно.',
+    teacherFeedback: 'Отлично! Безупречная работа.',
     comparisonItems: [
       {
         label: 'Единицы измерения: задача №3',
@@ -513,11 +513,11 @@ export const mockHomework: HomeworkAssignment[] = [
         submittedAt: new Date(now - DAY * 8),
       },
     ],
-    grade: 5,
+    grade: 4,
     maxGrade: 5,
     aiFeedback:
-      'Все причастные обороты выделены правильно. Пунктуация соблюдена. Упражнения выполнены полностью и без ошибок.',
-    teacherFeedback: 'Безупречная работа!',
+      'Причастные обороты в целом выделены верно. Одна ошибка в упражнении 4 — пропущена запятая.',
+    teacherFeedback: 'Хорошо! Одна пунктуационная ошибка.',
     classmateSubmittedCount: 15,
     totalClassmates: 15,
     createdAt: new Date(now - DAY * 11),
@@ -538,11 +538,11 @@ export const mockHomework: HomeworkAssignment[] = [
         submittedAt: new Date(now - DAY * 7),
       },
     ],
-    grade: 5,
+    grade: 3,
     maxGrade: 5,
     aiFeedback:
-      'Тест выполнен на отлично. Переводы корректные. Единственная неточность — в предложении №7 использовано since вместо for с периодом времени.',
-    teacherFeedback: 'Very good! Одна ошибка в употреблении since/for.',
+      'Ошибки в предложениях №3, №4 и №7. Путаница since/for и неверное время в переводах.',
+    teacherFeedback: 'Several mistakes. Review since/for and tense usage.',
     comparisonItems: [
       {
         label: 'since/for: предложение №7',
@@ -571,11 +571,11 @@ export const mockHomework: HomeworkAssignment[] = [
         submittedAt: new Date(now - DAY * 6),
       },
     ],
-    grade: 5,
+    grade: 4,
     maxGrade: 5,
     aiFeedback:
-      'Хронология составлена исчерпывающе. Включены все ключевые события: начало войны, битва за Москву, Сталинградская битва, Курская дуга, штурм Берлина. Даты точные.',
-    teacherFeedback: 'Отличная хронология! Очень подробная и точная.',
+      'Хронология составлена хорошо. Пропущена Курская дуга, остальные события указаны верно.',
+    teacherFeedback: 'Хорошо! Но пропущена Курская дуга.',
     classmateSubmittedCount: 12,
     totalClassmates: 15,
     createdAt: new Date(now - DAY * 9),
@@ -594,7 +594,7 @@ export const mockAchievements: Achievement[] = [
     progress: 100,
     isLocked: false,
     unlockedAt: new Date(now - DAY * 30),
-    source: { type: 'homework', homeworkId: 'hw-6', homeworkTitle: 'Системы линейных уравнений', subject: 'Математика', grade: 5, maxGrade: 5, solutionSummary: 'Решены все 8 систем методом подстановки. Одна ошибка в знаке при переносе в задаче №7.' },
+    source: { type: 'homework', homeworkId: 'hw-6', homeworkTitle: 'Системы линейных уравнений', subject: 'Математика', grade: 4, maxGrade: 5, solutionSummary: 'Решены все 8 систем. Одна ошибка в знаке при переносе в задаче №7.' },
   },
   {
     id: 'ach-2',
@@ -769,7 +769,7 @@ export const mockAchievements: Achievement[] = [
     progress: 100,
     isLocked: false,
     unlockedAt: new Date(now - DAY * 5),
-    source: { type: 'homework', homeworkId: 'hw-9', homeworkTitle: 'Реформы Петра I', subject: 'История', grade: 5, maxGrade: 5, solutionSummary: 'Составлена полная таблица реформ Петра I с указанием годов и последствий. Превосходная работа!' },
+    source: { type: 'homework', homeworkId: 'hw-9', homeworkTitle: 'Реформы Петра I', subject: 'История', grade: 3, maxGrade: 5, solutionSummary: 'Таблица неполная — пропущены церковная и культурная реформы.' },
   },
   {
     id: 'ach-17',

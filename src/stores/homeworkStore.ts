@@ -4,7 +4,7 @@ import { mockHomework, MOCK_BASE_TIME } from '../data/mockData';
 import { rewardHomeworkSubmit, rewardHomeworkGraded } from '../services/rewardsEngine';
 
 type FilterType = 'all' | 'active' | 'overdue' | 'done';
-export type HomeLayout = 'mascot' | 'achievement' | 'minimal';
+export type HomeLayout = 'mascot' | 'achievement' | 'minimal' | 'dashboard';
 
 interface HomeworkState {
   assignments: HomeworkAssignment[];

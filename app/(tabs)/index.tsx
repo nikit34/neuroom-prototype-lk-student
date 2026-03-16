@@ -121,6 +121,42 @@ export default function HomeScreen() {
     return inProgress[0] ?? null;
   }, [achievements]);
 
+  // Dashboard stats
+  const dashboardStats = useMemo(() => {
+    const graded = assignments.filter((a) => a.status === 'graded' && a.grade != null);
+    const avgGrade = graded.length > 0
+      ? Math.round(graded.reduce((sum, a) => sum + (a.grade! / a.maxGrade) * 100, 0) / graded.length)
+      : null;
+    const overdueCount = assignments.filter(
+      (a) => (a.status === 'pending' || a.status === 'resubmit') && a.deadline.getTime() < Date.now(),
+    ).length;
+    const activeCount = assignments.filter(
+      (a) => a.status === 'pending' || a.status === 'resubmit',
+    ).length;
+    const onReviewCount = assignments.filter(
+      (a) => a.status === 'submitted' || a.status === 'ai_reviewed',
+    ).length;
+    return { avgGrade, overdueCount, gradedCount: graded.length, activeCount, onReviewCount };
+  }, [assignments]);
+
+  // Per-subject average grades for dashboard chart
+  const subjectGrades = useMemo(() => {
+    const graded = assignments.filter((a) => a.status === 'graded' && a.grade != null);
+    const map: Record<string, { sum: number; count: number; maxGrade: number }> = {};
+    for (const a of graded) {
+      if (!map[a.subject]) map[a.subject] = { sum: 0, count: 0, maxGrade: a.maxGrade };
+      map[a.subject].sum += a.grade!;
+      map[a.subject].count += 1;
+    }
+    return Object.entries(map)
+      .map(([subject, { sum, count, maxGrade }]) => ({
+        subject,
+        avg: +(sum / count).toFixed(1),
+        maxGrade,
+      }))
+      .sort((a, b) => b.avg - a.avg);
+  }, [assignments]);
+
   const { width: screenWidth } = useWindowDimensions();
   const mascotSize = Math.round(screenWidth * 0.3125);
 
@@ -211,7 +247,64 @@ export default function HomeScreen() {
     );
   };
 
-  // minimal layout has no hero section at all — just homework
+  const renderDashboardHero = () => {
+    const { overdueCount, activeCount, onReviewCount, gradedCount } = dashboardStats;
+    const getBarColor = (avg: number, max: number) => {
+      const pct = (avg / max) * 100;
+      if (pct >= 80) return '#16A34A';
+      if (pct >= 60) return '#F59E0B';
+      return '#EF4444';
+    };
+    return (
+      <View style={[styles.dashboardCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+        <View style={styles.dashboardCompactRow}>
+          {/* Left: per-subject grade bars */}
+          <View style={styles.dashboardGradesSection}>
+            <Text style={[styles.dashboardGradesTitle, { color: theme.colors.textSecondary }]}>Средняя оценка за четверть</Text>
+            {subjectGrades.length > 0 ? (
+              subjectGrades.map((s) => {
+                const pct = (s.avg / s.maxGrade) * 100;
+                const color = getBarColor(s.avg, s.maxGrade);
+                return (
+                  <View key={s.subject} style={styles.chartRowCompact}>
+                    <Text style={[styles.chartSubjectCompact, { color: theme.colors.text }]} numberOfLines={1}>{s.subject}</Text>
+                    <View style={[styles.chartBarTrackCompact, { backgroundColor: theme.colors.border }]}>
+                      <View style={[styles.chartBarFill, { width: `${pct}%`, backgroundColor: color }]} />
+                    </View>
+                    <Text style={[styles.chartValueCompact, { color }]}>{s.avg}</Text>
+                  </View>
+                );
+              })
+            ) : (
+              <Text style={[styles.chartEmptyText, { color: theme.colors.textSecondary }]}>Нет оценок</Text>
+            )}
+          </View>
+          {/* Right: numeric stats */}
+          <View style={[styles.dashboardStatsDivider, { backgroundColor: theme.colors.border }]} />
+          <View style={styles.dashboardStatsColumn}>
+            <View style={styles.dashboardStatCompact}>
+              <Text style={[styles.dashboardStatCompactValue, { color: '#3B82F6' }]}>{activeCount}</Text>
+              <Text style={[styles.dashboardStatCompactLabel, { color: theme.colors.textSecondary }]}>Активных</Text>
+            </View>
+            <View style={styles.dashboardStatCompact}>
+              <Text style={[styles.dashboardStatCompactValue, { color: '#F59E0B' }]}>{onReviewCount}</Text>
+              <Text style={[styles.dashboardStatCompactLabel, { color: theme.colors.textSecondary }]}>На проверке</Text>
+            </View>
+            <View style={styles.dashboardStatCompact}>
+              <Text style={[styles.dashboardStatCompactValue, { color: '#16A34A' }]}>{gradedCount}</Text>
+              <Text style={[styles.dashboardStatCompactLabel, { color: theme.colors.textSecondary }]}>Проверено</Text>
+            </View>
+            {overdueCount > 0 && (
+              <View style={styles.dashboardStatCompact}>
+                <Text style={[styles.dashboardStatCompactValue, { color: '#EF4444' }]}>{overdueCount}</Text>
+                <Text style={[styles.dashboardStatCompactLabel, { color: theme.colors.textSecondary }]}>Просрочено</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
@@ -249,7 +342,7 @@ export default function HomeScreen() {
 
         {/* ── Hero section based on layout ── */}
         {homeLayout === 'achievement' && renderAchievementHero()}
-        {/* 'minimal' & 'mascot' render nothing here (mascot is in header) */}
+        {homeLayout === 'dashboard' && renderDashboardHero()}
 
         {/* ── Progress summary (all layouts, toggled via dev mode) ── */}
         {appVersion >= 1 && devShowProgressSummary && (
@@ -495,6 +588,86 @@ const styles = StyleSheet.create({
   achievementCardDesc: {
     fontSize: 13,
     lineHeight: 18,
+  },
+  // ── Dashboard (layout variant) ──
+  dashboardCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 12,
+  },
+  dashboardCompactRow: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'flex-start',
+  },
+  dashboardGradesSection: {
+    flex: 1,
+    minWidth: 0,
+    gap: 5,
+  },
+  dashboardGradesTitle: {
+    fontSize: 10,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 2,
+  },
+  chartRowCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    overflow: 'hidden',
+  },
+  chartSubjectCompact: {
+    width: 70,
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  chartBarTrackCompact: {
+    flex: 1,
+    height: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  chartBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  chartValueCompact: {
+    width: 28,
+    fontSize: 11,
+    fontWeight: '700',
+    textAlign: 'right',
+  },
+  chartEmptyText: {
+    fontSize: 12,
+    fontStyle: 'italic',
+  },
+  dashboardStatsDivider: {
+    width: 1,
+    alignSelf: 'stretch',
+  },
+  dashboardStatsColumn: {
+    gap: 6,
+    width: 110,
+    flexShrink: 0,
+    justifyContent: 'center',
+  },
+  dashboardStatCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dashboardStatCompactValue: {
+    fontSize: 17,
+    fontWeight: '800',
+    width: 22,
+    textAlign: 'right',
+  },
+  dashboardStatCompactLabel: {
+    fontSize: 11,
+    fontWeight: '500',
   },
   // ── Notification dropdown ──
   modalBackdrop: {
