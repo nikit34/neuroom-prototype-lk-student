@@ -15,7 +15,7 @@ import { useOnboardingStore } from '@/src/stores/onboardingStore';
 import { useArenaStore } from '@/src/stores/arenaStore';
 import { useNotificationStore } from '@/src/stores/notificationStore';
 import { useChatStore, AI_TUTOR_ID } from '@/src/stores/chatStore';
-import { useHomeworkStore } from '@/src/stores/homeworkStore';
+import { useHomeworkStore, HomeLayout } from '@/src/stores/homeworkStore';
 import { useAppealStore } from '@/src/stores/appealStore';
 import { getMascotState, getMascotStateLabel } from '@/src/utils/gradeHelpers';
 import { useAppVersionStore, AppVersion } from '@/src/config/appVersion';
@@ -546,9 +546,14 @@ function NotificationPresets() {
         // 2 дуэли
         makeNotif('dev-n4', 'duel_challenge', 'Вызов на дуэль!', 'Артём Федоров — История', '⚔️', '/arena/duel/arena-duel-6', 8),
         makeNotif('dev-n5', 'duel_challenge', 'Вызов на дуэль!', 'Мария Иванова — Математика', '⚔️', '/arena/duel/arena-duel-1', 15),
-        // 2 оценки
+        // 4 оценки
         makeNotif('dev-n6', 'homework_graded', 'Работа оценена', 'Физика — Законы Ньютона: 4/5', '📝', '/homework/hw-3', 20),
         makeNotif('dev-n7', 'homework_graded', 'Работа оценена', 'Математика — Квадратные уравнения: 5/5', '📝', '/homework/hw-1', 35),
+        makeNotif('dev-n8', 'homework_graded', 'Работа оценена', 'Русский язык — Сочинение: 4/5', '📝', '/homework/hw-2', 50),
+        makeNotif('dev-n9', 'homework_new', 'Новое задание', 'Биология — Клеточное деление', '📚', '/homework/hw-4', 60),
+        // 2 ачивки
+        makeNotif('dev-n10', 'achievement', 'Новая ачивка!', 'Ты разблокировал "Первый шаг"', '🏆', '/arena', 25),
+        makeNotif('dev-n11', 'achievement', 'Прогресс ачивки', 'Ранняя пташка — 80% выполнено', '🏅', '/arena', 40),
       ]);
       setChatMessages({
         'teacher-1': [
@@ -624,6 +629,60 @@ function SendTestPushButton() {
   );
 }
 
+function HomeLayoutSwitch() {
+  const theme = useAppTheme();
+  const homeLayout = useHomeworkStore((s) => s.homeLayout);
+  const setHomeLayout = useHomeworkStore((s) => s.setHomeLayout);
+
+  const options: { key: HomeLayout; label: string; desc: string }[] = [
+    { key: 'mascot', label: '🐾', desc: 'Персонаж' },
+    { key: 'achievement', label: '🏆', desc: 'Ачивка' },
+    { key: 'minimal', label: '📋', desc: 'Только ДЗ' },
+  ];
+
+  return (
+    <View style={styles.ageGroupSection}>
+      <View style={styles.ageGroupRow}>
+        {options.map((opt) => {
+          const isActive = homeLayout === opt.key;
+          return (
+            <TouchableOpacity
+              key={opt.key}
+              style={[
+                styles.versionBtn,
+                {
+                  backgroundColor: isActive
+                    ? theme.colors.primary + '20'
+                    : theme.colors.background,
+                  borderColor: isActive
+                    ? theme.colors.primary
+                    : theme.colors.border,
+                  borderWidth: isActive ? 2 : 1,
+                },
+              ]}
+              onPress={() => setHomeLayout(opt.key)}
+              activeOpacity={0.7}
+            >
+              <Text style={{ fontSize: 18 }}>{opt.label}</Text>
+              <Text
+                style={{
+                  fontSize: 10,
+                  color: isActive ? theme.colors.primary : theme.colors.textSecondary,
+                  fontWeight: isActive ? '700' : '500',
+                  marginTop: 2,
+                }}
+                numberOfLines={1}
+              >
+                {opt.desc}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 function ScreenGroup({ title, emoji, children }: { title: string; emoji: string; children: React.ReactNode }) {
   const theme = useAppTheme();
   return (
@@ -666,6 +725,11 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
       {appVersion >= 1 && (
         <ScreenGroup title="Главная" emoji="🏠">
           <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
+            МАКЕТ ГЛАВНОЙ
+          </Text>
+          <HomeLayoutSwitch />
+
+          <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
             ЗДОРОВЬЕ МАСКОТА
           </Text>
           <HealthSlider />

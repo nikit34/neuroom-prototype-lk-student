@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,9 +8,11 @@ import { useStudentStore } from '@/src/stores/studentStore';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { useNotificationStore } from '@/src/stores/notificationStore';
 import { useAppVersionStore } from '@/src/config/appVersion';
+import { useAchievementStore } from '@/src/stores/achievementStore';
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
 import HomeworkCard from '@/src/components/homework/HomeworkCard';
 import Mascot from '@/src/components/mascot/Mascot';
+import MascotHealthBar from '@/src/components/mascot/MascotHealthBar';
 import { useChatStore } from '@/src/stores/chatStore';
 import { useAgeStyles } from '@/src/hooks/useAgeStyles';
 
@@ -29,12 +31,15 @@ export default function HomeScreen() {
   const assignments = useHomeworkStore((s) => s.assignments);
   const devHideHomework = useHomeworkStore((s) => s.devHideHomework);
   const devShowProgressSummary = useHomeworkStore((s) => s.devShowProgressSummary);
+  const homeLayout = useHomeworkStore((s) => s.homeLayout);
   const appVersion = useAppVersionStore((s) => s.appVersion);
   const age = useAgeStyles();
 
   const notifications = useNotificationStore((s) => s.notifications);
   const markAsRead = useNotificationStore((s) => s.markAsRead);
   const teacherChatEnabled = useChatStore((s) => s.teacherChatEnabled);
+
+  const achievements = useAchievementStore((s) => s.achievements);
 
   const recentNotifications = useMemo(() => {
     const PRIORITY: Record<string, number> = {
@@ -108,6 +113,106 @@ export default function HomeScreen() {
     return 'Продолжай в том же духе! Регулярное выполнение заданий — залог отличных результатов. Не откладывай на последний момент.';
   }, [assignments]);
 
+  // Find nearest locked achievement with progress > 0
+  const nearestAchievement = useMemo(() => {
+    const inProgress = achievements
+      .filter((a) => a.isLocked && a.progress > 0)
+      .sort((a, b) => b.progress - a.progress);
+    return inProgress[0] ?? null;
+  }, [achievements]);
+
+  const { width: screenWidth } = useWindowDimensions();
+  const mascotSize = Math.round(screenWidth * 0.3125);
+
+  // ── Layout-specific hero sections ──
+
+  const renderMascotHeader = () => (
+    <View style={styles.mascotHeaderRow}>
+      {/* Left: greeting + inline notifications */}
+      <View style={styles.mascotHeaderLeft}>
+        <Text style={[styles.greeting, { color: theme.colors.text, fontSize: age.greetingSize }]}>
+          {getGreeting()}, {student.firstName}! 👋
+        </Text>
+        {appVersion >= 1 && recentNotifications.length > 0 && (
+          <View style={styles.inlineNotifList}>
+            {recentNotifications.slice(0, 3).map((notif) => (
+              <TouchableOpacity
+                key={notif.id}
+                style={[
+                  styles.inlineNotifItem,
+                  { backgroundColor: notif.isRead ? theme.colors.surface : theme.colors.primary + '10', borderColor: theme.colors.border },
+                ]}
+                onPress={() => {
+                  markAsRead(notif.id);
+                  if (notif.route) router.push(notif.route as any);
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.inlineNotifIcon}>{notif.icon}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[styles.inlineNotifTitle, { color: theme.colors.text, fontWeight: notif.isRead ? '400' : '700' }]}
+                    numberOfLines={1}
+                  >
+                    {notif.title}
+                  </Text>
+                  <Text style={[styles.inlineNotifMsg, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+                    {notif.message}
+                  </Text>
+                </View>
+                {!notif.isRead && (
+                  <View style={[styles.notifDot, { backgroundColor: theme.colors.primary }]} />
+                )}
+              </TouchableOpacity>
+            ))}
+            {recentNotifications.length > 3 && (
+              <Text style={[styles.inlineNotifMore, { color: theme.colors.textSecondary }]}>
+                +{recentNotifications.length - 3} ещё
+              </Text>
+            )}
+          </View>
+        )}
+      </View>
+      {/* Right: mascot + health bar */}
+      <View style={[styles.mascotHeaderRight, { width: mascotSize + 16 }]}>
+        <Mascot health={student.mascotHealth} size={mascotSize} showHealthBar={false} compact />
+        <View style={styles.mascotMiniHealthWrap}>
+          <MascotHealthBar health={student.mascotHealth} />
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderAchievementHero = () => {
+    if (!nearestAchievement) return null;
+    return (
+      <View style={[styles.achievementCard, { backgroundColor: theme.colors.primary + '15', borderColor: theme.colors.primary + '40' }]}>
+        <View style={styles.achievementCardTop}>
+          <Text style={styles.achievementCardIcon}>{nearestAchievement.icon}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.achievementCardLabel, { color: theme.colors.textSecondary }]}>
+              Ближайшая ачивка
+            </Text>
+            <Text style={[styles.achievementCardTitle, { color: theme.colors.text }]} numberOfLines={1}>
+              {nearestAchievement.title}
+            </Text>
+          </View>
+          <Text style={[styles.achievementCardPercent, { color: theme.colors.primary }]}>
+            {Math.round(nearestAchievement.progress)}%
+          </Text>
+        </View>
+        <View style={[styles.achievementCardTrack, { backgroundColor: theme.colors.border }]}>
+          <View style={[styles.achievementCardFill, { width: `${nearestAchievement.progress}%`, backgroundColor: theme.colors.primary }]} />
+        </View>
+        <Text style={[styles.achievementCardDesc, { color: theme.colors.textSecondary }]} numberOfLines={2}>
+          {nearestAchievement.description}
+        </Text>
+      </View>
+    );
+  };
+
+  // minimal layout has no hero section at all — just homework
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
       <ThemeBackground />
@@ -117,48 +222,36 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         nestedScrollEnabled
       >
-        {/* ── Header: greeting + bell ── */}
-        <View style={styles.headerRow}>
-          <Text style={[styles.greeting, { color: theme.colors.text, fontSize: age.greetingSize }]}>
-            {getGreeting()}, {student.firstName}! 👋
-          </Text>
-          {appVersion >= 1 && (
-            <TouchableOpacity
-              style={styles.bellBtn}
-              onPress={() => setBellOpen(true)}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="notifications-outline" size={26} color={theme.colors.text} />
-              {filteredUnreadCount > 0 && (
-                <View style={[styles.bellBadge, { backgroundColor: theme.colors.primary }]}>
-                  <Text style={styles.bellBadgeText}>{filteredUnreadCount}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* ── Progress bar ── */}
-        <View style={styles.progressContainer}>
-          <View style={styles.progressLabelRow}>
-            <Text style={[styles.progressLabel, { color: theme.colors.text, fontSize: age.progressLabelSize }]}>
-              {age.isJunior ? '⭐ Твой прогресс' : 'Твой прогресс'}
+        {/* ── Header: mascot layout has its own combined header ── */}
+        {homeLayout === 'mascot' ? (
+          renderMascotHeader()
+        ) : (
+          <View style={styles.headerRow}>
+            <Text style={[styles.greeting, { color: theme.colors.text, fontSize: age.greetingSize }]}>
+              {getGreeting()}, {student.firstName}! 👋
             </Text>
-            <Text style={[styles.progressValue, { color: theme.colors.primary, fontSize: age.progressLabelSize }]}>
-              {doneCount}/{totalCount}
-            </Text>
+            {appVersion >= 1 && (
+              <TouchableOpacity
+                style={styles.bellBtn}
+                onPress={() => setBellOpen(true)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="notifications-outline" size={26} color={theme.colors.text} />
+                {filteredUnreadCount > 0 && (
+                  <View style={[styles.bellBadge, { backgroundColor: theme.colors.primary }]}>
+                    <Text style={styles.bellBadgeText}>{filteredUnreadCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            )}
           </View>
-          <View style={[styles.progressTrack, { backgroundColor: theme.colors.border, height: age.progressTrackHeight, borderRadius: age.progressTrackHeight / 2 }]}>
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${progressPercent}%`, backgroundColor: theme.colors.primary, borderRadius: age.progressTrackHeight / 2 },
-              ]}
-            />
-          </View>
-        </View>
+        )}
 
-        {/* ── Progress summary (V1+) ── */}
+        {/* ── Hero section based on layout ── */}
+        {homeLayout === 'achievement' && renderAchievementHero()}
+        {/* 'minimal' & 'mascot' render nothing here (mascot is in header) */}
+
+        {/* ── Progress summary (all layouts, toggled via dev mode) ── */}
         {appVersion >= 1 && devShowProgressSummary && (
           <View style={[styles.summaryContainer, { backgroundColor: theme.colors.primary + '10', borderColor: theme.colors.primary + '30', borderRadius: age.cardBorderRadius }]}>
             <Ionicons name="bulb-outline" size={age.isJunior ? 22 : 18} color={theme.colors.primary} style={styles.summaryIcon} />
@@ -195,8 +288,8 @@ export default function HomeScreen() {
         )}
       </ScrollView>
 
-      {/* ── Notifications dropdown (modal) ── */}
-      {appVersion >= 1 && bellOpen && (
+      {/* ── Notifications dropdown (modal) — not used in mascot layout ── */}
+      {appVersion >= 1 && homeLayout !== 'mascot' && bellOpen && (
         <Modal visible transparent animationType="fade" onRequestClose={() => setBellOpen(false)}>
           <TouchableOpacity
             style={styles.modalBackdrop}
@@ -311,6 +404,98 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
   },
+  // ── Mascot header (layout variant) ──
+  mascotHeaderRow: {
+    flexDirection: 'row',
+    marginTop: 8,
+    marginBottom: 12,
+    gap: 12,
+  },
+  mascotHeaderLeft: {
+    flex: 1,
+  },
+  mascotHeaderRight: {
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  mascotMiniHealthWrap: {
+    width: '100%',
+    marginTop: 4,
+  },
+  // ── Inline notifications (mascot layout) ──
+  inlineNotifList: {
+    marginTop: 10,
+    gap: 6,
+  },
+  inlineNotifItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    gap: 8,
+  },
+  inlineNotifIcon: {
+    fontSize: 16,
+  },
+  inlineNotifTitle: {
+    fontSize: 13,
+  },
+  inlineNotifMsg: {
+    fontSize: 11,
+    marginTop: 1,
+  },
+  inlineNotifMore: {
+    fontSize: 12,
+    textAlign: 'center',
+    paddingVertical: 4,
+  },
+  // ── Achievement card (achievement layout) ──
+  achievementCard: {
+    borderRadius: 16,
+    borderWidth: 1.5,
+    padding: 16,
+    marginBottom: 12,
+  },
+  achievementCardTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  achievementCardIcon: {
+    fontSize: 32,
+  },
+  achievementCardLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  achievementCardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  achievementCardPercent: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  achievementCardTrack: {
+    height: 10,
+    borderRadius: 5,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  achievementCardFill: {
+    height: '100%',
+    borderRadius: 5,
+  },
+  achievementCardDesc: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
   // ── Notification dropdown ──
   modalBackdrop: {
     flex: 1,
@@ -387,32 +572,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     lineHeight: 19,
-  },
-  progressContainer: {
-    marginBottom: 8,
-  },
-  progressLabelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  progressLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  progressValue: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  progressTrack: {
-    height: 8,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 4,
   },
   sectionTitle: {
     fontSize: 20,
