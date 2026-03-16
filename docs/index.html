@@ -503,6 +503,65 @@
   .thank-you p { color: var(--text2); font-size: 16px; }
 
   #survey-form.hidden { display: none; }
+
+  /* ── Mobile ── */
+  @media (max-width: 480px) {
+    .hero { padding: 32px 16px 24px; }
+    .hero h1 { font-size: 24px; }
+    .hero p { font-size: 14px; }
+
+    .container { padding: 16px 10px 60px; }
+
+    .section { padding: 16px 14px; margin-bottom: 14px; }
+    .section h2 { font-size: 16px; }
+    .section .hint { font-size: 13px; margin-bottom: 14px; }
+
+    .phone-mock { padding: 12px; min-height: 220px; }
+    .mock-greeting { font-size: 13px; margin-bottom: 8px; }
+    .mock-hw-card { padding: 8px 10px; }
+
+    .mock-mascot-avatar { width: 56px; height: 56px; font-size: 28px; }
+    .mock-mascot-right { width: 64px; }
+
+    .mock-achieve-icon { font-size: 24px; }
+    .mock-achieve-title { font-size: 13px; }
+    .mock-achieve-pct { font-size: 14px; }
+
+    .option-label {
+      padding: 11px 12px;
+      font-size: 14px;
+      gap: 8px;
+      min-height: 44px;
+    }
+    .option-label:hover {
+      border-color: var(--border);
+      background: var(--bg);
+    }
+    .option-label:active {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    textarea { font-size: 14px; padding: 10px 12px; min-height: 70px; }
+
+    .range-wrap {
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+    .range-wrap input[type="range"] {
+      flex: 1 1 100%;
+      order: 1;
+    }
+    .range-wrap > span:first-child { order: 2; font-size: 11px; }
+    .range-wrap > span:nth-child(3) { order: 3; font-size: 11px; margin-left: auto; }
+    .range-val { order: 0; width: 100%; text-align: center; font-size: 28px; }
+
+    .submit-btn { padding: 14px; font-size: 16px; }
+    .thank-you { padding: 40px 16px; }
+    .thank-you .emoji { font-size: 48px; }
+    .thank-you h2 { font-size: 20px; }
+  }
 </style>
 </head>
 <body>
