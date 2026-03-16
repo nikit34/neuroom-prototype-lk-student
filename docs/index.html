@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neuroom - Какой главный экран тебе нравится?</title>
+<style>
+  :root {
+    --primary: #6366F1;
+    --primary-light: #EEF2FF;
+    --green: #16A34A;
+    --orange: #F59E0B;
+    --red: #EF4444;
+    --blue: #3B82F6;
+    --purple: #8B5CF6;
+    --text: #1E293B;
+    --text2: #64748B;
+    --bg: #F8FAFC;
+    --surface: #FFFFFF;
+    --border: #E2E8F0;
+    --radius: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  .hero {
+    background: linear-gradient(135deg, var(--primary), #818CF8);
+    color: white;
+    padding: 48px 20px 36px;
+    text-align: center;
+  }
+  .hero h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+  .hero p {
+    font-size: 16px;
+    opacity: 0.9;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 24px 16px 80px;
+  }
+
+  /* ── Survey sections ── */
+  .section {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .section-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .section h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .section .hint {
+    font-size: 14px;
+    color: var(--text2);
+    margin-bottom: 20px;
+  }
+
+  /* ── Phone mockups ── */
+  .variants-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+  @media (max-width: 600px) {
+    .variants-grid { grid-template-columns: 1fr; }
+  }
+
+  .variant-card {
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .variant-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
+  }
+  .variant-card.selected {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  }
+  .variant-card.selected::after {
+    content: '\2713';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 26px;
+    height: 26px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    z-index: 2;
+  }
+
+  .variant-label {
+    background: var(--primary-light);
+    padding: 10px 14px;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--primary);
+    letter-spacing: 0.3px;
+  }
+
+  .phone-mock {
+    padding: 16px;
+    background: #FAFBFC;
+    min-height: 260px;
+  }
+
+  /* Shared mock elements */
+  .mock-greeting {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .mock-hw-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-top: 10px;
+    font-size: 12px;
+  }
+  .mock-hw-card .subj {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+  .mock-hw-card .title {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .mock-hw-card .meta {
+    color: var(--text2);
+    font-size: 11px;
+  }
+
+  /* Variant A — Mascot */
+  .mock-mascot-row {
+    display: flex;
+    gap: 10px;
+  }
+  .mock-mascot-left { flex: 1; }
+  .mock-mascot-right {
+    width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .mock-mascot-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #C4B5FD, #818CF8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+  }
+  .mock-health-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+  .mock-health-fill {
+    height: 100%;
+    width: 72%;
+    background: var(--green);
+    border-radius: 3px;
+  }
+  .mock-notif {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 11px;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .mock-notif-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--primary);
+    flex-shrink: 0;
+  }
+
+  /* Variant B — Achievement */
+  .mock-achieve-card {
+    background: rgba(99, 102, 241, 0.08);
+    border: 1.5px solid rgba(99, 102, 241, 0.25);
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 10px;
+  }
+  .mock-achieve-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .mock-achieve-icon { font-size: 28px; }
+  .mock-achieve-info { flex: 1; }
+  .mock-achieve-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text2);
+    letter-spacing: 0.3px;
+  }
+  .mock-achieve-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .mock-achieve-pct {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--primary);
+  }
+  .mock-achieve-track {
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .mock-achieve-fill {
+    height: 100%;
+    width: 65%;
+    background: var(--primary);
+    border-radius: 4px;
+  }
+  .mock-achieve-desc {
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  /* Variant C — Dashboard */
+  .mock-dashboard {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+  }
+  .mock-dash-left { flex: 1; min-width: 0; }
+  .mock-dash-divider {
+    width: 1px;
+    background: var(--border);
+    align-self: stretch;
+  }
+  .mock-dash-right {
+    width: 95px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    justify-content: center;
+  }
+  .mock-dash-title {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text2);
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+  }
+  .mock-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 4px;
+  }
+  .mock-bar-subj {
+    width: 52px;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mock-bar-track {
+    flex: 1;
+    height: 5px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .mock-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+  }
+  .mock-bar-val {
+    width: 22px;
+    font-size: 10px;
+    font-weight: 700;
+    text-align: right;
+  }
+  .mock-stat-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .mock-stat-val {
+    font-size: 15px;
+    font-weight: 800;
+    width: 20px;
+    text-align: right;
+  }
+  .mock-stat-label {
+    font-size: 10px;
+    color: var(--text2);
+  }
+
+  /* Variant D — Minimal */
+  .mock-minimal-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 14px;
+    margin-bottom: 8px;
+  }
+
+  /* ── Options (radio / checkbox) ── */
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 15px;
+  }
+  .option-label:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+  }
+  .option-label input { display: none; }
+  .option-label .mark {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .option-label .mark.square { border-radius: 6px; }
+  .option-label input:checked ~ .mark {
+    border-color: var(--primary);
+    background: var(--primary);
+  }
+  .option-label input:checked ~ .mark::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+  }
+  .option-label input:checked ~ .mark.square::after {
+    content: '\2713';
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    background: none;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+  }
+  .option-label input:checked ~ .text { font-weight: 600; }
+
+  /* ── Textarea ── */
+  textarea {
+    width: 100%;
+    min-height: 80px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: inherit;
+    resize: vertical;
+    background: var(--bg);
+    transition: border-color 0.15s;
+  }
+  textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  /* ── Range slider ── */
+  .range-wrap {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 0;
+  }
+  .range-wrap input[type="range"] {
+    flex: 1;
+    accent-color: var(--primary);
+    height: 6px;
+  }
+  .range-val {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--primary);
+    width: 36px;
+    text-align: center;
+  }
+  .range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: -4px;
+  }
+
+  /* ── Submit ── */
+  .submit-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .submit-btn:hover { opacity: 0.9; }
+  .submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* ── Thank you ── */
+  .thank-you {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .thank-you.visible { display: block; }
+  .thank-you .emoji { font-size: 64px; margin-bottom: 16px; }
+  .thank-you h2 { font-size: 24px; margin-bottom: 8px; }
+  .thank-you p { color: var(--text2); font-size: 16px; }
+
+  #survey-form.hidden { display: none; }
+</style>
+</head>
+<body>
+  <div class="hero">
+    <h1>Neuroom</h1>
+    <p>Помоги нам сделать приложение лучше! Ответь на несколько вопросов — это займёт пару минут.</p>
+  </div>
+
+  <div class="container">
+    <form id="survey-form">
+
+      <!-- Q1: Choose variant -->
+      <div class="section">
+        <div class="section-num">1</div>
+        <h2>Какой главный экран тебе больше нравится?</h2>
+        <p class="hint">Нажми на тот вариант, который хочется видеть при открытии приложения</p>
+
+        <div class="variants-grid">
+          <!-- A: Mascot -->
+          <div class="variant-card" data-variant="mascot" onclick="selectVariant(this)">
+            <div class="variant-label">A — Питомец</div>
+            <div class="phone-mock">
+              <div class="mock-mascot-row">
+                <div class="mock-mascot-left">
+                  <div class="mock-greeting">Добрый день, Аня! 👋</div>
+                  <div class="mock-notif">
+                    <span>📝</span>
+                    <span style="flex:1">Новое задание по алгебре</span>
+                    <span class="mock-notif-dot"></span>
+                  </div>
+                  <div class="mock-notif">
+                    <span>✅</span>
+                    <span style="flex:1">Сочинение проверено: 4/5</span>
+                  </div>
+                </div>
+                <div class="mock-mascot-right">
+                  <div class="mock-mascot-avatar">🐱</div>
+                  <div class="mock-health-bar"><div class="mock-health-fill"></div></div>
+                </div>
+              </div>
+              <div class="mock-hw-card">
+                <div class="subj">Алгебра</div>
+                <div class="title">Квадратные уравнения</div>
+                <div class="meta">Срок: завтра, 23:59</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- B: Achievement -->
+          <div class="variant-card" data-variant="achievement" onclick="selectVariant(this)">
+            <div class="variant-label">Б — Ачивки</div>
+            <div class="phone-mock">
+              <div class="mock-greeting">Добрый день, Аня! 👋</div>
+              <div class="mock-achieve-card">
+                <div class="mock-achieve-top">
+                  <span class="mock-achieve-icon">🔥</span>
+                  <div class="mock-achieve-info">
+                    <div class="mock-achieve-label">Ближайшая ачивка</div>
+                    <div class="mock-achieve-title">Ранняя пташка</div>
+                  </div>
+                  <span class="mock-achieve-pct">65%</span>
+                </div>
+                <div class="mock-achieve-track"><div class="mock-achieve-fill"></div></div>
+                <div class="mock-achieve-desc">Сдай 10 заданий досрочно</div>
+              </div>
+              <div class="mock-hw-card">
+                <div class="subj">Алгебра</div>
+                <div class="title">Квадратные уравнения</div>
+                <div class="meta">Срок: завтра, 23:59</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- C: Dashboard -->
+          <div class="variant-card" data-variant="dashboard" onclick="selectVariant(this)">
+            <div class="variant-label">В — Статистика</div>
+            <div class="phone-mock">
+              <div class="mock-greeting">Добрый день, Аня! 👋</div>
+              <div class="mock-dashboard">
+                <div class="mock-dash-left">
+                  <div class="mock-dash-title">Средняя оценка за четверть</div>
+                  <div class="mock-bar-row">
+                    <span class="mock-bar-subj">Алгебра</span>
+                    <div class="mock-bar-track"><div class="mock-bar-fill" style="width:90%;background:var(--green)"></div></div>
+                    <span class="mock-bar-val" style="color:var(--green)">4.5</span>
+                  </div>
+                  <div class="mock-bar-row">
+                    <span class="mock-bar-subj">Русский</span>
+                    <div class="mock-bar-track"><div class="mock-bar-fill" style="width:76%;background:var(--orange)"></div></div>
+                    <span class="mock-bar-val" style="color:var(--orange)">3.8</span>
+                  </div>
+                  <div class="mock-bar-row">
+                    <span class="mock-bar-subj">Физика</span>
+                    <div class="mock-bar-track"><div class="mock-bar-fill" style="width:84%;background:var(--green)"></div></div>
+                    <span class="mock-bar-val" style="color:var(--green)">4.2</span>
+                  </div>
+                </div>
+                <div class="mock-dash-divider"></div>
+                <div class="mock-dash-right">
+                  <div class="mock-stat-row"><span class="mock-stat-val" style="color:var(--blue)">5</span><span class="mock-stat-label">Активных</span></div>
+                  <div class="mock-stat-row"><span class="mock-stat-val" style="color:var(--orange)">2</span><span class="mock-stat-label">На проверке</span></div>
+                  <div class="mock-stat-row"><span class="mock-stat-val" style="color:var(--green)">8</span><span class="mock-stat-label">Проверено</span></div>
+                  <div class="mock-stat-row"><span class="mock-stat-val" style="color:var(--red)">1</span><span class="mock-stat-label">Просрочено</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- D: Minimal -->
+          <div class="variant-card" data-variant="minimal" onclick="selectVariant(this)">
+            <div class="variant-label">Г — Только задания</div>
+            <div class="phone-mock">
+              <div class="mock-greeting">Добрый день, Аня! 👋</div>
+              <div class="mock-minimal-section-title">Активные задания</div>
+              <div class="mock-hw-card" style="margin-top:0">
+                <div class="subj">Алгебра</div>
+                <div class="title">Квадратные уравнения</div>
+                <div class="meta">Срок: завтра, 23:59</div>
+              </div>
+              <div class="mock-hw-card">
+                <div class="subj">Русский язык</div>
+                <div class="title">Сочинение-рассуждение</div>
+                <div class="meta">Срок: пт, 23:59</div>
+              </div>
+              <div class="mock-hw-card">
+                <div class="subj">Физика</div>
+                <div class="title">Закон Ома — задачи</div>
+                <div class="meta">Срок: пн, 23:59</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <input type="hidden" name="variant" id="variant-input" required>
+      </div>
+
+      <!-- Q2: Why -->
+      <div class="section">
+        <div class="section-num">2</div>
+        <h2>Почему ты выбрал(а) именно этот вариант?</h2>
+        <p class="hint">Напиши в свободной форме, что именно понравилось</p>
+        <textarea name="variant_reason" placeholder="Например: нравится видеть оценки сразу / прикольный питомец / не отвлекает ничего лишнего..."></textarea>
+      </div>
+
+      <!-- Q3: What info is important -->
+      <div class="section">
+        <div class="section-num">3</div>
+        <h2>Какую информацию ты хочешь видеть первой, открывая приложение?</h2>
+        <p class="hint">Можно выбрать несколько вариантов</p>
+        <div class="options">
+          <label class="option-label"><input type="checkbox" name="first_info" value="deadlines"><span class="mark square"></span><span class="text">Ближайшие дедлайны по заданиям</span></label>
+          <label class="option-label"><input type="checkbox" name="first_info" value="grades"><span class="mark square"></span><span class="text">Мои оценки и средний балл</span></label>
+          <label class="option-label"><input type="checkbox" name="first_info" value="overdue"><span class="mark square"></span><span class="text">Просроченные задания (долги)</span></label>
+          <label class="option-label"><input type="checkbox" name="first_info" value="review_status"><span class="mark square"></span><span class="text">Статус проверки моих работ</span></label>
+          <label class="option-label"><input type="checkbox" name="first_info" value="achievements"><span class="mark square"></span><span class="text">Ачивки и прогресс</span></label>
+          <label class="option-label"><input type="checkbox" name="first_info" value="mascot"><span class="mark square"></span><span class="text">Питомец и его состояние</span></label>
+          <label class="option-label"><input type="checkbox" name="first_info" value="notifications"><span class="mark square"></span><span class="text">Уведомления от учителя</span></label>
+        </div>
+      </div>
+
+      <!-- Q4: Motivation -->
+      <div class="section">
+        <div class="section-num">4</div>
+        <h2>Что больше всего мотивирует тебя делать задания вовремя?</h2>
+        <p class="hint">Выбери один вариант</p>
+        <div class="options">
+          <label class="option-label"><input type="radio" name="motivation" value="grades"><span class="mark"></span><span class="text">Хорошие оценки и средний балл</span></label>
+          <label class="option-label"><input type="radio" name="motivation" value="achievements"><span class="mark"></span><span class="text">Получение ачивок и наград</span></label>
+          <label class="option-label"><input type="radio" name="motivation" value="mascot"><span class="mark"></span><span class="text">Забота о питомце (он грустит, если не делать ДЗ)</span></label>
+          <label class="option-label"><input type="radio" name="motivation" value="no_debts"><span class="mark"></span><span class="text">Не хочу накапливать долги</span></label>
+          <label class="option-label"><input type="radio" name="motivation" value="competition"><span class="mark"></span><span class="text">Соревнование с одноклассниками (рейтинг)</span></label>
+          <label class="option-label"><input type="radio" name="motivation" value="ai_help"><span class="mark"></span><span class="text">Возможность спросить AI-репетитора, если не понял тему</span></label>
+        </div>
+      </div>
+
+      <!-- Q5: How often check -->
+      <div class="section">
+        <div class="section-num">5</div>
+        <h2>Как часто ты бы открывал(а) приложение для учёбы?</h2>
+        <div class="options">
+          <label class="option-label"><input type="radio" name="frequency" value="multiple_daily"><span class="mark"></span><span class="text">Несколько раз в день</span></label>
+          <label class="option-label"><input type="radio" name="frequency" value="once_daily"><span class="mark"></span><span class="text">Раз в день</span></label>
+          <label class="option-label"><input type="radio" name="frequency" value="few_weekly"><span class="mark"></span><span class="text">Несколько раз в неделю</span></label>
+          <label class="option-label"><input type="radio" name="frequency" value="only_deadlines"><span class="mark"></span><span class="text">Только когда горит дедлайн</span></label>
+        </div>
+      </div>
+
+      <!-- Q6: AI tutor -->
+      <div class="section">
+        <div class="section-num">6</div>
+        <h2>Если бы в приложении был AI-репетитор, для чего бы ты его использовал(а)?</h2>
+        <p class="hint">Можно выбрать несколько</p>
+        <div class="options">
+          <label class="option-label"><input type="checkbox" name="ai_use" value="explain_topic"><span class="mark square"></span><span class="text">Объяснить тему, которую не понял на уроке</span></label>
+          <label class="option-label"><input type="checkbox" name="ai_use" value="check_solution"><span class="mark square"></span><span class="text">Проверить моё решение перед сдачей</span></label>
+          <label class="option-label"><input type="checkbox" name="ai_use" value="hint"><span class="mark square"></span><span class="text">Получить подсказку, когда застрял</span></label>
+          <label class="option-label"><input type="checkbox" name="ai_use" value="exam_prep"><span class="mark square"></span><span class="text">Подготовиться к контрольной</span></label>
+          <label class="option-label"><input type="checkbox" name="ai_use" value="not_interested"><span class="mark square"></span><span class="text">Не стал бы использовать</span></label>
+        </div>
+      </div>
+
+      <!-- Q7: What's missing -->
+      <div class="section">
+        <div class="section-num">7</div>
+        <h2>Чего не хватает? Что бы ты добавил(а) в приложение?</h2>
+        <p class="hint">Любые мысли, пожелания, идеи — всё полезно!</p>
+        <textarea name="missing" placeholder="Например: хочу тёмную тему / уведомления в телеграм / чат с одноклассниками..."></textarea>
+      </div>
+
+      <!-- Q8: Importance of gamification -->
+      <div class="section">
+        <div class="section-num">8</div>
+        <h2>Насколько для тебя важны игровые элементы (ачивки, питомец, рейтинг)?</h2>
+        <div class="range-wrap">
+          <span style="font-size:13px;color:var(--text2)">Не важно</span>
+          <input type="range" name="gamification_importance" min="1" max="10" value="5" oninput="this.parentNode.querySelector('.range-val').textContent=this.value">
+          <span style="font-size:13px;color:var(--text2)">Очень важно</span>
+          <span class="range-val">5</span>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn">Отправить ответы</button>
+    </form>
+
+    <div class="thank-you" id="thank-you">
+      <div class="emoji">🎉</div>
+      <h2>Спасибо за ответы!</h2>
+      <p>Твоё мнение очень поможет сделать Neuroom лучше</p>
+    </div>
+  </div>
+
+<script>
+  // Variant selection
+  function selectVariant(card) {
+    document.querySelectorAll('.variant-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    document.getElementById('variant-input').value = card.dataset.variant;
+  }
+
+  // Submit
+  document.getElementById('survey-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const fd = new FormData(this);
+    const data = {
+      variant: fd.get('variant'),
+      variant_reason: fd.get('variant_reason'),
+      first_info: fd.getAll('first_info'),
+      motivation: fd.get('motivation'),
+      frequency: fd.get('frequency'),
+      ai_use: fd.getAll('ai_use'),
+      missing: fd.get('missing'),
+      gamification_importance: fd.get('gamification_importance'),
+      timestamp: new Date().toISOString(),
+    };
+
+    if (!data.variant) {
+      alert('Выбери один из четырёх вариантов главного экрана');
+      return;
+    }
+
+    // Save to localStorage
+    const responses = JSON.parse(localStorage.getItem('neuroom_survey') || '[]');
+    responses.push(data);
+    localStorage.setItem('neuroom_survey', JSON.stringify(responses));
+
+    // Log for collection
+    console.log('Survey response:', JSON.stringify(data, null, 2));
+
+    this.classList.add('hidden');
+    document.getElementById('thank-you').classList.add('visible');
+  });
+</script>
+</body>
+</html>
