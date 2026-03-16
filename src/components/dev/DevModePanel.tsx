@@ -363,7 +363,7 @@ function AiTutorLimitReset() {
             {done ? '✅ Лимит сброшен' : '🔄 Сбросить лимит AI-репетитора'}
           </Text>
           <Text style={{ fontSize: 11, color: done ? '#10B981' : theme.colors.textSecondary, marginTop: 2 }}>
-            {unlocked ? 'Полный доступ активен' : `Использовано: ${questionsUsed}/10`}
+            {unlocked ? 'Полный доступ активен' : `Использовано: ${questionsUsed}/25`}
           </Text>
         </View>
       </TouchableOpacity>
