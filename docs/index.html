@@ -141,235 +141,24 @@
     letter-spacing: 0.3px;
   }
 
-  .phone-mock {
-    padding: 16px;
-    background: #FAFBFC;
-    min-height: 260px;
+  /* ── Phone frame with screenshot ── */
+  .phone-frame {
+    background: #000;
+    border-radius: 32px;
+    padding: 10px;
+    margin: 0 auto;
+    max-width: 220px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.18), inset 0 0 0 2px #333;
   }
-
-  /* Shared mock elements */
-  .mock-greeting {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 12px;
+  .phone-frame-inner {
+    border-radius: 24px;
+    overflow: hidden;
+    background: #fff;
   }
-  .mock-hw-card {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 12px;
-    margin-top: 10px;
-    font-size: 12px;
-  }
-  .mock-hw-card .subj {
-    font-weight: 700;
-    color: var(--primary);
-    font-size: 11px;
-    margin-bottom: 2px;
-  }
-  .mock-hw-card .title {
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 3px;
-  }
-  .mock-hw-card .meta {
-    color: var(--text2);
-    font-size: 11px;
-  }
-
-  /* Variant A — Mascot */
-  .mock-mascot-row {
-    display: flex;
-    gap: 10px;
-  }
-  .mock-mascot-left { flex: 1; }
-  .mock-mascot-right {
-    width: 80px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .mock-mascot-avatar {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #C4B5FD, #818CF8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 36px;
-  }
-  .mock-health-bar {
+  .phone-frame-inner img {
+    display: block;
     width: 100%;
-    height: 6px;
-    background: var(--border);
-    border-radius: 3px;
-    margin-top: 6px;
-    overflow: hidden;
-  }
-  .mock-health-fill {
-    height: 100%;
-    width: 72%;
-    background: var(--green);
-    border-radius: 3px;
-  }
-  .mock-notif {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 7px 10px;
-    font-size: 11px;
-    margin-top: 6px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .mock-notif-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 3px;
-    background: var(--primary);
-    flex-shrink: 0;
-  }
-
-  /* Variant B — Achievement */
-  .mock-achieve-card {
-    background: rgba(99, 102, 241, 0.08);
-    border: 1.5px solid rgba(99, 102, 241, 0.25);
-    border-radius: 12px;
-    padding: 12px;
-    margin-top: 10px;
-  }
-  .mock-achieve-top {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-  }
-  .mock-achieve-icon { font-size: 28px; }
-  .mock-achieve-info { flex: 1; }
-  .mock-achieve-label {
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--text2);
-    letter-spacing: 0.3px;
-  }
-  .mock-achieve-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text);
-  }
-  .mock-achieve-pct {
-    font-size: 16px;
-    font-weight: 800;
-    color: var(--primary);
-  }
-  .mock-achieve-track {
-    height: 8px;
-    background: var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 8px;
-  }
-  .mock-achieve-fill {
-    height: 100%;
-    width: 65%;
-    background: var(--primary);
-    border-radius: 4px;
-  }
-  .mock-achieve-desc {
-    font-size: 12px;
-    color: var(--text2);
-  }
-
-  /* Variant C — Dashboard */
-  .mock-dashboard {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px;
-    margin-top: 10px;
-    display: flex;
-    gap: 10px;
-  }
-  .mock-dash-left { flex: 1; min-width: 0; }
-  .mock-dash-divider {
-    width: 1px;
-    background: var(--border);
-    align-self: stretch;
-  }
-  .mock-dash-right {
-    width: 95px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    justify-content: center;
-  }
-  .mock-dash-title {
-    font-size: 9px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--text2);
-    letter-spacing: 0.3px;
-    margin-bottom: 4px;
-  }
-  .mock-bar-row {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin-bottom: 4px;
-  }
-  .mock-bar-subj {
-    width: 52px;
-    font-size: 10px;
-    font-weight: 500;
-    color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .mock-bar-track {
-    flex: 1;
-    height: 5px;
-    background: var(--border);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  .mock-bar-fill {
-    height: 100%;
-    border-radius: 3px;
-  }
-  .mock-bar-val {
-    width: 22px;
-    font-size: 10px;
-    font-weight: 700;
-    text-align: right;
-  }
-  .mock-stat-row {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .mock-stat-val {
-    font-size: 15px;
-    font-weight: 800;
-    width: 20px;
-    text-align: right;
-  }
-  .mock-stat-label {
-    font-size: 10px;
-    color: var(--text2);
-  }
-
-  /* Variant D — Minimal */
-  .mock-minimal-section-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text);
-    margin-top: 14px;
-    margin-bottom: 8px;
+    height: auto;
   }
 
   /* ── Options (radio / checkbox) ── */
@@ -516,16 +305,8 @@
     .section h2 { font-size: 16px; }
     .section .hint { font-size: 13px; margin-bottom: 14px; }
 
-    .phone-mock { padding: 12px; min-height: 220px; }
-    .mock-greeting { font-size: 13px; margin-bottom: 8px; }
-    .mock-hw-card { padding: 8px 10px; }
-
-    .mock-mascot-avatar { width: 56px; height: 56px; font-size: 28px; }
-    .mock-mascot-right { width: 64px; }
-
-    .mock-achieve-icon { font-size: 24px; }
-    .mock-achieve-title { font-size: 13px; }
-    .mock-achieve-pct { font-size: 14px; }
+    .phone-frame { max-width: 180px; border-radius: 26px; padding: 8px; }
+    .phone-frame-inner { border-radius: 20px; }
 
     .option-label {
       padding: 11px 12px;
@@ -583,29 +364,11 @@
           <!-- A: Mascot -->
           <div class="variant-card" data-variant="mascot" onclick="selectVariant(this)">
             <div class="variant-label">A — Питомец</div>
-            <div class="phone-mock">
-              <div class="mock-mascot-row">
-                <div class="mock-mascot-left">
-                  <div class="mock-greeting">Добрый день, Аня! 👋</div>
-                  <div class="mock-notif">
-                    <span>📝</span>
-                    <span style="flex:1">Новое задание по алгебре</span>
-                    <span class="mock-notif-dot"></span>
-                  </div>
-                  <div class="mock-notif">
-                    <span>✅</span>
-                    <span style="flex:1">Сочинение проверено: 4/5</span>
-                  </div>
+            <div style="padding:16px;background:#FAFBFC">
+              <div class="phone-frame">
+                <div class="phone-frame-inner">
+                  <img src="screen-mascot.png" alt="Вариант с питомцем">
                 </div>
-                <div class="mock-mascot-right">
-                  <div class="mock-mascot-avatar">🐱</div>
-                  <div class="mock-health-bar"><div class="mock-health-fill"></div></div>
-                </div>
-              </div>
-              <div class="mock-hw-card">
-                <div class="subj">Алгебра</div>
-                <div class="title">Квадратные уравнения</div>
-                <div class="meta">Срок: завтра, 23:59</div>
               </div>
             </div>
           </div>
@@ -613,24 +376,11 @@
           <!-- B: Achievement -->
           <div class="variant-card" data-variant="achievement" onclick="selectVariant(this)">
             <div class="variant-label">Б — Ачивки</div>
-            <div class="phone-mock">
-              <div class="mock-greeting">Добрый день, Аня! 👋</div>
-              <div class="mock-achieve-card">
-                <div class="mock-achieve-top">
-                  <span class="mock-achieve-icon">🔥</span>
-                  <div class="mock-achieve-info">
-                    <div class="mock-achieve-label">Ближайшая ачивка</div>
-                    <div class="mock-achieve-title">Ранняя пташка</div>
-                  </div>
-                  <span class="mock-achieve-pct">65%</span>
+            <div style="padding:16px;background:#FAFBFC">
+              <div class="phone-frame">
+                <div class="phone-frame-inner">
+                  <img src="screen-achievement.png" alt="Вариант с ачивками">
                 </div>
-                <div class="mock-achieve-track"><div class="mock-achieve-fill"></div></div>
-                <div class="mock-achieve-desc">Сдай 10 заданий досрочно</div>
-              </div>
-              <div class="mock-hw-card">
-                <div class="subj">Алгебра</div>
-                <div class="title">Квадратные уравнения</div>
-                <div class="meta">Срок: завтра, 23:59</div>
               </div>
             </div>
           </div>
@@ -638,33 +388,10 @@
           <!-- C: Dashboard -->
           <div class="variant-card" data-variant="dashboard" onclick="selectVariant(this)">
             <div class="variant-label">В — Статистика</div>
-            <div class="phone-mock">
-              <div class="mock-greeting">Добрый день, Аня! 👋</div>
-              <div class="mock-dashboard">
-                <div class="mock-dash-left">
-                  <div class="mock-dash-title">Средняя оценка за четверть</div>
-                  <div class="mock-bar-row">
-                    <span class="mock-bar-subj">Алгебра</span>
-                    <div class="mock-bar-track"><div class="mock-bar-fill" style="width:90%;background:var(--green)"></div></div>
-                    <span class="mock-bar-val" style="color:var(--green)">4.5</span>
-                  </div>
-                  <div class="mock-bar-row">
-                    <span class="mock-bar-subj">Русский</span>
-                    <div class="mock-bar-track"><div class="mock-bar-fill" style="width:76%;background:var(--orange)"></div></div>
-                    <span class="mock-bar-val" style="color:var(--orange)">3.8</span>
-                  </div>
-                  <div class="mock-bar-row">
-                    <span class="mock-bar-subj">Физика</span>
-                    <div class="mock-bar-track"><div class="mock-bar-fill" style="width:84%;background:var(--green)"></div></div>
-                    <span class="mock-bar-val" style="color:var(--green)">4.2</span>
-                  </div>
-                </div>
-                <div class="mock-dash-divider"></div>
-                <div class="mock-dash-right">
-                  <div class="mock-stat-row"><span class="mock-stat-val" style="color:var(--blue)">5</span><span class="mock-stat-label">Активных</span></div>
-                  <div class="mock-stat-row"><span class="mock-stat-val" style="color:var(--orange)">2</span><span class="mock-stat-label">На проверке</span></div>
-                  <div class="mock-stat-row"><span class="mock-stat-val" style="color:var(--green)">8</span><span class="mock-stat-label">Проверено</span></div>
-                  <div class="mock-stat-row"><span class="mock-stat-val" style="color:var(--red)">1</span><span class="mock-stat-label">Просрочено</span></div>
+            <div style="padding:16px;background:#FAFBFC">
+              <div class="phone-frame">
+                <div class="phone-frame-inner">
+                  <img src="screen-dashboard.png" alt="Вариант со статистикой">
                 </div>
               </div>
             </div>
@@ -672,24 +399,12 @@
 
           <!-- D: Minimal -->
           <div class="variant-card" data-variant="minimal" onclick="selectVariant(this)">
-            <div class="variant-label">Г — Только задания</div>
-            <div class="phone-mock">
-              <div class="mock-greeting">Добрый день, Аня! 👋</div>
-              <div class="mock-minimal-section-title">Активные задания</div>
-              <div class="mock-hw-card" style="margin-top:0">
-                <div class="subj">Алгебра</div>
-                <div class="title">Квадратные уравнения</div>
-                <div class="meta">Срок: завтра, 23:59</div>
-              </div>
-              <div class="mock-hw-card">
-                <div class="subj">Русский язык</div>
-                <div class="title">Сочинение-рассуждение</div>
-                <div class="meta">Срок: пт, 23:59</div>
-              </div>
-              <div class="mock-hw-card">
-                <div class="subj">Физика</div>
-                <div class="title">Закон Ома — задачи</div>
-                <div class="meta">Срок: пн, 23:59</div>
+            <div class="variant-label">Г — Подсказки</div>
+            <div style="padding:16px;background:#FAFBFC">
+              <div class="phone-frame">
+                <div class="phone-frame-inner">
+                  <img src="screen-minimal.png" alt="Вариант с подсказками">
+                </div>
               </div>
             </div>
           </div>
