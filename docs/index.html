@@ -102,7 +102,7 @@
     cursor: pointer;
     transition: all 0.25s ease;
     position: relative;
-    max-width: 320px;
+    max-width: 380px;
   }
   .battle-card:active {
     transform: scale(0.97);
@@ -126,14 +126,14 @@
     text-align: center;
   }
   .battle-card .card-img {
-    padding: 12px;
+    padding: 4px;
     background: #FAFBFC;
     display: flex;
     justify-content: center;
   }
   .battle-card .card-img img {
     width: 100%;
-    max-width: 200px;
+    max-width: none;
     border-radius: 16px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.08);
   }
@@ -309,8 +309,8 @@
     .battle-title { font-size: 18px; }
     .battle-subtitle { font-size: 13px; }
     .battle-arena { flex-direction: row; gap: 8px; }
-    .battle-card .card-img { padding: 8px; }
-    .battle-card .card-img img { max-width: 150px; border-radius: 12px; }
+    .battle-card .card-img { padding: 3px; }
+    .battle-card .card-img img { max-width: 100%; border-radius: 12px; }
     .battle-card .card-label { padding: 8px 10px; font-size: 13px; }
     .vs-badge { width: 40px; height: 40px; font-size: 14px; }
     .back-btn { padding: 5px 10px; font-size: 13px; border-radius: 10px; }
