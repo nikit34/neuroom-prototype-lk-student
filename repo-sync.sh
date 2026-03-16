@@ -3,10 +3,24 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 BRANCH="main"
+EXPO_PORT=8081
 
 cd "$REPO_DIR"
 
 git config --global --add safe.directory "$REPO_DIR" || true
+
+kill_metro() {
+  # Убить Expo/Metro по порту, чтобы он не видел удалённые node_modules
+  lsof -ti :"$EXPO_PORT" 2>/dev/null | xargs kill -9 2>/dev/null || true
+  watchman watch-del "$REPO_DIR" 2>/dev/null || true
+}
+
+start_metro() {
+  watchman watch-project "$REPO_DIR" 2>/dev/null || true
+  # Запустить Expo в фоне с чистым кэшем
+  nohup npx expo start --clear > "$REPO_DIR/.expo/sync-metro.log" 2>&1 &
+  echo "[sync] metro restarted (pid $!)"
+}
 
 while true; do
   git fetch origin "$BRANCH" --quiet
@@ -17,12 +31,13 @@ while true; do
   if [[ "$LOCAL" != "$REMOTE" ]]; then
     echo "[sync] update: $LOCAL -> $REMOTE"
 
-    # Остановить watchman ДО удаления node_modules,
-    # чтобы Metro не увидел пропавшие модули и не упал
-    watchman watch-del "$REPO_DIR" 2>/dev/null || true
+    # 1. Остановить Metro ДО любых изменений
+    kill_metro
 
-    git reset --hard "origin/$BRANCH" --quiet
+    # 2. Обновить код
+    git reset --quiet --hard "origin/$BRANCH"
 
+    # 3. Переустановить зависимости
     rm -rf node_modules
     if [[ -f package-lock.json ]]; then
       npm ci --silent || npm i --silent
@@ -32,11 +47,13 @@ while true; do
       npm i --silent
     fi
 
-    # Сбросить кэш Metro и вернуть watchman
+    # 4. Очистить все кэши
     rm -rf /tmp/metro-* node_modules/.cache .expo/web/cache
-    watchman watch-project "$REPO_DIR" 2>/dev/null || true
 
-    echo "[sync] cache cleared, metro should pick up changes"
+    # 5. Перезапустить Metro
+    start_metro
+
+    echo "[sync] done"
   fi
 
   sleep 5
