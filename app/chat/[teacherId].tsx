@@ -558,6 +558,21 @@ export default function ChatScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
+      {/* Homework context — pinned to top */}
+      {hwPromptText ? (
+        <View style={[styles.hwPromptCard, { backgroundColor: theme.colors.primary + '10', borderColor: theme.colors.primary + '30' }]}>
+          <Ionicons name="document-text-outline" size={18} color={theme.colors.primary} style={{ marginTop: 2 }} />
+          <View style={styles.hwPromptContent}>
+            <Text style={[styles.hwPromptSubject, { color: theme.colors.primary }]}>
+              {hwPromptSubject}
+            </Text>
+            <Text style={[styles.hwPromptText, { color: theme.colors.text }]} numberOfLines={3}>
+              {hwPromptText}
+            </Text>
+          </View>
+        </View>
+      ) : null}
+
       {/* Messages */}
         <FlatList
           ref={flatListRef}
@@ -567,21 +582,6 @@ export default function ChatScreen() {
           inverted
           contentContainerStyle={[styles.messagesList, isOnboarding && styles.onboardingList]}
           showsVerticalScrollIndicator={false}
-          ListHeaderComponent={
-            hwPromptText ? (
-              <View style={[styles.hwPromptCard, { backgroundColor: theme.colors.primary + '10', borderColor: theme.colors.primary + '30' }]}>
-                <Ionicons name="document-text-outline" size={18} color={theme.colors.primary} style={{ marginTop: 2 }} />
-                <View style={styles.hwPromptContent}>
-                  <Text style={[styles.hwPromptSubject, { color: theme.colors.primary }]}>
-                    {hwPromptSubject}
-                  </Text>
-                  <Text style={[styles.hwPromptText, { color: theme.colors.text }]}>
-                    {hwPromptText}
-                  </Text>
-                </View>
-              </View>
-            ) : null
-          }
           ListFooterComponent={
             messages.length === 0 ? (
               <View style={styles.emptyChat}>
@@ -1098,7 +1098,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 8,
     marginTop: 8,
-    marginHorizontal: 0,
+    marginHorizontal: 14,
+    marginBottom: 4,
     padding: 12,
     borderRadius: 14,
     borderWidth: 1,
