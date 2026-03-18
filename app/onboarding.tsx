@@ -14,10 +14,11 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
 import { useChatStore } from '@/src/stores/chatStore';
+import { useThemeStore } from '@/src/stores/themeStore';
+import { useHomeworkStore, HomeLayout } from '@/src/stores/homeworkStore';
 import { mockClassStudents, StudentListItem } from '@/src/data/mockData';
+import { allCharacters } from '@/src/theme/themes';
 import Avatar from '@/src/components/ui/Avatar';
-
-const TOTAL_STEPS = 2;
 
 export default function OnboardingScreen() {
   const theme = useAppTheme();
@@ -25,6 +26,8 @@ export default function OnboardingScreen() {
   const selectStudent = useStudentStore((s) => s.selectStudent);
   const completeOnboarding = useOnboardingStore((s) => s.complete);
   const initChatOnboarding = useChatStore((s) => s.initChatOnboarding);
+  const setCharacterId = useThemeStore((s) => s.setCharacter);
+  const setHomeLayout = useHomeworkStore((s) => s.setHomeLayout);
 
   const [step, setStep] = useState(0);
   const [selectedStudentItem, setSelectedStudentItem] = useState<StudentListItem | null>(null);
@@ -33,7 +36,12 @@ export default function OnboardingScreen() {
   const [manualLastName, setManualLastName] = useState('');
   const [manualFirstName, setManualFirstName] = useState('');
   const [manualPatronymic, setManualPatronymic] = useState('');
+  const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null);
+  const [selectedLayout, setSelectedLayout] = useState<HomeLayout | null>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  const hasCharacter = selectedCharacter !== null && selectedCharacter !== 'none';
+  const totalSteps = hasCharacter ? 4 : 3;
 
   const filteredStudents = searchQuery.trim()
     ? mockClassStudents.filter((s) =>
@@ -60,7 +68,11 @@ export default function OnboardingScreen() {
     ? manualLastName.trim() !== '' && manualFirstName.trim() !== ''
     : step === 0
       ? selectedStudentItem !== null
-      : true;
+      : step === 2
+        ? selectedCharacter !== null
+        : step === 3
+          ? selectedLayout !== null
+          : true;
 
   const handleManualRegister = () => {
     if (!manualLastName.trim() || !manualFirstName.trim()) return;
@@ -77,16 +89,35 @@ export default function OnboardingScreen() {
     animateTransition(1);
   };
 
+  const finishOnboarding = () => {
+    initChatOnboarding();
+    completeOnboarding();
+  };
+
   const handleNext = () => {
     if (step === 0) {
       if (!selectedStudentItem) return;
       selectStudent(selectedStudentItem);
     }
-    if (step < TOTAL_STEPS - 1) {
+    if (step === 2) {
+      if (!selectedCharacter) return;
+      if (selectedCharacter === 'none') {
+        setHomeLayout('achievement');
+        finishOnboarding();
+        return;
+      }
+      setCharacterId(selectedCharacter);
+    }
+    if (step === 3) {
+      if (!selectedLayout) return;
+      setHomeLayout(selectedLayout);
+      finishOnboarding();
+      return;
+    }
+    if (step < totalSteps - 1) {
       animateTransition(step + 1);
     } else {
-      initChatOnboarding();
-      completeOnboarding();
+      finishOnboarding();
     }
   };
 
@@ -219,6 +250,182 @@ export default function OnboardingScreen() {
           </View>
         );
 
+      case 2:
+        return (
+          <View style={styles.stepContainer}>
+            <Text style={styles.stepEmoji}>🎭</Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>
+              Выбери персонажа
+            </Text>
+            <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+              Он будет сопровождать тебя в приложении
+            </Text>
+
+            <View style={styles.characterGrid}>
+              <TouchableOpacity
+                style={[
+                  styles.characterOption,
+                  {
+                    backgroundColor:
+                      selectedCharacter === 'none'
+                        ? theme.colors.primary + '20'
+                        : theme.colors.surface,
+                    borderColor:
+                      selectedCharacter === 'none'
+                        ? theme.colors.primary
+                        : theme.colors.border,
+                    borderWidth: selectedCharacter === 'none' ? 2.5 : 1,
+                  },
+                ]}
+                onPress={() => setSelectedCharacter('none')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.characterOptionEmoji}>🚫</Text>
+                <Text
+                  style={[
+                    styles.characterOptionName,
+                    {
+                      color:
+                        selectedCharacter === 'none'
+                          ? theme.colors.primary
+                          : theme.colors.text,
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  Без персонажа
+                </Text>
+              </TouchableOpacity>
+              {allCharacters.map((c) => {
+                const isSelected = selectedCharacter === c.id;
+                return (
+                  <TouchableOpacity
+                    key={c.id}
+                    style={[
+                      styles.characterOption,
+                      {
+                        backgroundColor: isSelected
+                          ? theme.colors.primary + '20'
+                          : theme.colors.surface,
+                        borderColor: isSelected
+                          ? theme.colors.primary
+                          : theme.colors.border,
+                        borderWidth: isSelected ? 2.5 : 1,
+                      },
+                    ]}
+                    onPress={() => setSelectedCharacter(c.id)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.characterOptionEmoji}>{c.emoji}</Text>
+                    <Text
+                      style={[
+                        styles.characterOptionName,
+                        {
+                          color: isSelected
+                            ? theme.colors.primary
+                            : theme.colors.text,
+                        },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {c.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        );
+
+      case 3:
+        return (
+          <View style={styles.stepContainer}>
+            <Text style={styles.stepEmoji}>🏠</Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>
+              Вид главной
+            </Text>
+            <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+              Как будет выглядеть главный экран?
+            </Text>
+
+            <View style={styles.layoutOptions}>
+              <TouchableOpacity
+                style={[
+                  styles.layoutOption,
+                  {
+                    backgroundColor:
+                      selectedLayout === 'mascot'
+                        ? theme.colors.primary + '20'
+                        : theme.colors.surface,
+                    borderColor:
+                      selectedLayout === 'mascot'
+                        ? theme.colors.primary
+                        : theme.colors.border,
+                    borderWidth: selectedLayout === 'mascot' ? 2.5 : 1,
+                  },
+                ]}
+                onPress={() => setSelectedLayout('mascot')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.layoutOptionEmoji}>🐾</Text>
+                <Text
+                  style={[
+                    styles.layoutOptionTitle,
+                    {
+                      color:
+                        selectedLayout === 'mascot'
+                          ? theme.colors.primary
+                          : theme.colors.text,
+                    },
+                  ]}
+                >
+                  Маскот
+                </Text>
+                <Text style={[styles.layoutOptionDesc, { color: theme.colors.textSecondary }]}>
+                  Персонаж на главном экране
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.layoutOption,
+                  {
+                    backgroundColor:
+                      selectedLayout === 'dashboard'
+                        ? theme.colors.primary + '20'
+                        : theme.colors.surface,
+                    borderColor:
+                      selectedLayout === 'dashboard'
+                        ? theme.colors.primary
+                        : theme.colors.border,
+                    borderWidth: selectedLayout === 'dashboard' ? 2.5 : 1,
+                  },
+                ]}
+                onPress={() => setSelectedLayout('dashboard')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.layoutOptionEmoji}>📊</Text>
+                <Text
+                  style={[
+                    styles.layoutOptionTitle,
+                    {
+                      color:
+                        selectedLayout === 'dashboard'
+                          ? theme.colors.primary
+                          : theme.colors.text,
+                    },
+                  ]}
+                >
+                  Дашборд
+                </Text>
+                <Text style={[styles.layoutOptionDesc, { color: theme.colors.textSecondary }]}>
+                  Оценки и статистика
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        );
+
       default:
         return null;
     }
@@ -279,7 +486,7 @@ export default function OnboardingScreen() {
         {/* Progress dots — hide on manual form */}
         {!showManualForm && (
           <View style={styles.progressRow}>
-            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+            {Array.from({ length: totalSteps }).map((_, i) => (
               <View
                 key={i}
                 style={[
@@ -357,7 +564,7 @@ export default function OnboardingScreen() {
                 style={styles.nextBtn}
               >
                 <Text style={styles.nextBtnText}>
-                  {step === TOTAL_STEPS - 1 ? 'Начать' : 'Далее'}
+                  {step === totalSteps - 1 || (step === 2 && selectedCharacter === 'none') ? 'Начать' : 'Далее'}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -519,6 +726,54 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     lineHeight: 18,
+  },
+
+  // Step 3 — Character selection
+  characterGrid: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'center',
+  },
+  characterOption: {
+    width: 100,
+    padding: 12,
+    borderRadius: 14,
+    alignItems: 'center',
+    gap: 6,
+  },
+  characterOptionEmoji: {
+    fontSize: 32,
+  },
+  characterOptionName: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+
+  // Step 4 — Layout selection
+  layoutOptions: {
+    width: '100%',
+    gap: 12,
+  },
+  layoutOption: {
+    width: '100%',
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+    gap: 6,
+  },
+  layoutOptionEmoji: {
+    fontSize: 40,
+    marginBottom: 4,
+  },
+  layoutOptionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  layoutOptionDesc: {
+    fontSize: 14,
   },
 
   // Bottom
