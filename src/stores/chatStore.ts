@@ -5,12 +5,12 @@ import { ChatMessage, ChatAttachment } from '../types';
 import { mockTeachers, mockStudent } from '../data/mockData';
 import { useStudentStore } from './studentStore';
 import { useThemeStore } from './themeStore';
-import { useHomeworkStore } from './homeworkStore';
+
 
 export const AI_TUTOR_ID = 'ai-tutor';
 export const AI_TUTOR_FREE_LIMIT = 25;
 
-export type ChatOnboardingStep = 'gender' | 'games' | 'shows' | 'goal' | 'layout' | 'confirm' | 'done';
+export type ChatOnboardingStep = 'gender' | 'games' | 'shows' | 'confirm' | 'done';
 
 const gamesOptions: { id: string; label: string; emoji: string }[] = [
   { id: 'minecraft', label: 'Minecraft', emoji: '⛏️' },
@@ -27,12 +27,6 @@ const showsOptions: { id: string; label: string; emoji: string }[] = [
   { id: 'series', label: 'Сериалы', emoji: '🎬' },
 ];
 
-const goalOptions: { id: string; label: string; emoji: string }[] = [
-  { id: 'no_nagging', label: 'Чтобы не доставали с оценками', emoji: '😮‍💨' },
-  { id: 'understand', label: 'Понять хоть что-то', emoji: '🤔' },
-  { id: 'survive', label: 'Просто выжить до каникул', emoji: '🏖️' },
-  { id: 'be_best', label: 'Хочу быть лучшим', emoji: '🏆' },
-];
 
 interface TopicReplies {
   [topic: string]: string[];
@@ -199,7 +193,7 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   initChatOnboarding: () => {
     const state = get();
     // Guard: reset old persisted steps that no longer exist
-    const validSteps: ChatOnboardingStep[] = ['gender', 'games', 'shows', 'goal', 'layout', 'confirm', 'done'];
+    const validSteps: ChatOnboardingStep[] = ['gender', 'games', 'shows', 'confirm', 'done'];
     if (!validSteps.includes(state.chatOnboardingStep)) {
       set({ chatOnboardingStep: 'gender' });
     }
@@ -277,110 +271,6 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
 
         set((s) => ({
           chatOnboardingStep: 'games',
-          messages: {
-            ...s.messages,
-            [AI_TUTOR_ID]: [...(s.messages[AI_TUTOR_ID] ?? []), botMsg],
-          },
-        }));
-      }, 600);
-    } else if (step === 'goal') {
-      const isSkip = optionId === 'skip';
-      const opt = goalOptions.find((o) => o.id === optionId);
-      if (!isSkip && !opt) return;
-
-      if (!isSkip) useStudentStore.getState().setGoal(optionId);
-
-      const studentMsg: ChatMessage = {
-        id: `msg-onb-${now}-s`,
-        senderId: student.id,
-        senderName: `${student.firstName} ${student.lastName}`,
-        text: isSkip ? 'Пропущено' : `${opt!.emoji} ${opt!.label}`,
-        timestamp: new Date(),
-        isStudent: true,
-      };
-
-      set({
-        messages: { ...state.messages, [AI_TUTOR_ID]: [...messages, studentMsg] },
-      });
-
-      setTimeout(() => {
-        const botMsg: ChatMessage = {
-          id: `msg-onb-${now}-b`,
-          senderId: AI_TUTOR_ID,
-          senderName: 'AI-Репетитор',
-          text: 'Последний вопрос! Хочешь видеть персонажа на главном экране или дашборд с оценками?\n\nЭто всегда можно изменить в профиле.',
-          timestamp: new Date(),
-          isStudent: false,
-          options: [
-            { id: 'mascot', label: 'Персонаж', emoji: '🐾' },
-            { id: 'dashboard', label: 'Дашборд', emoji: '📊' },
-          ],
-          optionType: 'layout',
-        };
-
-        set((s) => ({
-          chatOnboardingStep: 'layout',
-          messages: {
-            ...s.messages,
-            [AI_TUTOR_ID]: [...(s.messages[AI_TUTOR_ID] ?? []), botMsg],
-          },
-        }));
-      }, 600);
-    } else if (step === 'layout') {
-      const opt = optionId === 'mascot'
-        ? { label: 'Персонаж', emoji: '🐾' }
-        : { label: 'Дашборд', emoji: '📊' };
-
-      useHomeworkStore.getState().setHomeLayout(optionId as 'mascot' | 'dashboard');
-
-      const studentMsg: ChatMessage = {
-        id: `msg-onb-${now}-s`,
-        senderId: student.id,
-        senderName: `${student.firstName} ${student.lastName}`,
-        text: `${opt.emoji} ${opt.label}`,
-        timestamp: new Date(),
-        isStudent: true,
-      };
-
-      set({
-        messages: { ...state.messages, [AI_TUTOR_ID]: [...messages, studentMsg] },
-      });
-
-      setTimeout(() => {
-        const currentStudent = useStudentStore.getState().student;
-        const genderLabel = currentStudent.gender === 'male' ? '🧑 Парень' : '👩 Девушка';
-
-        const gamesLabels = (currentStudent.games ?? []).map((id) => {
-          const g = gamesOptions.find((o) => o.id === id);
-          return g ? `${g.emoji} ${g.label}` : id;
-        });
-        const showsLabels = (currentStudent.shows ?? []).map((id) => {
-          const s = showsOptions.find((o) => o.id === id);
-          return s ? `${s.emoji} ${s.label}` : id;
-        });
-        const goalItem = goalOptions.find((o) => o.id === currentStudent.goal);
-        const layoutLabel = optionId === 'mascot' ? '🐾 Персонаж на главной' : '📊 Дашборд на главной';
-
-        const lines = [
-          genderLabel,
-          gamesLabels.length > 0 ? `🎮 ${gamesLabels.map((l) => l.replace(/^.+? /, '')).join(', ')}` : '',
-          showsLabels.length > 0 ? `📺 ${showsLabels.map((l) => l.replace(/^.+? /, '')).join(', ')}` : '',
-          goalItem ? `${goalItem.emoji} ${goalItem.label}` : '',
-          layoutLabel,
-        ].filter(Boolean);
-
-        const botMsg: ChatMessage = {
-          id: `msg-onb-${now}-b`,
-          senderId: AI_TUTOR_ID,
-          senderName: 'AI-Репетитор',
-          text: `Отлично! Вот что ты выбрал:\n\n${lines.join('\n')}\n\nВсё верно?`,
-          timestamp: new Date(),
-          isStudent: false,
-          optionType: 'confirm',
-        };
-
-        set((s) => ({
-          chatOnboardingStep: 'confirm',
           messages: {
             ...s.messages,
             [AI_TUTOR_ID]: [...(s.messages[AI_TUTOR_ID] ?? []), botMsg],
@@ -476,19 +366,36 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
       });
 
       setTimeout(() => {
+        const currentStudent = useStudentStore.getState().student;
+        const genderLabel = currentStudent.gender === 'male' ? '🧑 Парень' : '👩 Девушка';
+
+        const gamesLabels = (currentStudent.games ?? []).map((gid) => {
+          const g = gamesOptions.find((o) => o.id === gid);
+          return g ? `${g.emoji} ${g.label}` : gid;
+        });
+        const showsLabels = (currentStudent.shows ?? []).map((sid) => {
+          const sh = showsOptions.find((o) => o.id === sid);
+          return sh ? `${sh.emoji} ${sh.label}` : sid;
+        });
+
+        const lines = [
+          genderLabel,
+          gamesLabels.length > 0 ? `🎮 ${gamesLabels.map((l) => l.replace(/^.+? /, '')).join(', ')}` : '',
+          showsLabels.length > 0 ? `📺 ${showsLabels.map((l) => l.replace(/^.+? /, '')).join(', ')}` : '',
+        ].filter(Boolean);
+
         const botMsg: ChatMessage = {
           id: `msg-onb-${now}-b`,
           senderId: AI_TUTOR_ID,
           senderName: 'AI-Репетитор',
-          text: 'Зачем тебе вообще учиться? Честно 😄',
+          text: `Отлично! Вот что ты выбрал:\n\n${lines.join('\n')}\n\nВсё верно?`,
           timestamp: new Date(),
           isStudent: false,
-          options: goalOptions,
-          optionType: 'goal',
+          optionType: 'confirm',
         };
 
         set((s) => ({
-          chatOnboardingStep: 'goal',
+          chatOnboardingStep: 'confirm',
           messages: {
             ...s.messages,
             [AI_TUTOR_ID]: [...(s.messages[AI_TUTOR_ID] ?? []), botMsg],

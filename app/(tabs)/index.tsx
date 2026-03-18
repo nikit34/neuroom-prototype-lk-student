@@ -260,7 +260,7 @@ export default function HomeScreen() {
         <View style={styles.dashboardCompactRow}>
           {/* Left: per-subject grade bars */}
           <View style={styles.dashboardGradesSection}>
-            <Text style={[styles.dashboardGradesTitle, { color: theme.colors.textSecondary }]}>Средняя оценка за четверть</Text>
+            <Text style={[styles.dashboardGradesTitle, { color: theme.colors.textSecondary }]}>Средняя оценка за год</Text>
             {subjectGrades.length > 0 ? (
               subjectGrades.map((s) => {
                 const pct = (s.avg / s.maxGrade) * 100;

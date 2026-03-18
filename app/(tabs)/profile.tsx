@@ -184,7 +184,7 @@ export default function ProfileScreen() {
                 { color: homeLayout === 'mascot' ? theme.colors.primary : theme.colors.text },
               ]}
             >
-              Маскот
+              С персонажем
             </Text>
           </TouchableOpacity>
 
@@ -237,7 +237,7 @@ export default function ProfileScreen() {
                 { color: homeLayout === 'dashboard' ? theme.colors.primary : theme.colors.text },
               ]}
             >
-              Дашборд
+              С оценками
             </Text>
           </TouchableOpacity>
         </View>
