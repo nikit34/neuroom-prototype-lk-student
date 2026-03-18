@@ -407,9 +407,34 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
 
   confirmOnboarding: () => {
     const student = useStudentStore.getState().student;
-    const sharedInterests = (student.games ?? []).length > 0 || (student.shows ?? []).length > 0;
-    const { setHomeLayout } = require('./homeworkStore').useHomeworkStore.getState();
-    setHomeLayout(sharedInterests ? 'mascot' : 'dashboard');
+    const games = student.games ?? [];
+    const shows = student.shows ?? [];
+
+    // Маппинг интересов → персонаж (первый найденный)
+    const interestToCharacter: Record<string, string> = {
+      minecraft: 'mc-enderman',
+      roblox: 'rb-noob',
+      fortnite: 'fn-drift',
+      csgo: 'sk-samurai',
+      brawl_stars: 'pk-pikachu',
+      anime: 'anime-naruto',
+    };
+
+    let matchedCharacter: string | null = null;
+    for (const interest of [...games, ...shows]) {
+      if (interestToCharacter[interest]) {
+        matchedCharacter = interestToCharacter[interest];
+        break;
+      }
+    }
+
+    const hmStore = require('./homeworkStore').useHomeworkStore.getState();
+    if (matchedCharacter) {
+      useThemeStore.getState().setCharacter(matchedCharacter);
+      hmStore.setHomeLayout('mascot');
+    } else {
+      hmStore.setHomeLayout('dashboard');
+    }
 
     set((state) => ({
       chatOnboardingStep: 'done',

@@ -15,7 +15,7 @@ import { useOnboardingStore } from '@/src/stores/onboardingStore';
 import { useArenaStore } from '@/src/stores/arenaStore';
 import { useNotificationStore } from '@/src/stores/notificationStore';
 import { useChatStore, AI_TUTOR_ID } from '@/src/stores/chatStore';
-import { useHomeworkStore, HomeLayout } from '@/src/stores/homeworkStore';
+import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { useAppealStore } from '@/src/stores/appealStore';
 import { getMascotState, getMascotStateLabel } from '@/src/utils/gradeHelpers';
 import { useAppVersionStore, AppVersion } from '@/src/config/appVersion';
@@ -629,61 +629,6 @@ function SendTestPushButton() {
   );
 }
 
-function HomeLayoutSwitch() {
-  const theme = useAppTheme();
-  const homeLayout = useHomeworkStore((s) => s.homeLayout);
-  const setHomeLayout = useHomeworkStore((s) => s.setHomeLayout);
-
-  const options: { key: HomeLayout; label: string; desc: string }[] = [
-    { key: 'mascot', label: '🐾', desc: 'Персонаж' },
-    { key: 'achievement', label: '🏆', desc: 'Ачивка' },
-    { key: 'minimal', label: '📋', desc: 'Только ДЗ' },
-    { key: 'dashboard', label: '📊', desc: 'Дашборд' },
-  ];
-
-  return (
-    <View style={styles.ageGroupSection}>
-      <View style={styles.ageGroupRow}>
-        {options.map((opt) => {
-          const isActive = homeLayout === opt.key;
-          return (
-            <TouchableOpacity
-              key={opt.key}
-              style={[
-                styles.versionBtn,
-                {
-                  backgroundColor: isActive
-                    ? theme.colors.primary + '20'
-                    : theme.colors.background,
-                  borderColor: isActive
-                    ? theme.colors.primary
-                    : theme.colors.border,
-                  borderWidth: isActive ? 2 : 1,
-                },
-              ]}
-              onPress={() => setHomeLayout(opt.key)}
-              activeOpacity={0.7}
-            >
-              <Text style={{ fontSize: 18 }}>{opt.label}</Text>
-              <Text
-                style={{
-                  fontSize: 10,
-                  color: isActive ? theme.colors.primary : theme.colors.textSecondary,
-                  fontWeight: isActive ? '700' : '500',
-                  marginTop: 2,
-                }}
-                numberOfLines={1}
-              >
-                {opt.desc}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
-
 function ScreenGroup({ title, emoji, children }: { title: string; emoji: string; children: React.ReactNode }) {
   const theme = useAppTheme();
   return (
@@ -726,11 +671,6 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
       {appVersion >= 1 && (
         <ScreenGroup title="Главная" emoji="🏠">
           <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
-            МАКЕТ ГЛАВНОЙ
-          </Text>
-          <HomeLayoutSwitch />
-
-          <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
             ЗДОРОВЬЕ МАСКОТА
           </Text>
           <HealthSlider />

@@ -8,7 +8,7 @@ import { useStudentStore } from '@/src/stores/studentStore';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { useNotificationStore } from '@/src/stores/notificationStore';
 import { useAppVersionStore } from '@/src/config/appVersion';
-import { useAchievementStore } from '@/src/stores/achievementStore';
+
 import ThemeBackground from '@/src/components/theme/ThemeBackground';
 import HomeworkCard from '@/src/components/homework/HomeworkCard';
 import Mascot from '@/src/components/mascot/Mascot';
@@ -39,7 +39,6 @@ export default function HomeScreen() {
   const markAsRead = useNotificationStore((s) => s.markAsRead);
   const teacherChatEnabled = useChatStore((s) => s.teacherChatEnabled);
 
-  const achievements = useAchievementStore((s) => s.achievements);
 
   const recentNotifications = useMemo(() => {
     const PRIORITY: Record<string, number> = {
@@ -112,14 +111,6 @@ export default function HomeScreen() {
     }
     return 'Продолжай в том же духе! Регулярное выполнение заданий — залог отличных результатов. Не откладывай на последний момент.';
   }, [assignments]);
-
-  // Find nearest locked achievement with progress > 0
-  const nearestAchievement = useMemo(() => {
-    const inProgress = achievements
-      .filter((a) => a.isLocked && a.progress > 0)
-      .sort((a, b) => b.progress - a.progress);
-    return inProgress[0] ?? null;
-  }, [achievements]);
 
   // Dashboard stats
   const dashboardStats = useMemo(() => {
@@ -219,34 +210,6 @@ export default function HomeScreen() {
     </View>
   );
 
-  const renderAchievementHero = () => {
-    if (!nearestAchievement) return null;
-    return (
-      <View style={[styles.achievementCard, { backgroundColor: theme.colors.primary + '15', borderColor: theme.colors.primary + '40' }]}>
-        <View style={styles.achievementCardTop}>
-          <Text style={styles.achievementCardIcon}>{nearestAchievement.icon}</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.achievementCardLabel, { color: theme.colors.textSecondary }]}>
-              Ближайшая ачивка
-            </Text>
-            <Text style={[styles.achievementCardTitle, { color: theme.colors.text }]} numberOfLines={1}>
-              {nearestAchievement.title}
-            </Text>
-          </View>
-          <Text style={[styles.achievementCardPercent, { color: theme.colors.primary }]}>
-            {Math.round(nearestAchievement.progress)}%
-          </Text>
-        </View>
-        <View style={[styles.achievementCardTrack, { backgroundColor: theme.colors.border }]}>
-          <View style={[styles.achievementCardFill, { width: `${nearestAchievement.progress}%`, backgroundColor: theme.colors.primary }]} />
-        </View>
-        <Text style={[styles.achievementCardDesc, { color: theme.colors.textSecondary }]} numberOfLines={2}>
-          {nearestAchievement.description}
-        </Text>
-      </View>
-    );
-  };
-
   const renderDashboardHero = () => {
     const { overdueCount, activeCount, onReviewCount, gradedCount } = dashboardStats;
     const getBarColor = (avg: number, max: number) => {
@@ -341,7 +304,6 @@ export default function HomeScreen() {
         )}
 
         {/* ── Hero section based on layout ── */}
-        {homeLayout === 'achievement' && renderAchievementHero()}
         {homeLayout === 'dashboard' && renderDashboardHero()}
 
         {/* ── Progress summary (all layouts, toggled via dev mode) ── */}
@@ -543,51 +505,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     paddingVertical: 4,
-  },
-  // ── Achievement card (achievement layout) ──
-  achievementCard: {
-    borderRadius: 16,
-    borderWidth: 1.5,
-    padding: 16,
-    marginBottom: 12,
-  },
-  achievementCardTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
-  },
-  achievementCardIcon: {
-    fontSize: 32,
-  },
-  achievementCardLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  achievementCardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  achievementCardPercent: {
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  achievementCardTrack: {
-    height: 10,
-    borderRadius: 5,
-    overflow: 'hidden',
-    marginBottom: 10,
-  },
-  achievementCardFill: {
-    height: '100%',
-    borderRadius: 5,
-  },
-  achievementCardDesc: {
-    fontSize: 13,
-    lineHeight: 18,
   },
   // ── Dashboard (layout variant) ──
   dashboardCard: {

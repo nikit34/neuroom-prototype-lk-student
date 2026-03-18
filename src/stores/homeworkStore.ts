@@ -4,7 +4,7 @@ import { mockHomework, MOCK_BASE_TIME } from '../data/mockData';
 import { rewardHomeworkSubmit, rewardHomeworkGraded } from '../services/rewardsEngine';
 
 type FilterType = 'all' | 'active' | 'overdue' | 'done';
-export type HomeLayout = 'mascot' | 'achievement' | 'minimal' | 'dashboard';
+export type HomeLayout = 'mascot' | 'dashboard';
 
 interface HomeworkState {
   assignments: HomeworkAssignment[];
@@ -32,7 +32,7 @@ export const useHomeworkStore = create<HomeworkState>((set, get) => ({
   viewedCheckedIds: [],
   devHideHomework: false,
   devShowProgressSummary: true,
-  homeLayout: 'achievement' as HomeLayout,
+  homeLayout: 'dashboard' as HomeLayout,
 
   setFilter: (f) => set({ filter: f }),
   setDevHideHomework: (v) => set({ devHideHomework: v }),
