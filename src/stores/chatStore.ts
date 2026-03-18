@@ -406,6 +406,11 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   },
 
   confirmOnboarding: () => {
+    const student = useStudentStore.getState().student;
+    const sharedInterests = (student.games ?? []).length > 0 || (student.shows ?? []).length > 0;
+    const { setHomeLayout } = require('./homeworkStore').useHomeworkStore.getState();
+    setHomeLayout(sharedInterests ? 'mascot' : 'dashboard');
+
     set((state) => ({
       chatOnboardingStep: 'done',
       messages: { ...state.messages, [AI_TUTOR_ID]: [] },
