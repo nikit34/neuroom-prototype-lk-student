@@ -307,6 +307,56 @@ export default function ChatScreen() {
     if (item.optionType === 'confirm' && !item.selectedOptionId) {
       return (
         <View style={styles.confirmContainer}>
+          {item.layoutPreview && (
+            <View style={[styles.layoutPreviewWrap, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+              <Text style={[styles.layoutPreviewLabel, { color: theme.colors.textSecondary }]}>
+                Главная
+              </Text>
+              {item.layoutPreview === 'mascot' ? (
+                <View style={styles.lp}>
+                  <View style={styles.lpRow}>
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <View style={[styles.lpLine, { width: '70%', backgroundColor: theme.colors.text + '30' }]} />
+                      <View style={[styles.lpLine, { width: '50%', backgroundColor: theme.colors.text + '18' }]} />
+                      <View style={[styles.lpNotif, { backgroundColor: theme.colors.primary + '15', borderColor: theme.colors.primary + '30' }]} />
+                    </View>
+                    <View style={styles.lpMascotArea}>
+                      <View style={[styles.lpMascotCircle, { backgroundColor: theme.colors.primary + '25' }]}>
+                        <Text style={{ fontSize: 10 }}>🐾</Text>
+                      </View>
+                    </View>
+                  </View>
+                  <View style={[styles.lpCard, { backgroundColor: theme.colors.border + '50' }]} />
+                </View>
+              ) : (
+                <View style={styles.lp}>
+                  <View style={[styles.lpLine, { width: '60%', backgroundColor: theme.colors.text + '30' }]} />
+                  <View style={[styles.lpDash, { backgroundColor: theme.colors.border + '40', borderColor: theme.colors.border }]}>
+                    <View style={styles.lpDashRow}>
+                      <View style={{ flex: 1, gap: 2 }}>
+                        {[75, 55, 90].map((w, i) => (
+                          <View key={i} style={styles.lpBarRow}>
+                            <View style={[styles.lpBarTrack, { backgroundColor: theme.colors.border }]}>
+                              <View style={[styles.lpBarFill, { width: `${w}%`, backgroundColor: w >= 80 ? '#16A34A' : w >= 60 ? '#F59E0B' : '#EF4444' }]} />
+                            </View>
+                          </View>
+                        ))}
+                      </View>
+                      <View style={{ width: 18, gap: 2, alignItems: 'center' }}>
+                        <View style={[styles.lpStatDot, { backgroundColor: '#3B82F6' }]} />
+                        <View style={[styles.lpStatDot, { backgroundColor: '#F59E0B' }]} />
+                        <View style={[styles.lpStatDot, { backgroundColor: '#16A34A' }]} />
+                      </View>
+                    </View>
+                  </View>
+                  <View style={[styles.lpCard, { backgroundColor: theme.colors.border + '50' }]} />
+                </View>
+              )}
+              <Text style={[styles.layoutPreviewType, { color: theme.colors.primary }]}>
+                {item.layoutPreview === 'mascot' ? 'С персонажем' : 'С оценками'}
+              </Text>
+            </View>
+          )}
           <TouchableOpacity
             style={[styles.confirmButton, { backgroundColor: theme.colors.primary }]}
             onPress={handleConfirmOnboarding}
@@ -873,6 +923,39 @@ const styles = StyleSheet.create({
     marginTop: 12,
     width: '100%',
   },
+  layoutPreviewWrap: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 10,
+    marginBottom: 12,
+    alignSelf: 'center',
+    alignItems: 'center',
+    width: 130,
+    gap: 4,
+  },
+  layoutPreviewLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  layoutPreviewType: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  lp: { width: '100%', gap: 3 },
+  lpRow: { flexDirection: 'row', gap: 4 },
+  lpLine: { height: 3, borderRadius: 1.5 },
+  lpNotif: { height: 6, borderRadius: 3, borderWidth: 0.5 },
+  lpMascotArea: { alignItems: 'center', width: 24 },
+  lpMascotCircle: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  lpCard: { height: 8, borderRadius: 3 },
+  lpDash: { borderRadius: 4, borderWidth: 0.5, padding: 3 },
+  lpDashRow: { flexDirection: 'row', gap: 3, alignItems: 'center' },
+  lpBarRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  lpBarTrack: { flex: 1, height: 2, borderRadius: 1, overflow: 'hidden' },
+  lpBarFill: { height: '100%', borderRadius: 1 },
+  lpStatDot: { width: 5, height: 5, borderRadius: 2.5 },
   confirmButton: {
     paddingVertical: 16,
     borderRadius: 14,
