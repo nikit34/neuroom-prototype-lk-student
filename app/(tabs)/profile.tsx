@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
   },
   miniScreen: {
     width: '100%',
-    aspectRatio: 0.85,
+    aspectRatio: 1.6,
     gap: 5,
   },
   miniRow: {
