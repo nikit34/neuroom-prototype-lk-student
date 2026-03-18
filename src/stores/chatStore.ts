@@ -10,7 +10,7 @@ import { useHomeworkStore } from './homeworkStore';
 export const AI_TUTOR_ID = 'ai-tutor';
 export const AI_TUTOR_FREE_LIMIT = 25;
 
-export type ChatOnboardingStep = 'gender' | 'games' | 'shows' | 'goal' | 'confirm' | 'done';
+export type ChatOnboardingStep = 'gender' | 'games' | 'shows' | 'goal' | 'layout' | 'confirm' | 'done';
 
 const gamesOptions: { id: string; label: string; emoji: string }[] = [
   { id: 'minecraft', label: 'Minecraft', emoji: '⛏️' },
@@ -199,7 +199,7 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   initChatOnboarding: () => {
     const state = get();
     // Guard: reset old persisted steps that no longer exist
-    const validSteps: ChatOnboardingStep[] = ['gender', 'games', 'shows', 'goal', 'confirm', 'done'];
+    const validSteps: ChatOnboardingStep[] = ['gender', 'games', 'shows', 'goal', 'layout', 'confirm', 'done'];
     if (!validSteps.includes(state.chatOnboardingStep)) {
       set({ chatOnboardingStep: 'gender' });
     }
@@ -304,6 +304,49 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
       });
 
       setTimeout(() => {
+        const botMsg: ChatMessage = {
+          id: `msg-onb-${now}-b`,
+          senderId: AI_TUTOR_ID,
+          senderName: 'AI-Репетитор',
+          text: 'Последний вопрос! Хочешь видеть персонажа на главном экране или дашборд с оценками?\n\nЭто всегда можно изменить в профиле.',
+          timestamp: new Date(),
+          isStudent: false,
+          options: [
+            { id: 'mascot', label: 'Персонаж', emoji: '🐾' },
+            { id: 'dashboard', label: 'Дашборд', emoji: '📊' },
+          ],
+          optionType: 'layout',
+        };
+
+        set((s) => ({
+          chatOnboardingStep: 'layout',
+          messages: {
+            ...s.messages,
+            [AI_TUTOR_ID]: [...(s.messages[AI_TUTOR_ID] ?? []), botMsg],
+          },
+        }));
+      }, 600);
+    } else if (step === 'layout') {
+      const opt = optionId === 'mascot'
+        ? { label: 'Персонаж', emoji: '🐾' }
+        : { label: 'Дашборд', emoji: '📊' };
+
+      useHomeworkStore.getState().setHomeLayout(optionId as 'mascot' | 'dashboard');
+
+      const studentMsg: ChatMessage = {
+        id: `msg-onb-${now}-s`,
+        senderId: student.id,
+        senderName: `${student.firstName} ${student.lastName}`,
+        text: `${opt.emoji} ${opt.label}`,
+        timestamp: new Date(),
+        isStudent: true,
+      };
+
+      set({
+        messages: { ...state.messages, [AI_TUTOR_ID]: [...messages, studentMsg] },
+      });
+
+      setTimeout(() => {
         const currentStudent = useStudentStore.getState().student;
         const genderLabel = currentStudent.gender === 'male' ? '🧑 Парень' : '👩 Девушка';
 
@@ -316,12 +359,14 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
           return s ? `${s.emoji} ${s.label}` : id;
         });
         const goalItem = goalOptions.find((o) => o.id === currentStudent.goal);
+        const layoutLabel = optionId === 'mascot' ? '🐾 Персонаж на главной' : '📊 Дашборд на главной';
 
         const lines = [
           genderLabel,
           gamesLabels.length > 0 ? `🎮 ${gamesLabels.map((l) => l.replace(/^.+? /, '')).join(', ')}` : '',
           showsLabels.length > 0 ? `📺 ${showsLabels.map((l) => l.replace(/^.+? /, '')).join(', ')}` : '',
           goalItem ? `${goalItem.emoji} ${goalItem.label}` : '',
+          layoutLabel,
         ].filter(Boolean);
 
         const botMsg: ChatMessage = {
@@ -454,12 +499,6 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   },
 
   confirmOnboarding: () => {
-    const student = useStudentStore.getState().student;
-    const hasGames = (student.games ?? []).length > 0;
-    const likesAnime = (student.shows ?? []).includes('anime');
-    const layout = hasGames || likesAnime ? 'mascot' : 'dashboard';
-    useHomeworkStore.getState().setHomeLayout(layout);
-
     set((state) => ({
       chatOnboardingStep: 'done',
       messages: { ...state.messages, [AI_TUTOR_ID]: [] },

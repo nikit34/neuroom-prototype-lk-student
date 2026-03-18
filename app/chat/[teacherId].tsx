@@ -473,6 +473,35 @@ export default function ChatScreen() {
       );
     }
 
+    if (item.optionType === 'layout') {
+      return (
+        <View style={styles.interestOptionsGrid}>
+          {item.options.map((opt) => (
+            <TouchableOpacity
+              key={opt.id}
+              style={[
+                styles.interestOptionCard,
+                {
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.border,
+                },
+              ]}
+              onPress={() => selectOnboardingOption(opt.id)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.interestOptionEmoji}>{opt.emoji}</Text>
+              <Text
+                style={[styles.interestOptionLabel, { color: theme.colors.text }]}
+                numberOfLines={2}
+              >
+                {opt.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      );
+    }
+
     return null;
   };
 

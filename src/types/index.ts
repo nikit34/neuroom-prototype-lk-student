@@ -148,7 +148,7 @@ export interface ChatMessage {
   isStudent: boolean;
   attachments?: ChatAttachment[];
   options?: ChatMessageOption[];
-  optionType?: 'gender' | 'games' | 'shows' | 'goal' | 'confirm';
+  optionType?: 'gender' | 'games' | 'shows' | 'goal' | 'layout' | 'confirm';
   selectedOptionId?: string;
   selectedOptionIds?: string[];
 }
