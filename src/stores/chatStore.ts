@@ -5,6 +5,7 @@ import { ChatMessage, ChatAttachment } from '../types';
 import { mockTeachers, mockStudent } from '../data/mockData';
 import { useStudentStore } from './studentStore';
 import { useThemeStore } from './themeStore';
+import { useHomeworkStore } from './homeworkStore';
 
 export const AI_TUTOR_ID = 'ai-tutor';
 export const AI_TUTOR_FREE_LIMIT = 25;
@@ -453,6 +454,12 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   },
 
   confirmOnboarding: () => {
+    const student = useStudentStore.getState().student;
+    const hasGames = (student.games ?? []).length > 0;
+    const likesAnime = (student.shows ?? []).includes('anime');
+    const layout = hasGames || likesAnime ? 'mascot' : 'dashboard';
+    useHomeworkStore.getState().setHomeLayout(layout);
+
     set((state) => ({
       chatOnboardingStep: 'done',
       messages: { ...state.messages, [AI_TUTOR_ID]: [] },

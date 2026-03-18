@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme, useCurrentCharacter } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useThemeStore } from '@/src/stores/themeStore';
+import { useHomeworkStore, HomeLayout } from '@/src/stores/homeworkStore';
 import { useAppVersionStore } from '@/src/config/appVersion';
 import { allCharacters, seniorThemes, juniorThemes, defaultTheme } from '@/src/theme/themes';
 import { useMemo } from 'react';
@@ -31,6 +32,8 @@ export default function ProfileScreen() {
   const setThemeId = useThemeStore((s) => s.setTheme);
   const setCharacterId = useThemeStore((s) => s.setCharacter);
   const ageGroup = useThemeStore((s) => s.ageGroup);
+  const homeLayout = useHomeworkStore((s) => s.homeLayout);
+  const setHomeLayout = useHomeworkStore((s) => s.setHomeLayout);
 
   const availableThemes = useMemo(
     () => {
@@ -132,6 +135,112 @@ export default function ProfileScreen() {
             <CharacterCard key={c.id} character={c} isSelected={c.id === characterId} onSelect={setCharacterId} theme={theme} />
           ))}
         </ScrollView>
+
+        {/* Home Layout Selection */}
+        <Text style={[styles.sectionTitle, { color: theme.colors.text, fontSize: age.sectionTitleSize }]}>
+          {age.isJunior ? '🏠 Вид главной' : 'Вид главной'}
+        </Text>
+        <View style={styles.layoutRow}>
+          {/* Mascot preview */}
+          <TouchableOpacity
+            style={[
+              styles.layoutCard,
+              {
+                backgroundColor: homeLayout === 'mascot' ? theme.colors.primary + '12' : theme.colors.surface,
+                borderColor: homeLayout === 'mascot' ? theme.colors.primary : theme.colors.border,
+                borderWidth: homeLayout === 'mascot' ? 2.5 : 1,
+              },
+            ]}
+            onPress={() => setHomeLayout('mascot')}
+            activeOpacity={0.7}
+          >
+            {/* Mini screen: mascot layout */}
+            <View style={styles.miniScreen}>
+              {/* Header row: greeting left, mascot right */}
+              <View style={styles.miniRow}>
+                <View style={{ flex: 1, gap: 3 }}>
+                  <View style={[styles.miniLine, { width: '70%', backgroundColor: theme.colors.text + '30' }]} />
+                  <View style={[styles.miniLine, { width: '50%', backgroundColor: theme.colors.text + '18' }]} />
+                  {/* Inline notifications */}
+                  <View style={[styles.miniNotif, { backgroundColor: theme.colors.primary + '15', borderColor: theme.colors.primary + '30' }]} />
+                  <View style={[styles.miniNotif, { backgroundColor: theme.colors.primary + '10', borderColor: theme.colors.primary + '20' }]} />
+                </View>
+                <View style={styles.miniMascotArea}>
+                  <View style={[styles.miniMascotCircle, { backgroundColor: theme.colors.primary + '25' }]}>
+                    <Text style={{ fontSize: 16 }}>🐾</Text>
+                  </View>
+                  <View style={[styles.miniHealthBar, { backgroundColor: theme.colors.border }]}>
+                    <View style={[styles.miniHealthFill, { backgroundColor: theme.colors.primary, width: '65%' }]} />
+                  </View>
+                </View>
+              </View>
+              {/* Homework cards */}
+              <View style={[styles.miniCard, { backgroundColor: theme.colors.border + '60' }]} />
+              <View style={[styles.miniCard, { backgroundColor: theme.colors.border + '40' }]} />
+            </View>
+            <Text
+              style={[
+                styles.layoutCardLabel,
+                { color: homeLayout === 'mascot' ? theme.colors.primary : theme.colors.text },
+              ]}
+            >
+              Маскот
+            </Text>
+          </TouchableOpacity>
+
+          {/* Dashboard preview */}
+          <TouchableOpacity
+            style={[
+              styles.layoutCard,
+              {
+                backgroundColor: homeLayout === 'dashboard' ? theme.colors.primary + '12' : theme.colors.surface,
+                borderColor: homeLayout === 'dashboard' ? theme.colors.primary : theme.colors.border,
+                borderWidth: homeLayout === 'dashboard' ? 2.5 : 1,
+              },
+            ]}
+            onPress={() => setHomeLayout('dashboard')}
+            activeOpacity={0.7}
+          >
+            {/* Mini screen: dashboard layout */}
+            <View style={styles.miniScreen}>
+              {/* Header */}
+              <View style={[styles.miniLine, { width: '60%', backgroundColor: theme.colors.text + '30' }]} />
+              {/* Dashboard card */}
+              <View style={[styles.miniDashboard, { backgroundColor: theme.colors.border + '40', borderColor: theme.colors.border }]}>
+                <View style={styles.miniDashRow}>
+                  {/* Grade bars */}
+                  <View style={{ flex: 1, gap: 3 }}>
+                    {[75, 55, 90].map((w, i) => (
+                      <View key={i} style={styles.miniBarRow}>
+                        <View style={[styles.miniBarLabel, { backgroundColor: theme.colors.text + '18' }]} />
+                        <View style={[styles.miniBarTrack, { backgroundColor: theme.colors.border }]}>
+                          <View style={[styles.miniBarFill, { width: `${w}%`, backgroundColor: w >= 80 ? '#16A34A' : w >= 60 ? '#F59E0B' : '#EF4444' }]} />
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                  {/* Stats column */}
+                  <View style={{ width: 28, gap: 3, alignItems: 'center' }}>
+                    <View style={[styles.miniStatDot, { backgroundColor: '#3B82F6' }]} />
+                    <View style={[styles.miniStatDot, { backgroundColor: '#F59E0B' }]} />
+                    <View style={[styles.miniStatDot, { backgroundColor: '#16A34A' }]} />
+                  </View>
+                </View>
+              </View>
+              {/* Homework cards */}
+              <View style={[styles.miniCard, { backgroundColor: theme.colors.border + '60' }]} />
+              <View style={[styles.miniCard, { backgroundColor: theme.colors.border + '40' }]} />
+            </View>
+            <Text
+              style={[
+                styles.layoutCardLabel,
+                { color: homeLayout === 'dashboard' ? theme.colors.primary : theme.colors.text },
+              ]}
+            >
+              Дашборд
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Theme Selection */}
         <Text style={[styles.sectionTitle, { color: theme.colors.text, fontSize: age.sectionTitleSize }]}>
@@ -312,6 +421,102 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 24,
     marginBottom: 12,
+  },
+
+  // Home layout
+  layoutRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  layoutCard: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 14,
+    alignItems: 'center',
+    gap: 8,
+  },
+  layoutCardLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  miniScreen: {
+    width: '100%',
+    aspectRatio: 0.85,
+    gap: 5,
+  },
+  miniRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  miniLine: {
+    height: 5,
+    borderRadius: 2.5,
+  },
+  miniNotif: {
+    height: 10,
+    borderRadius: 4,
+    borderWidth: 0.5,
+  },
+  miniMascotArea: {
+    alignItems: 'center',
+    width: 40,
+    gap: 3,
+  },
+  miniMascotCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniHealthBar: {
+    width: '100%',
+    height: 3,
+    borderRadius: 1.5,
+    overflow: 'hidden',
+  },
+  miniHealthFill: {
+    height: '100%',
+    borderRadius: 1.5,
+  },
+  miniCard: {
+    height: 14,
+    borderRadius: 4,
+  },
+  miniDashboard: {
+    borderRadius: 6,
+    borderWidth: 0.5,
+    padding: 5,
+  },
+  miniDashRow: {
+    flexDirection: 'row',
+    gap: 5,
+    alignItems: 'center',
+  },
+  miniBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  miniBarLabel: {
+    width: 16,
+    height: 3,
+    borderRadius: 1.5,
+  },
+  miniBarTrack: {
+    flex: 1,
+    height: 3,
+    borderRadius: 1.5,
+    overflow: 'hidden',
+  },
+  miniBarFill: {
+    height: '100%',
+    borderRadius: 1.5,
+  },
+  miniStatDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
 
   // Themes
