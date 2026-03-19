@@ -151,7 +151,6 @@ export interface ChatMessage {
   optionType?: 'gender' | 'games' | 'shows' | 'confirm';
   selectedOptionId?: string;
   selectedOptionIds?: string[];
-  layoutPreview?: 'mascot' | 'dashboard';
 }
 
 export interface DuelChallenge {

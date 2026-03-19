@@ -147,36 +147,6 @@ function pickReply(topic: string, isAiTutor = false): string {
   return replies[Math.floor(Math.random() * replies.length)];
 }
 
-const interestToCharacter: Record<string, string> = {
-  minecraft: 'mc-enderman',
-  roblox: 'rb-noob',
-  fortnite: 'fn-drift',
-  csgo: 'sk-samurai',
-  brawl_stars: 'pk-pikachu',
-  anime: 'anime-naruto',
-};
-
-function determineHomeLayout(games: string[], shows: string[]): 'mascot' | 'dashboard' {
-  for (const interest of [...games, ...shows]) {
-    if (interestToCharacter[interest]) return 'mascot';
-  }
-  return 'dashboard';
-}
-
-function applyHomeLayout(layout: 'mascot' | 'dashboard', games: string[], shows: string[]) {
-  const hmStore = require('./homeworkStore').useHomeworkStore.getState();
-  hmStore.setHomeLayout(layout);
-
-  if (layout === 'mascot') {
-    for (const interest of [...games, ...shows]) {
-      if (interestToCharacter[interest]) {
-        useThemeStore.getState().setCharacter(interestToCharacter[interest]);
-        break;
-      }
-    }
-  }
-}
-
 interface ChatState {
   messages: Record<string, ChatMessage[]>;
   teacherChatEnabled: boolean;
@@ -408,25 +378,25 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
           return sh ? `${sh.emoji} ${sh.label}` : sid;
         });
 
-        // Определяем лейаут и персонажа по интересам
-        const determinedLayout = determineHomeLayout(currentStudent.games ?? [], currentStudent.shows ?? []);
-        const layoutLabel = determinedLayout === 'mascot' ? 'с персонажем' : 'с оценками';
-
+        const hasPrefs = gamesLabels.length > 0 || showsLabels.length > 0;
         const lines = [
           genderLabel,
           gamesLabels.length > 0 ? `🎮 ${gamesLabels.map((l) => l.replace(/^.+? /, '')).join(', ')}` : '',
           showsLabels.length > 0 ? `📺 ${showsLabels.map((l) => l.replace(/^.+? /, '')).join(', ')}` : '',
         ].filter(Boolean);
 
+        const confirmText = hasPrefs
+          ? `Отлично! Вот что ты выбрал:\n\n${lines.join('\n')}\n\nВсё верно?`
+          : `Принял! Ты — ${genderLabel.toLowerCase()}.\n\nПредпочтения пока не выбраны — ничего страшного, сможешь обновить в профиле.\n\nВсё верно?`;
+
         const botMsg: ChatMessage = {
           id: `msg-onb-${now}-b`,
           senderId: AI_TUTOR_ID,
           senderName: 'AI-Репетитор',
-          text: `Отлично! Вот что ты выбрал:\n\n${lines.join('\n')}\n\nГлавный экран будет ${layoutLabel}.\nЭто можно изменить в профиле.\n\nВсё верно?`,
+          text: confirmText,
           timestamp: new Date(),
           isStudent: false,
           optionType: 'confirm',
-          layoutPreview: determinedLayout,
         };
 
         set((s) => ({
@@ -441,10 +411,6 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   },
 
   confirmOnboarding: () => {
-    const student = useStudentStore.getState().student;
-    const layout = determineHomeLayout(student.games ?? [], student.shows ?? []);
-    applyHomeLayout(layout, student.games ?? [], student.shows ?? []);
-
     set((state) => ({
       chatOnboardingStep: 'done',
       messages: { ...state.messages, [AI_TUTOR_ID]: [] },
