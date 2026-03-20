@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Share, Platform } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -14,6 +14,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
+import { useStudentStore } from '@/src/stores/studentStore';
 import { AchievementRarity, AchievementCategory } from '@/src/types';
 
 const { width: SW, height: SH } = Dimensions.get('window');
@@ -843,6 +844,7 @@ function ChallengeParticles({ rarity, catTheme }: { rarity: RarityTheme; catThem
 
 interface BadgeCelebrationProps {
   badge: {
+    id: string;
     icon: string;
     title: string;
     description: string;
@@ -857,6 +859,38 @@ export default function BadgeCelebration({ badge, onDismiss }: BadgeCelebrationP
   const insets = useSafeAreaInsets();
   const rarityTheme = RARITY_THEMES[badge.rarity];
   const catTheme = CATEGORY_THEMES[badge.category ?? 'homework'];
+  const student = useStudentStore((s) => s.student);
+
+  const handleShare = async () => {
+    const studentName = `${student.firstName} ${student.lastName}`;
+    const classLabel = student.classId || `${student.grade} класс`;
+    const link = `https://neuroom.app/achievements/${badge.id}`;
+
+    const message = [
+      `${badge.icon} Новая ачивка получена!`,
+      '',
+      badge.title,
+      `${rarityTheme.label} | ${catTheme.emoji} ${catTheme.label}`,
+      '',
+      badge.description,
+      '',
+      `${studentName}, ${classLabel}`,
+      '',
+      link,
+      '',
+      '#neuroom #достижение',
+    ].join('\n');
+
+    try {
+      await Share.share(
+        Platform.OS === 'ios'
+          ? { message, url: link }
+          : { message, title: `${badge.icon} ${badge.title}` },
+      );
+    } catch (_) {
+      // user cancelled
+    }
+  };
 
   const iconScale = useSharedValue(0);
   const shimmer = useSharedValue(0);
@@ -957,7 +991,20 @@ export default function BadgeCelebration({ badge, onDismiss }: BadgeCelebrationP
             </Text>
           </View>
 
-          <Text style={styles.sparkle}>🎉</Text>
+          <View style={styles.rightActions}>
+            <TouchableOpacity
+              style={styles.shareIconBtn}
+              onPress={(e) => {
+                e.stopPropagation();
+                handleShare();
+              }}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.shareIcon}>📤</Text>
+            </TouchableOpacity>
+            <Text style={styles.sparkle}>🎉</Text>
+          </View>
         </TouchableOpacity>
       </Animated.View>
     </View>
@@ -1050,8 +1097,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 1,
   },
+  rightActions: {
+    alignItems: 'center',
+    marginLeft: 8,
+    gap: 4,
+  },
+  shareIconBtn: {
+    padding: 4,
+  },
+  shareIcon: {
+    fontSize: 18,
+  },
   sparkle: {
     fontSize: 24,
-    marginLeft: 8,
   },
 });

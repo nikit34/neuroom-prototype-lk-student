@@ -5,12 +5,15 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  Share,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { useRouter } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAchievementStore } from '@/src/stores/achievementStore';
+import { useStudentStore } from '@/src/stores/studentStore';
 import Card from '@/src/components/ui/Card';
 import Badge from '@/src/components/ui/Badge';
 import ProgressBar from '@/src/components/ui/ProgressBar';
@@ -187,6 +190,7 @@ export default function AchievementDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useAppTheme();
   const achievements = useAchievementStore((s) => s.achievements);
+  const student = useStudentStore((s) => s.student);
   const achievement = achievements.find((a) => a.id === id);
 
   if (!achievement) {
@@ -204,6 +208,40 @@ export default function AchievementDetailScreen() {
   const rarityColor = RARITY_COLORS[achievement.rarity];
   const isUnlocked = !achievement.isLocked;
   const isComplete = achievement.progress >= 100;
+
+  const handleShare = async () => {
+    const tierText = achievement.tier ? ` (${TIER_LABELS[achievement.tier]})` : '';
+    const rarityText = RARITY_LABELS[achievement.rarity];
+    const categoryText = `${CATEGORY_EMOJI[achievement.category]} ${CATEGORY_LABELS[achievement.category]}`;
+    const studentName = `${student.firstName} ${student.lastName}`;
+    const classLabel = student.classId || `${student.grade} класс`;
+    const link = `https://neuroom.app/achievements/${achievement.id}`;
+
+    const message = [
+      `${achievement.icon} Новая ачивка получена!`,
+      '',
+      `${achievement.title}${tierText}`,
+      `${rarityText} | ${categoryText}`,
+      '',
+      achievement.description,
+      '',
+      `${studentName}, ${classLabel}`,
+      '',
+      link,
+      '',
+      '#neuroom #достижение',
+    ].join('\n');
+
+    try {
+      await Share.share(
+        Platform.OS === 'ios'
+          ? { message, url: link }
+          : { message, title: `${achievement.icon} ${achievement.title}` },
+      );
+    } catch (_) {
+      // user cancelled
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
@@ -357,6 +395,17 @@ export default function AchievementDetailScreen() {
             </View>
           )}
         </Card>
+
+        {/* Share button */}
+        {isUnlocked && (
+          <TouchableOpacity
+            style={[styles.shareBtn, { backgroundColor: theme.colors.primary }]}
+            onPress={handleShare}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.shareBtnText}>Поделиться</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -558,5 +607,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  shareBtn: {
+    width: '100%',
+    marginTop: 12,
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  shareBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
