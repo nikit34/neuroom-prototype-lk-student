@@ -16,6 +16,8 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
+import { useStudentStore } from '@/src/stores/studentStore';
+import { useAchievementStore } from '@/src/stores/achievementStore';
 import Button from '@/src/components/ui/Button';
 import { Submission, SubmissionFile } from '@/src/types';
 
@@ -38,12 +40,28 @@ export default function SubmitHomeworkScreen() {
   const successOpacity = useRef(new Animated.Value(0)).current;
   const successScale = useRef(new Animated.Value(0.8)).current;
 
+  const [rewardData, setRewardData] = useState<{
+    xpGained: number;
+    healthDelta: number;
+    newHealth: number;
+    streak: number;
+    multiplier: number;
+    isOnTime: boolean;
+    closestAchievement: {
+      title: string;
+      icon: string;
+      description: string;
+      progress: number;
+      progressDelta: number;
+    } | null;
+  } | null>(null);
+
   const isLate = homework ? homework.deadline && new Date() > new Date(homework.deadline) : false;
   const teacherName = homework?.teacher
     ? `${homework.teacher.firstName} ${homework.teacher.lastName}`
     : '';
 
-  // Auto-navigate after showing success screen
+  // Animate success screen appearance
   useEffect(() => {
     if (!submitted) return;
     Animated.parallel([
@@ -59,11 +77,6 @@ export default function SubmitHomeworkScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-
-    const timer = setTimeout(() => {
-      router.replace('/');
-    }, 3000);
-    return () => clearTimeout(timer);
   }, [submitted]);
 
   if (!homework) {
@@ -80,50 +93,187 @@ export default function SubmitHomeworkScreen() {
 
   // ── Success screen ────────────────────────────────────────
   if (submitted) {
+    const descPreview = homework.description.split('\n')[0];
+    const deadlineStr = homework.deadline.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    const rd = rewardData;
+
     return (
       <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]}>
-        <TouchableOpacity
-          activeOpacity={1}
-          style={styles.successTouchable}
-          onPress={() => router.replace('/')}
-        >
         <Animated.View
           style={[
             styles.successContainer,
             { opacity: successOpacity, transform: [{ scale: successScale }] },
           ]}
         >
-          <View style={[styles.successCard, { backgroundColor: theme.colors.surface }]}>
-            <Text style={styles.successIcon}>{isLate ? '⏰' : '✅'}</Text>
+          <ScrollView
+            contentContainerStyle={styles.successScroll}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Header */}
+            <Text style={styles.successIcon}>{rd?.isOnTime ? '✅' : '⏰'}</Text>
             <Text style={[styles.successTitle, { color: theme.colors.text }]}>
               Домашка сдана!
             </Text>
-            <Text style={[styles.successSubject, { color: theme.colors.primary }]}>
-              {homework.subject}
-            </Text>
-            <View
-              style={[
-                styles.successBadge,
-                { backgroundColor: isLate ? '#FFF3E0' : '#E8F5E9' },
-              ]}
-            >
+
+            {/* Assignment Info Card */}
+            <View style={[styles.infoCard, { backgroundColor: theme.colors.surface }]}>
+              <Text style={[styles.infoSubject, { color: theme.colors.primary }]}>
+                {homework.subject}
+              </Text>
               <Text
+                style={[styles.infoDesc, { color: theme.colors.textSecondary }]}
+                numberOfLines={2}
+              >
+                {descPreview}
+              </Text>
+              <Text style={[styles.infoDeadline, { color: theme.colors.textSecondary }]}>
+                📅 Дедлайн: {deadlineStr}
+              </Text>
+              <View
                 style={[
-                  styles.successBadgeText,
-                  { color: isLate ? '#E65100' : '#2E7D32' },
+                  styles.statusBadge,
+                  { backgroundColor: rd?.isOnTime ? '#E8F5E9' : '#FFF3E0' },
                 ]}
               >
-                {isLate ? 'С опозданием' : 'В срок'}
-              </Text>
+                <Text
+                  style={[
+                    styles.statusBadgeText,
+                    { color: rd?.isOnTime ? '#2E7D32' : '#E65100' },
+                  ]}
+                >
+                  {rd?.isOnTime ? '✅ Сдано в срок' : '⏰ С опозданием'}
+                </Text>
+              </View>
+              {teacherName ? (
+                <Text style={[styles.infoTeacher, { color: theme.colors.textSecondary }]}>
+                  Учитель: {teacherName}
+                </Text>
+              ) : null}
             </View>
-            {teacherName ? (
-              <Text style={[styles.successTeacher, { color: theme.colors.textSecondary }]}>
-                Отправлено учителю: {teacherName}
-              </Text>
-            ) : null}
+
+            {/* Rewards Section */}
+            {rd && (
+              <>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                  Награды
+                </Text>
+                <View style={styles.rewardsRow}>
+                  {/* XP */}
+                  <View style={[styles.rewardCard, { backgroundColor: theme.colors.surface }]}>
+                    <Text style={styles.rewardEmoji}>⭐</Text>
+                    <Text style={[styles.rewardValue, { color: theme.colors.text }]}>
+                      +{rd.xpGained}
+                    </Text>
+                    <Text style={[styles.rewardLabel, { color: theme.colors.textSecondary }]}>
+                      XP
+                    </Text>
+                    {rd.multiplier > 1 && (
+                      <Text style={[styles.multiplierBadge, { color: theme.colors.primary }]}>
+                        ×{rd.multiplier}
+                      </Text>
+                    )}
+                  </View>
+
+                  {/* Health */}
+                  <View style={[styles.rewardCard, { backgroundColor: theme.colors.surface }]}>
+                    <Text style={styles.rewardEmoji}>❤️</Text>
+                    <Text
+                      style={[
+                        styles.rewardValue,
+                        { color: rd.healthDelta > 0 ? '#2E7D32' : theme.colors.textSecondary },
+                      ]}
+                    >
+                      {rd.healthDelta > 0 ? `+${rd.healthDelta}` : '—'}
+                    </Text>
+                    <Text style={[styles.rewardLabel, { color: theme.colors.textSecondary }]}>
+                      Здоровье
+                    </Text>
+                    <View style={styles.healthBarBg}>
+                      <View
+                        style={[
+                          styles.healthBarFill,
+                          {
+                            width: `${rd.newHealth}%`,
+                            backgroundColor:
+                              rd.newHealth > 60
+                                ? '#4CAF50'
+                                : rd.newHealth > 30
+                                  ? '#FF9800'
+                                  : '#F44336',
+                          },
+                        ]}
+                      />
+                    </View>
+                  </View>
+
+                  {/* Streak */}
+                  <View style={[styles.rewardCard, { backgroundColor: theme.colors.surface }]}>
+                    <Text style={styles.rewardEmoji}>🔥</Text>
+                    <Text style={[styles.rewardValue, { color: theme.colors.text }]}>
+                      {rd.streak}
+                    </Text>
+                    <Text style={[styles.rewardLabel, { color: theme.colors.textSecondary }]}>
+                      Серия
+                    </Text>
+                  </View>
+                </View>
+              </>
+            )}
+
+            {/* Closest Achievement */}
+            {rd?.closestAchievement && (
+              <>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                  Ближайшая ачивка
+                </Text>
+                <View style={[styles.achCard, { backgroundColor: theme.colors.surface }]}>
+                  <View style={styles.achHeader}>
+                    <Text style={styles.achIcon}>{rd.closestAchievement.icon}</Text>
+                    <View style={styles.achInfo}>
+                      <Text style={[styles.achTitle, { color: theme.colors.text }]}>
+                        {rd.closestAchievement.title}
+                      </Text>
+                      <Text style={[styles.achDesc, { color: theme.colors.textSecondary }]}>
+                        {rd.closestAchievement.description}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.achProgressRow}>
+                    <View style={styles.achProgressBg}>
+                      <View
+                        style={[
+                          styles.achProgressFill,
+                          {
+                            width: `${rd.closestAchievement.progress}%`,
+                            backgroundColor: theme.colors.primary,
+                          },
+                        ]}
+                      />
+                    </View>
+                    <Text style={[styles.achProgressText, { color: theme.colors.text }]}>
+                      {rd.closestAchievement.progress}%
+                    </Text>
+                  </View>
+                  {rd.closestAchievement.progressDelta > 0 && (
+                    <Text style={[styles.achDelta, { color: theme.colors.primary }]}>
+                      +{rd.closestAchievement.progressDelta}% за эту сдачу
+                    </Text>
+                  )}
+                </View>
+              </>
+            )}
+          </ScrollView>
+
+          {/* Bottom button */}
+          <View style={[styles.successFooter, { paddingBottom: insets.bottom + 16 }]}>
+            <Button title="Отлично!" onPress={() => router.replace('/')} />
           </View>
         </Animated.View>
-        </TouchableOpacity>
       </SafeAreaView>
     );
   }
@@ -179,6 +329,10 @@ export default function SubmitHomeworkScreen() {
   const handleSubmit = () => {
     if (files.length === 0) return;
 
+    // Snapshot state before rewards are applied
+    const studentBefore = useStudentStore.getState().student;
+    const achievementsBefore = useAchievementStore.getState().achievements;
+
     const submission: Submission = {
       id: `sub-${Date.now()}`,
       homeworkId: homework.id,
@@ -187,6 +341,44 @@ export default function SubmitHomeworkScreen() {
     };
 
     submitHomework(homework.id, submission);
+
+    // Read state after rewards
+    const studentAfter = useStudentStore.getState().student;
+    const achievementsAfter = useAchievementStore.getState().achievements;
+
+    const xpGained = studentAfter.totalPoints - studentBefore.totalPoints;
+    const healthDelta = studentAfter.mascotHealth - studentBefore.mascotHealth;
+    const onTime = !(homework.deadline && new Date() > homework.deadline);
+
+    // Find closest locked homework/early_streak achievement
+    const relevant = achievementsAfter
+      .filter((a) => a.progress < 100 && (a.category === 'homework' || a.category === 'early_streak'))
+      .sort((a, b) => b.progress - a.progress);
+    const closest = relevant[0] || null;
+
+    let progressDelta = 0;
+    if (closest) {
+      const before = achievementsBefore.find((a) => a.id === closest.id);
+      progressDelta = closest.progress - (before?.progress ?? 0);
+    }
+
+    setRewardData({
+      xpGained,
+      healthDelta,
+      newHealth: studentAfter.mascotHealth,
+      streak: studentAfter.earlyStreak,
+      multiplier: studentAfter.xpMultiplier,
+      isOnTime: onTime,
+      closestAchievement: closest
+        ? {
+            title: closest.title,
+            icon: closest.icon,
+            description: closest.description,
+            progress: closest.progress,
+            progressDelta,
+          }
+        : null,
+    });
 
     setSubmitted(true);
   };
@@ -532,54 +724,182 @@ const styles = StyleSheet.create({
   filesCount: { fontSize: 13, textAlign: 'center', marginBottom: 8 },
 
   // ── Success screen ──
-  successTouchable: {
-    flex: 1,
-  },
   successContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 32,
   },
-  successCard: {
-    width: '100%',
+  successScroll: {
     alignItems: 'center',
-    borderRadius: 24,
-    paddingVertical: 40,
     paddingHorizontal: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 6,
+    paddingTop: 32,
+    paddingBottom: 16,
   },
   successIcon: {
     fontSize: 56,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   successTitle: {
     fontSize: 24,
     fontWeight: '800',
-    marginBottom: 8,
+    marginBottom: 4,
   },
-  successSubject: {
+  successFooter: {
+    paddingHorizontal: 24,
+    paddingTop: 12,
+  },
+
+  // ── Info card ──
+  infoCard: {
+    width: '100%',
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  infoSubject: {
     fontSize: 18,
     fontWeight: '700',
-    marginBottom: 16,
+    marginBottom: 6,
   },
-  successBadge: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginBottom: 20,
+  infoDesc: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 10,
   },
-  successBadgeText: {
+  infoDeadline: {
+    fontSize: 13,
+    marginBottom: 10,
+  },
+  statusBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  statusBadgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  infoTeacher: {
+    fontSize: 13,
+    marginTop: 10,
+  },
+
+  // ── Rewards ──
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginTop: 24,
+    marginBottom: 12,
+    alignSelf: 'flex-start',
+  },
+  rewardsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    width: '100%',
+  },
+  rewardCard: {
+    flex: 1,
+    alignItems: 'center',
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  rewardEmoji: {
+    fontSize: 24,
+    marginBottom: 6,
+  },
+  rewardValue: {
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  rewardLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  multiplierBadge: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  healthBarBg: {
+    width: '80%',
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(0,0,0,0.08)',
+    marginTop: 8,
+    overflow: 'hidden',
+  },
+  healthBarFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+
+  // ── Achievement ──
+  achCard: {
+    width: '100%',
+    borderRadius: 14,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  achHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  achIcon: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  achInfo: {
+    flex: 1,
+  },
+  achTitle: {
     fontSize: 15,
     fontWeight: '700',
   },
-  successTeacher: {
-    fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'center',
+  achDesc: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  achProgressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  achProgressBg: {
+    flex: 1,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(0,0,0,0.08)',
+    overflow: 'hidden',
+  },
+  achProgressFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  achProgressText: {
+    fontSize: 13,
+    fontWeight: '700',
+    width: 40,
+    textAlign: 'right',
+  },
+  achDelta: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 6,
   },
 });
