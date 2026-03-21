@@ -128,8 +128,9 @@ export interface Badge {
 
 export interface ChatAttachment {
   uri: string;
-  type: 'image' | 'document';
+  type: 'image' | 'document' | 'audio';
   name?: string;
+  duration?: number; // audio duration in seconds
 }
 
 export interface ChatMessageOption {

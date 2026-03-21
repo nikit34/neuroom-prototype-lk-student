@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,11 +12,13 @@ import {
   Image,
   Alert,
   Dimensions,
+  Animated,
 } from 'react-native';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
+import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAgeStyles } from '@/src/hooks/useAgeStyles';
@@ -131,6 +133,12 @@ function buildSuggests(
   });
 
   return result;
+}
+
+function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
 export default function ChatScreen() {
@@ -287,6 +295,138 @@ export default function ChatScreen() {
   const removeAttachment = (index: number) => {
     setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
+
+  // ─── Voice recording ───
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const recordingRef = useRef<Audio.Recording | null>(null);
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (isRecording) {
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1.3, duration: 600, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+        ]),
+      );
+      loop.start();
+      return () => loop.stop();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [isRecording]);
+
+  const startRecording = useCallback(async () => {
+    try {
+      const permission = await Audio.requestPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('Микрофон', 'Для голосового ввода необходим доступ к микрофону.');
+        return;
+      }
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY,
+      );
+      recordingRef.current = recording;
+      setIsRecording(true);
+      setRecordingDuration(0);
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingDuration((d) => d + 1);
+      }, 1000);
+    } catch (err) {
+      console.error('Failed to start recording', err);
+      Alert.alert('Ошибка', 'Не удалось начать запись.');
+    }
+  }, []);
+
+  const stopRecording = useCallback(async (send: boolean) => {
+    if (!recordingRef.current) return;
+    if (recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+    try {
+      await recordingRef.current.stopAndUnloadAsync();
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: false });
+      if (send) {
+        const uri = recordingRef.current.getURI();
+        const status = await recordingRef.current.getStatusAsync();
+        const durationSec = Math.round((status.durationMillis ?? 0) / 1000);
+        if (uri) {
+          const voiceAttachment: ChatAttachment = {
+            uri,
+            type: 'audio',
+            name: 'Голосовое сообщение',
+            duration: durationSec,
+          };
+          sendMessage(teacherId, `🎤 Голосовое сообщение (${formatDuration(durationSec)})`, undefined, [voiceAttachment]);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to stop recording', err);
+    }
+    recordingRef.current = null;
+    setIsRecording(false);
+    setRecordingDuration(0);
+  }, [teacherId, sendMessage]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (recordingRef.current) {
+        recordingRef.current.stopAndUnloadAsync().catch(() => {});
+      }
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+      }
+    };
+  }, []);
+
+  // ─── Audio playback ───
+  const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+  const soundRef = useRef<Audio.Sound | null>(null);
+
+  const playAudio = useCallback(async (uri: string, messageId: string) => {
+    try {
+      // Stop current
+      if (soundRef.current) {
+        await soundRef.current.stopAsync();
+        await soundRef.current.unloadAsync();
+        soundRef.current = null;
+        if (playingAudioId === messageId) {
+          setPlayingAudioId(null);
+          return;
+        }
+      }
+      const { sound } = await Audio.Sound.createAsync({ uri });
+      soundRef.current = sound;
+      setPlayingAudioId(messageId);
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          setPlayingAudioId(null);
+          sound.unloadAsync();
+          soundRef.current = null;
+        }
+      });
+      await sound.playAsync();
+    } catch (err) {
+      console.error('Failed to play audio', err);
+      setPlayingAudioId(null);
+    }
+  }, [playingAudioId]);
+
+  useEffect(() => {
+    return () => {
+      if (soundRef.current) {
+        soundRef.current.unloadAsync().catch(() => {});
+      }
+    };
+  }, []);
 
   const handleConfirmOnboarding = () => {
     confirmOnboarding();
@@ -477,6 +617,36 @@ export default function ChatScreen() {
               {item.attachments.map((att, idx) =>
                 att.type === 'image' ? (
                   <Image key={idx} source={{ uri: att.uri }} style={styles.msgImage} />
+                ) : att.type === 'audio' ? (
+                  <TouchableOpacity
+                    key={idx}
+                    style={[styles.audioPlayer, { backgroundColor: isStudent ? 'rgba(255,255,255,0.2)' : theme.colors.background }]}
+                    onPress={() => playAudio(att.uri, item.id)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name={playingAudioId === item.id ? 'pause' : 'play'}
+                      size={22}
+                      color={isStudent ? '#fff' : theme.colors.primary}
+                    />
+                    <View style={styles.audioWaveform}>
+                      {[...Array(12)].map((_, i) => (
+                        <View
+                          key={i}
+                          style={[
+                            styles.audioBar,
+                            {
+                              height: 6 + Math.sin(i * 0.9) * 10 + Math.random() * 4,
+                              backgroundColor: isStudent ? 'rgba(255,255,255,0.6)' : theme.colors.primary + '80',
+                            },
+                          ]}
+                        />
+                      ))}
+                    </View>
+                    <Text style={[styles.audioDuration, { color: isStudent ? 'rgba(255,255,255,0.8)' : theme.colors.textSecondary }]}>
+                      {formatDuration(att.duration ?? 0)}
+                    </Text>
+                  </TouchableOpacity>
                 ) : (
                   <View key={idx} style={[styles.msgDocBadge, { backgroundColor: isStudent ? 'rgba(255,255,255,0.2)' : theme.colors.background }]}>
                     <Ionicons name="document-outline" size={16} color={isStudent ? '#fff' : theme.colors.textSecondary} />
@@ -657,49 +827,84 @@ export default function ChatScreen() {
               },
             ]}
           >
-            <TouchableOpacity
-              style={[styles.attachButton, aiLimitReached && { opacity: 0.3 }]}
-              onPress={handleAttach}
-              activeOpacity={0.7}
-              disabled={aiLimitReached}
-            >
-              <Ionicons name="add-circle-outline" size={28} color={theme.colors.primary} />
-            </TouchableOpacity>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: theme.colors.background,
-                  color: theme.colors.text,
-                  borderColor: theme.colors.border,
-                },
-                aiLimitReached && { opacity: 0.5 },
-              ]}
-              value={text}
-              onChangeText={setText}
-              placeholder={aiLimitReached ? 'Лимит вопросов исчерпан' : 'Написать сообщение...'}
-              placeholderTextColor={theme.colors.textSecondary}
-              multiline
-              maxLength={1000}
-              returnKeyType="send"
-              onSubmitEditing={handleSend}
-              editable={!aiLimitReached}
-            />
-            <TouchableOpacity
-              style={[
-                styles.sendButton,
-                {
-                  backgroundColor: hasContent
-                    ? theme.colors.primary
-                    : theme.colors.border,
-                },
-              ]}
-              onPress={handleSend}
-              disabled={!hasContent}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="send" size={20} color="#FFFFFF" />
-            </TouchableOpacity>
+            {isRecording ? (
+              /* ─── Recording UI ─── */
+              <View style={styles.recordingContainer}>
+                <TouchableOpacity
+                  style={styles.recordCancelButton}
+                  onPress={() => stopRecording(false)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="trash-outline" size={22} color="#E53935" />
+                </TouchableOpacity>
+                <View style={styles.recordingInfo}>
+                  <Animated.View style={[styles.recordingDot, { transform: [{ scale: pulseAnim }] }]} />
+                  <Text style={[styles.recordingTime, { color: theme.colors.text }]}>
+                    {formatDuration(recordingDuration)}
+                  </Text>
+                  <Text style={[styles.recordingLabel, { color: theme.colors.textSecondary }]}>
+                    Запись...
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={[styles.sendButton, { backgroundColor: theme.colors.primary }]}
+                  onPress={() => stopRecording(true)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="send" size={20} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              /* ─── Normal input UI ─── */
+              <>
+                <TouchableOpacity
+                  style={[styles.attachButton, aiLimitReached && { opacity: 0.3 }]}
+                  onPress={handleAttach}
+                  activeOpacity={0.7}
+                  disabled={aiLimitReached}
+                >
+                  <Ionicons name="add-circle-outline" size={28} color={theme.colors.primary} />
+                </TouchableOpacity>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: theme.colors.background,
+                      color: theme.colors.text,
+                      borderColor: theme.colors.border,
+                    },
+                    aiLimitReached && { opacity: 0.5 },
+                  ]}
+                  value={text}
+                  onChangeText={setText}
+                  placeholder={aiLimitReached ? 'Лимит вопросов исчерпан' : 'Написать сообщение...'}
+                  placeholderTextColor={theme.colors.textSecondary}
+                  multiline
+                  maxLength={1000}
+                  returnKeyType="send"
+                  onSubmitEditing={handleSend}
+                  editable={!aiLimitReached}
+                />
+                {hasContent ? (
+                  <TouchableOpacity
+                    style={[styles.sendButton, { backgroundColor: theme.colors.primary }]}
+                    onPress={handleSend}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="send" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.micButton, { backgroundColor: theme.colors.primary + '15' }, aiLimitReached && { opacity: 0.3 }]}
+                    onPress={startRecording}
+                    activeOpacity={0.7}
+                    disabled={aiLimitReached}
+                  >
+                    <Ionicons name="mic" size={22} color={theme.colors.primary} />
+                  </TouchableOpacity>
+                )}
+              </>
+            )}
           </View>
         )}
     </KeyboardAvoidingView>
@@ -1053,6 +1258,72 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  micButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // Recording UI
+  recordingContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  recordCancelButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recordingInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  recordingDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#E53935',
+  },
+  recordingTime: {
+    fontSize: 17,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+  },
+  recordingLabel: {
+    fontSize: 14,
+  },
+  // Audio player in messages
+  audioPlayer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 12,
+    minWidth: 160,
+  },
+  audioWaveform: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    height: 24,
+  },
+  audioBar: {
+    width: 3,
+    borderRadius: 1.5,
+  },
+  audioDuration: {
+    fontSize: 12,
+    fontVariant: ['tabular-nums'],
   },
   // HW prompt card
   hwPromptCard: {
