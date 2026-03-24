@@ -1,13 +1,11 @@
-let Notifications: typeof import('expo-notifications') | null = null;
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 
-try {
-  Notifications = require('expo-notifications');
-} catch {
-  // expo-notifications not available (Expo Go / web)
-}
+const isExpoGo = Constants.appOwnership === 'expo';
 
 export function setupNotificationHandler() {
-  Notifications?.setNotificationHandler({
+  if (isExpoGo) return;
+  Notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowAlert: true,
       shouldPlaySound: true,
@@ -21,7 +19,7 @@ export function setupNotificationHandler() {
 export function addNotificationResponseListener(
   callback: (data: Record<string, unknown> | undefined) => void,
 ): { remove: () => void } | null {
-  if (!Notifications) return null;
+  if (isExpoGo) return null;
 
   const sub = Notifications.addNotificationResponseReceivedListener((response) => {
     callback(response.notification.request.content.data);
@@ -31,7 +29,7 @@ export function addNotificationResponseListener(
 }
 
 export async function sendTestPush(): Promise<boolean> {
-  if (!Notifications) return false;
+  if (isExpoGo) return false;
 
   const { status } = await Notifications.requestPermissionsAsync();
   if (status !== 'granted') return false;
