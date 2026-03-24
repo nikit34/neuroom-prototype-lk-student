@@ -1,9 +1,10 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   Modal,
   ScrollView,
 } from 'react-native';
@@ -28,7 +29,23 @@ const SAMPLE_BADGES: Record<AchievementRarity, CelebrationItem> = {
   legendary: { id: 'dev-legendary', icon: '👑', title: 'Легенда пунктуальности', description: '50 заданий вовремя подряд', rarity: 'legendary', category: 'early_streak' },
 };
 
+const TAP_COUNT = 5;
+const TAP_WINDOW_MS = 2000;
+
 export default function DevModeOverlay() {
+  const [visible, setVisible] = useState(false);
+  const tapTimestamps = useRef<number[]>([]);
+
+  const handleSecretTap = useCallback(() => {
+    const now = Date.now();
+    tapTimestamps.current = tapTimestamps.current.filter((t) => now - t < TAP_WINDOW_MS);
+    tapTimestamps.current.push(now);
+    if (tapTimestamps.current.length >= TAP_COUNT) {
+      tapTimestamps.current = [];
+      setVisible((v) => !v);
+    }
+  }, []);
+
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
   const [modalVisible, setModalVisible] = useState(false);
@@ -79,22 +96,29 @@ export default function DevModeOverlay() {
 
   return (
     <>
+      {/* Invisible 5-tap zone in top-right corner to toggle dev mode */}
+      <TouchableWithoutFeedback onPress={handleSecretTap}>
+        <View style={[styles.secretZone, { top: insets.top }]} />
+      </TouchableWithoutFeedback>
+
       {/* FAB Button */}
-      <Animated.View
-        style={[
-          styles.fabContainer,
-          fabStyle,
-          { bottom: insets.bottom + 90 },
-        ]}
-      >
-        <TouchableOpacity
-          style={[styles.fab, { backgroundColor: theme.colors.accent }]}
-          onPress={handleOpen}
-          activeOpacity={0.8}
+      {visible && (
+        <Animated.View
+          style={[
+            styles.fabContainer,
+            fabStyle,
+            { bottom: insets.bottom + 90 },
+          ]}
         >
-          <Text style={styles.fabIcon}>🔧</Text>
-        </TouchableOpacity>
-      </Animated.View>
+          <TouchableOpacity
+            style={[styles.fab, { backgroundColor: theme.colors.accent }]}
+            onPress={handleOpen}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.fabIcon}>🔧</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      )}
 
       {/* Dev Mode Modal */}
       <Modal
@@ -146,6 +170,13 @@ export default function DevModeOverlay() {
 }
 
 const styles = StyleSheet.create({
+  secretZone: {
+    position: 'absolute',
+    right: 0,
+    width: 44,
+    height: 44,
+    zIndex: 999,
+  },
   fabContainer: {
     position: 'absolute',
     right: 16,

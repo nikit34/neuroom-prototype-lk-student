@@ -82,7 +82,11 @@ function RootLayoutNav() {
   }, []);
 
   if (!isOnboardingCompleted) {
-    return <OnboardingScreen />;
+    return (
+      <GestureHandlerRootView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <OnboardingScreen />
+      </GestureHandlerRootView>
+    );
   }
 
   return (
