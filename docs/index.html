@@ -2,671 +2,138 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Neuroom — Выбери лучший экран</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f0f1a">
+<title>Neuroom — Опросы</title>
 <style>
-  :root {
-    --primary: #6366F1;
-    --primary-light: #EEF2FF;
-    --green: #16A34A;
-    --orange: #F59E0B;
-    --red: #EF4444;
-    --blue: #3B82F6;
-    --text: #1E293B;
-    --text2: #64748B;
-    --bg: #F8FAFC;
-    --surface: #FFFFFF;
-    --border: #E2E8F0;
-    --radius: 16px;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.5;
-    overflow-x: hidden;
-  }
-
-  /* ── Tournament screens ── */
-  .battle-screen {
-    display: none;
-    flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #0f0f1a;
+    color: #e8e8f0;
     min-height: 100dvh;
-    padding: 20px 16px;
-  }
-  .battle-screen.active { display: flex; }
-
-  .battle-header {
-    text-align: center;
-    margin-bottom: 12px;
-    position: relative;
-  }
-  .back-btn {
-    position: absolute;
-    left: 0;
-    top: 0;
-    background: none;
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    padding: 6px 14px;
-    font-size: 14px;
-    color: var(--text2);
-    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 4px;
-    transition: all 0.15s;
+    justify-content: center;
+    padding: 24px;
+    padding-top: calc(env(safe-area-inset-top, 0) + 24px);
+    padding-bottom: calc(env(safe-area-inset-bottom, 0) + 24px);
   }
-  .back-btn:active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
-  .battle-round {
-    display: inline-block;
-    background: var(--primary);
-    color: white;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 4px 14px;
-    border-radius: 20px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    margin-bottom: 8px;
+  .hub {
+    max-width: 400px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
   }
-  .battle-title {
-    font-size: 22px;
+  .hub-icon {
+    font-size: 56px;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .hub-title {
+    font-size: 28px;
     font-weight: 800;
+    background: linear-gradient(135deg, #e8e8f0, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hub-sub {
+    font-size: 15px;
+    color: #8888a0;
+    line-height: 1.5;
+  }
+  .cards {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #1a1a2e;
+    border: 2px solid #2a2a40;
+    border-radius: 18px;
+    padding: 20px;
+    text-decoration: none;
+    color: #e8e8f0;
+    transition: all .2s;
+  }
+  .card:active {
+    transform: scale(.98);
+    border-color: #7c5cfc;
+    background: rgba(124,92,252,.08);
+  }
+  @media (hover: hover) {
+    .card:hover {
+      border-color: #7c5cfc;
+      background: rgba(124,92,252,.08);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(124,92,252,.2);
+    }
+  }
+  .card-icon {
+    font-size: 40px;
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(124,92,252,.12);
+    border-radius: 14px;
+  }
+  .card-body { text-align: left; }
+  .card-title {
+    font-size: 17px;
+    font-weight: 700;
     margin-bottom: 4px;
   }
-  .battle-subtitle {
-    font-size: 14px;
-    color: var(--text2);
+  .card-desc {
+    font-size: 13px;
+    color: #8888a0;
+    line-height: 1.4;
   }
-
-  .battle-arena {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    position: relative;
-    max-width: 700px;
-    margin: 0 auto;
-    width: 100%;
-  }
-
-  .battle-card {
-    flex: 1;
-    background: var(--surface);
-    border: 2.5px solid var(--border);
-    border-radius: 18px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    position: relative;
-    max-width: 380px;
-  }
-  .battle-card:active {
-    transform: scale(0.97);
-  }
-  .battle-card.winner {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2), 0 8px 24px rgba(99, 102, 241, 0.15);
-    transform: scale(1.03);
-  }
-  .battle-card.loser {
-    opacity: 0.35;
-    transform: scale(0.95);
-    pointer-events: none;
-  }
-  .battle-card .card-label {
-    background: var(--primary);
-    padding: 14px 14px;
-    font-weight: 700;
-    font-size: 16px;
-    color: white;
-    text-align: center;
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-  }
-  .battle-card .card-img {
-    padding: 4px;
-    background: #FAFBFC;
-    display: flex;
-    justify-content: center;
-  }
-  .battle-card .card-img img {
-    width: 100%;
-    max-width: none;
-    border-radius: 16px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-  }
-
-  .battle-card .winner-badge {
-    display: none;
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: var(--primary);
-    color: white;
-    font-size: 18px;
-    font-weight: 700;
-    align-items: center;
-    justify-content: center;
-    z-index: 2;
-  }
-  .battle-card.winner .winner-badge { display: flex; }
-
-  .vs-badge {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--text);
-    color: white;
-    font-size: 16px;
-    font-weight: 900;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 3;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  }
-
-  .battle-progress {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 16px;
-    padding-bottom: 8px;
-  }
-  .battle-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 5px;
-    background: var(--border);
-    transition: all 0.3s;
-  }
-  .battle-dot.done { background: var(--primary); }
-  .battle-dot.current { background: var(--primary); width: 28px; }
-
-  /* ── Survey (after tournament) ── */
-  #survey-section { display: none; }
-  #survey-section.active { display: block; }
-
-  .survey-hero {
-    background: linear-gradient(135deg, var(--primary), #818CF8);
-    color: white;
-    padding: 32px 20px 24px;
-    text-align: center;
-  }
-  .survey-hero h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
-  .survey-hero p { font-size: 14px; opacity: 0.9; max-width: 420px; margin: 0 auto; }
-
-  .survey-winner-card {
-    max-width: 200px;
-    margin: 16px auto 0;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-  }
-  .survey-winner-card img { display: block; width: 100%; }
-
-  .container {
-    max-width: 700px;
-    margin: 0 auto;
-    padding: 24px 16px 80px;
-  }
-
-  .section {
-    background: var(--surface);
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    padding: 24px;
-    margin-bottom: 20px;
-  }
-  .section-num {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: var(--primary);
-    color: white;
-    font-size: 14px;
-    font-weight: 700;
-    margin-bottom: 12px;
-  }
-  .section h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-  .section .hint { font-size: 14px; color: var(--text2); margin-bottom: 20px; }
-
-  .options { display: flex; flex-direction: column; gap: 10px; }
-  .option-label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 14px;
-    background: var(--bg);
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.15s;
-    font-size: 15px;
-  }
-  .option-label:hover { border-color: var(--primary); background: var(--primary-light); }
-  .option-label input { display: none; }
-  .option-label .mark {
-    width: 22px; height: 22px;
-    border: 2px solid var(--border);
-    border-radius: 50%;
+  .card-arrow {
+    margin-left: auto;
+    font-size: 20px;
+    color: #8888a0;
     flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s;
-  }
-  .option-label .mark.square { border-radius: 6px; }
-  .option-label input:checked ~ .mark { border-color: var(--primary); background: var(--primary); }
-  .option-label input:checked ~ .mark::after { content: ''; width: 8px; height: 8px; background: white; border-radius: 50%; }
-  .option-label input:checked ~ .mark.square::after { content: '\2713'; color: white; font-size: 13px; font-weight: 700; background: none; width: auto; height: auto; border-radius: 0; }
-  .option-label input:checked ~ .text { font-weight: 600; }
-
-  textarea {
-    width: 100%; min-height: 80px;
-    border: 1.5px solid var(--border); border-radius: 12px;
-    padding: 12px 14px; font-size: 15px; font-family: inherit;
-    resize: vertical; background: var(--bg); transition: border-color 0.15s;
-  }
-  textarea:focus { outline: none; border-color: var(--primary); }
-
-  .range-wrap {
-    display: flex; align-items: center; gap: 14px; padding: 8px 0;
-  }
-  .range-wrap input[type="range"] { flex: 1; accent-color: var(--primary); height: 6px; }
-  .range-val { font-size: 20px; font-weight: 800; color: var(--primary); width: 36px; text-align: center; }
-
-  .submit-btn {
-    display: block; width: 100%; padding: 16px;
-    background: var(--primary); color: white; border: none;
-    border-radius: var(--radius); font-size: 17px; font-weight: 700;
-    cursor: pointer; transition: opacity 0.15s;
-  }
-  .submit-btn:hover { opacity: 0.9; }
-  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  .thank-you { display: none; text-align: center; padding: 60px 20px; }
-  .thank-you.visible { display: block; }
-  .thank-you .emoji { font-size: 64px; margin-bottom: 16px; }
-  .thank-you h2 { font-size: 24px; margin-bottom: 8px; }
-  .thank-you p { color: var(--text2); font-size: 16px; }
-
-  #survey-form.hidden { display: none; }
-
-
-  /* ── Mobile ── */
-  @media (max-width: 520px) {
-    .battle-screen { padding: 16px 10px; }
-    .battle-title { font-size: 18px; }
-    .battle-subtitle { font-size: 13px; }
-    .battle-arena { flex-direction: row; gap: 8px; }
-    .battle-card .card-img { padding: 3px; }
-    .battle-card .card-img img { max-width: 100%; border-radius: 12px; }
-    .battle-card .card-label { padding: 8px 10px; font-size: 13px; }
-    .vs-badge { width: 40px; height: 40px; font-size: 14px; }
-    .back-btn { padding: 5px 10px; font-size: 13px; border-radius: 10px; }
-    .battle-header { padding-top: 36px; }
-
-    .survey-hero { padding: 24px 16px 20px; }
-    .survey-hero h2 { font-size: 18px; }
-    .survey-winner-card { max-width: 140px; }
-
-    .container { padding: 16px 10px 60px; }
-    .section { padding: 16px 14px; margin-bottom: 14px; }
-    .section h2 { font-size: 16px; }
-    .section .hint { font-size: 13px; margin-bottom: 14px; }
-    .option-label { padding: 11px 12px; font-size: 14px; gap: 8px; min-height: 44px; }
-    .option-label:hover { border-color: var(--border); background: var(--bg); }
-    .option-label:active { border-color: var(--primary); background: var(--primary-light); }
-    textarea { font-size: 14px; padding: 10px 12px; }
-    .range-wrap { flex-wrap: wrap; gap: 8px; justify-content: center; }
-    .range-wrap input[type="range"] { flex: 1 1 100%; order: 1; }
-    .range-wrap > span:first-child { order: 2; font-size: 11px; }
-    .range-wrap > span:nth-child(3) { order: 3; font-size: 11px; margin-left: auto; }
-    .range-val { order: 0; width: 100%; text-align: center; font-size: 28px; }
-    .submit-btn { padding: 14px; font-size: 16px; }
-    .thank-you { padding: 40px 16px; }
-    .thank-you .emoji { font-size: 48px; }
-    .thank-you h2 { font-size: 20px; }
   }
 </style>
 </head>
 <body>
+<div class="hub">
+  <div class="hub-icon">&#128640;</div>
+  <div class="hub-title">Neuroom Beta</div>
+  <div class="hub-sub">Помоги нам сделать приложение лучше</div>
 
-<!-- ════════ TOURNAMENT ════════ -->
+  <div class="cards">
+    <a href="ux-survey/" class="card">
+      <div class="card-icon">&#128270;</div>
+      <div class="card-body">
+        <div class="card-title">UX-опрос</div>
+        <div class="card-desc">Расскажи, как было пользоваться прототипом. 11 вопросов, 3-4 минуты.</div>
+      </div>
+      <div class="card-arrow">&#8250;</div>
+    </a>
 
-<!-- Battle 1: Mascot vs Achievement -->
-<div class="battle-screen active" id="battle-1">
-  <div class="battle-header">
-    <div class="battle-round">Полуфинал 1 из 2</div>
-    <div class="battle-title">Какой экран нравится больше?</div>
-    <div class="battle-subtitle">Нажми на тот, который выберешь</div>
-  </div>
-  <div class="battle-arena">
-    <div class="battle-card" data-key="mascot" onclick="pickWinner(1, this)">
-      <div class="winner-badge">&#10003;</div>
-      <div class="card-label">Питомец</div>
-      <div class="card-img"><img src="screen-mascot.png" alt="Питомец"></div>
-    </div>
-    <div class="vs-badge">VS</div>
-    <div class="battle-card" data-key="achievement" onclick="pickWinner(1, this)">
-      <div class="winner-badge">&#10003;</div>
-      <div class="card-label">Ачивки</div>
-      <div class="card-img"><img src="screen-achievement.png" alt="Ачивки"></div>
-    </div>
-  </div>
-  <div class="battle-progress">
-    <div class="battle-dot current"></div>
-    <div class="battle-dot"></div>
-    <div class="battle-dot"></div>
+    <a href="design-battle/" class="card">
+      <div class="card-icon">&#127912;</div>
+      <div class="card-body">
+        <div class="card-title">Битва экранов</div>
+        <div class="card-desc">Выбери лучший дизайн из двух вариантов. Быстро и весело.</div>
+      </div>
+      <div class="card-arrow">&#8250;</div>
+    </a>
   </div>
 </div>
-
-<!-- Battle 2: Dashboard vs Minimal -->
-<div class="battle-screen" id="battle-2">
-  <div class="battle-header">
-    <button class="back-btn" onclick="goBack(2)">&larr; Назад</button>
-    <div class="battle-round">Полуфинал 2 из 2</div>
-    <div class="battle-title">Какой экран нравится больше?</div>
-    <div class="battle-subtitle">Нажми на тот, который выберешь</div>
-  </div>
-  <div class="battle-arena">
-    <div class="battle-card" data-key="dashboard" onclick="pickWinner(2, this)">
-      <div class="winner-badge">&#10003;</div>
-      <div class="card-label">Статистика</div>
-      <div class="card-img"><img src="screen-dashboard.png" alt="Статистика"></div>
-    </div>
-    <div class="vs-badge">VS</div>
-    <div class="battle-card" data-key="minimal" onclick="pickWinner(2, this)">
-      <div class="winner-badge">&#10003;</div>
-      <div class="card-label">Подсказки</div>
-      <div class="card-img"><img src="screen-minimal.png" alt="Подсказки"></div>
-    </div>
-  </div>
-  <div class="battle-progress">
-    <div class="battle-dot done"></div>
-    <div class="battle-dot current"></div>
-    <div class="battle-dot"></div>
-  </div>
-</div>
-
-<!-- Battle 3: Final -->
-<div class="battle-screen" id="battle-final">
-  <div class="battle-header">
-    <button class="back-btn" onclick="goBack('final')">&larr; Назад</button>
-    <div class="battle-round" style="background:#F59E0B">Финал</div>
-    <div class="battle-title">Выбери лучший!</div>
-    <div class="battle-subtitle">Победитель станет главным экраном</div>
-  </div>
-  <div class="battle-arena">
-    <div class="battle-card" id="finalist-left" onclick="pickWinner('final', this)">
-      <div class="winner-badge">&#10003;</div>
-      <div class="card-label" id="finalist-left-label"></div>
-      <div class="card-img"><img id="finalist-left-img" src="" alt="Финалист 1"></div>
-    </div>
-    <div class="vs-badge" style="background:var(--orange)">VS</div>
-    <div class="battle-card" id="finalist-right" onclick="pickWinner('final', this)">
-      <div class="winner-badge">&#10003;</div>
-      <div class="card-label" id="finalist-right-label"></div>
-      <div class="card-img"><img id="finalist-right-img" src="" alt="Финалист 2"></div>
-    </div>
-  </div>
-  <div class="battle-progress">
-    <div class="battle-dot done"></div>
-    <div class="battle-dot done"></div>
-    <div class="battle-dot current"></div>
-  </div>
-</div>
-
-<!-- ════════ SURVEY ════════ -->
-
-<div id="survey-section">
-  <div class="survey-hero">
-    <h2 id="survey-winner-text"></h2>
-    <p>Теперь ответь на пару вопросов — это поможет нам сделать приложение лучше</p>
-    <div class="survey-winner-card">
-      <img id="survey-winner-img" src="" alt="Победитель">
-    </div>
-  </div>
-
-  <div class="container">
-    <form id="survey-form">
-      <input type="hidden" name="variant" id="variant-input">
-      <input type="hidden" name="semi1" id="semi1-input">
-      <input type="hidden" name="semi2" id="semi2-input">
-
-      <div class="section">
-        <div class="section-num">1</div>
-        <h2>Почему ты выбрал(а) именно этот вариант?</h2>
-        <p class="hint">Напиши в свободной форме, что именно понравилось</p>
-        <textarea name="variant_reason" placeholder="Например: нравится видеть оценки сразу / прикольный питомец / не отвлекает ничего лишнего..."></textarea>
-      </div>
-
-      <div class="section">
-        <div class="section-num">2</div>
-        <h2>Какую информацию ты хочешь видеть первой, открывая приложение?</h2>
-        <p class="hint">Можно выбрать несколько</p>
-        <div class="options">
-          <label class="option-label"><input type="checkbox" name="first_info" value="deadlines"><span class="mark square"></span><span class="text">Ближайшие дедлайны по заданиям</span></label>
-          <label class="option-label"><input type="checkbox" name="first_info" value="grades"><span class="mark square"></span><span class="text">Мои оценки и средний балл</span></label>
-          <label class="option-label"><input type="checkbox" name="first_info" value="overdue"><span class="mark square"></span><span class="text">Просроченные задания (долги)</span></label>
-          <label class="option-label"><input type="checkbox" name="first_info" value="review_status"><span class="mark square"></span><span class="text">Статус проверки моих работ</span></label>
-          <label class="option-label"><input type="checkbox" name="first_info" value="achievements"><span class="mark square"></span><span class="text">Ачивки и прогресс</span></label>
-          <label class="option-label"><input type="checkbox" name="first_info" value="mascot"><span class="mark square"></span><span class="text">Питомец и его состояние</span></label>
-          <label class="option-label"><input type="checkbox" name="first_info" value="notifications"><span class="mark square"></span><span class="text">Уведомления от учителя</span></label>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-num">3</div>
-        <h2>Что больше всего мотивирует тебя делать задания вовремя?</h2>
-        <p class="hint">Выбери один вариант</p>
-        <div class="options">
-          <label class="option-label"><input type="radio" name="motivation" value="grades"><span class="mark"></span><span class="text">Хорошие оценки и средний балл</span></label>
-          <label class="option-label"><input type="radio" name="motivation" value="achievements"><span class="mark"></span><span class="text">Получение ачивок и наград</span></label>
-          <label class="option-label"><input type="radio" name="motivation" value="mascot"><span class="mark"></span><span class="text">Забота о питомце (он грустит, если не делать ДЗ)</span></label>
-          <label class="option-label"><input type="radio" name="motivation" value="no_debts"><span class="mark"></span><span class="text">Не хочу накапливать долги</span></label>
-          <label class="option-label"><input type="radio" name="motivation" value="competition"><span class="mark"></span><span class="text">Соревнование с одноклассниками (рейтинг)</span></label>
-          <label class="option-label"><input type="radio" name="motivation" value="ai_help"><span class="mark"></span><span class="text">Возможность спросить AI-репетитора, если не понял тему</span></label>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-num">4</div>
-        <h2>Как часто ты бы открывал(а) приложение для учёбы?</h2>
-        <div class="options">
-          <label class="option-label"><input type="radio" name="frequency" value="multiple_daily"><span class="mark"></span><span class="text">Несколько раз в день</span></label>
-          <label class="option-label"><input type="radio" name="frequency" value="once_daily"><span class="mark"></span><span class="text">Раз в день</span></label>
-          <label class="option-label"><input type="radio" name="frequency" value="few_weekly"><span class="mark"></span><span class="text">Несколько раз в неделю</span></label>
-          <label class="option-label"><input type="radio" name="frequency" value="only_deadlines"><span class="mark"></span><span class="text">Только когда горит дедлайн</span></label>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-num">5</div>
-        <h2>Если бы в приложении был AI-репетитор, для чего бы ты его использовал(а)?</h2>
-        <p class="hint">Можно выбрать несколько</p>
-        <div class="options">
-          <label class="option-label"><input type="checkbox" name="ai_use" value="explain_topic"><span class="mark square"></span><span class="text">Объяснить тему, которую не понял на уроке</span></label>
-          <label class="option-label"><input type="checkbox" name="ai_use" value="check_solution"><span class="mark square"></span><span class="text">Проверить моё решение перед сдачей</span></label>
-          <label class="option-label"><input type="checkbox" name="ai_use" value="hint"><span class="mark square"></span><span class="text">Получить подсказку, когда застрял</span></label>
-          <label class="option-label"><input type="checkbox" name="ai_use" value="exam_prep"><span class="mark square"></span><span class="text">Подготовиться к контрольной</span></label>
-          <label class="option-label"><input type="checkbox" name="ai_use" value="not_interested"><span class="mark square"></span><span class="text">Не стал бы использовать</span></label>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-num">6</div>
-        <h2>Чего не хватает? Что бы ты добавил(а) в приложение?</h2>
-        <p class="hint">Любые мысли, пожелания, идеи — всё полезно!</p>
-        <textarea name="missing" placeholder="Например: хочу тёмную тему / уведомления в телеграм / чат с одноклассниками..."></textarea>
-      </div>
-
-      <div class="section">
-        <div class="section-num">7</div>
-        <h2>Насколько для тебя важны игровые элементы (ачивки, питомец, рейтинг)?</h2>
-        <div class="range-wrap">
-          <span style="font-size:13px;color:var(--text2)">Не важно</span>
-          <input type="range" name="gamification_importance" min="1" max="10" value="5" oninput="this.parentNode.querySelector('.range-val').textContent=this.value">
-          <span style="font-size:13px;color:var(--text2)">Очень важно</span>
-          <span class="range-val">5</span>
-        </div>
-      </div>
-
-      <button type="submit" class="submit-btn">Отправить ответы</button>
-    </form>
-
-    <div class="thank-you" id="thank-you">
-      <div class="emoji">🎉</div>
-      <h2>Спасибо за ответы!</h2>
-      <p>Твоё мнение очень поможет сделать Neuroom лучше</p>
-    </div>
-  </div>
-</div>
-
-<script>
-  var GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzYOvRaFsx4I6Aa5PhSEfpDRDOTYYwDPO9jfW_G5K2Cae9s8WW5w0bbT2-3Yf-HX0CzhA/exec';
-
-  var VARIANTS = {
-    mascot:      { label: 'Питомец',     img: 'screen-mascot.png' },
-    achievement: { label: 'Ачивки',      img: 'screen-achievement.png' },
-    dashboard:   { label: 'Статистика',  img: 'screen-dashboard.png' },
-    minimal:     { label: 'Подсказки',   img: 'screen-minimal.png' },
-  };
-
-  var results = { semi1: null, semi2: null, final: null };
-  var locked = false;
-
-
-  function resetBattle(id) {
-    var screen = document.getElementById(id);
-    screen.querySelectorAll('.battle-card').forEach(function(c) {
-      c.classList.remove('winner', 'loser');
-    });
-  }
-
-  function goBack(from) {
-    if (locked) return;
-    if (from === 2) {
-      results.semi1 = null;
-      resetBattle('battle-1');
-      document.getElementById('battle-2').classList.remove('active');
-      document.getElementById('battle-1').classList.add('active');
-    } else if (from === 'final') {
-      results.semi2 = null;
-      resetBattle('battle-2');
-      document.getElementById('battle-final').classList.remove('active');
-      document.getElementById('battle-2').classList.add('active');
-    }
-  }
-
-  function pickWinner(round, card) {
-    if (locked) return;
-    locked = true;
-
-    var key = card.dataset.key;
-    var arena = card.parentNode;
-    var cards = arena.querySelectorAll('.battle-card');
-
-    cards.forEach(function(c) {
-      if (c === card) c.classList.add('winner');
-      else c.classList.add('loser');
-    });
-
-    if (round === 1) results.semi1 = key;
-    else if (round === 2) results.semi2 = key;
-    else results.final = key;
-
-    setTimeout(function() {
-      locked = false;
-      if (round === 1) showBattle2();
-      else if (round === 2) showFinal();
-      else showSurvey();
-    }, 700);
-  }
-
-  function showBattle2() {
-    document.getElementById('battle-1').classList.remove('active');
-    document.getElementById('battle-2').classList.add('active');
-  }
-
-  function showFinal() {
-    var left = VARIANTS[results.semi1];
-    var right = VARIANTS[results.semi2];
-
-    document.getElementById('finalist-left').dataset.key = results.semi1;
-    document.getElementById('finalist-left-label').textContent = left.label;
-    document.getElementById('finalist-left-img').src = left.img;
-
-    document.getElementById('finalist-right').dataset.key = results.semi2;
-    document.getElementById('finalist-right-label').textContent = right.label;
-    document.getElementById('finalist-right-img').src = right.img;
-
-    document.getElementById('battle-2').classList.remove('active');
-    document.getElementById('battle-final').classList.add('active');
-  }
-
-  function showSurvey() {
-    document.getElementById('battle-final').classList.remove('active');
-
-    var w = VARIANTS[results.final];
-    document.getElementById('survey-winner-text').textContent = 'Победитель: ' + w.label + '!';
-    document.getElementById('survey-winner-img').src = w.img;
-    document.getElementById('variant-input').value = results.final;
-    document.getElementById('semi1-input').value = results.semi1;
-    document.getElementById('semi2-input').value = results.semi2;
-
-    document.getElementById('survey-section').classList.add('active');
-    window.scrollTo(0, 0);
-  }
-
-  // Submit
-  document.getElementById('survey-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    var fd = new FormData(this);
-    var data = {
-      variant: fd.get('variant'),
-      semi1_winner: fd.get('semi1'),
-      semi2_winner: fd.get('semi2'),
-      variant_reason: fd.get('variant_reason'),
-      first_info: fd.getAll('first_info').join(', '),
-      motivation: fd.get('motivation'),
-      frequency: fd.get('frequency'),
-      ai_use: fd.getAll('ai_use').join(', '),
-      missing: fd.get('missing'),
-      gamification_importance: fd.get('gamification_importance'),
-      timestamp: new Date().toISOString(),
-    };
-
-    var btn = this.querySelector('.submit-btn');
-    btn.disabled = true;
-    btn.textContent = 'Отправляем...';
-
-    fetch(GOOGLE_SHEET_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    }).then(function() {
-      document.getElementById('survey-form').classList.add('hidden');
-      document.getElementById('thank-you').classList.add('visible');
-    }).catch(function() {
-      document.getElementById('survey-form').classList.add('hidden');
-      document.getElementById('thank-you').classList.add('visible');
-    });
-  });
-</script>
 </body>
 </html>
