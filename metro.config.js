@@ -16,7 +16,7 @@ if (!config.resolver.assetExts.includes('riv')) {
 // Block lottie-react-native on web — it uses import.meta which Metro can't handle
 const originalResolveRequest = config.resolver.resolveRequest;
 config.resolver.resolveRequest = (context, moduleName, platform) => {
-  if (platform === 'web' && (moduleName === 'lottie-react-native' || moduleName === 'rive-react-native')) {
+  if (platform === 'web' && moduleName === 'lottie-react-native') {
     return {
       type: 'empty',
     };

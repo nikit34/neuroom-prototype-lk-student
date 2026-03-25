@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { noopStorage } from './devStorage';
 import { ChatMessage, ChatAttachment } from '../types';
 import { mockTeachers, mockStudent } from '../data/mockData';
 import { useStudentStore } from './studentStore';
@@ -486,6 +487,6 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   setMessages: (messages) => set({ messages }),
 }), {
   name: 'neuroom-chat',
-  storage: createJSONStorage(() => AsyncStorage),
+  storage: createJSONStorage(() => __DEV__ ? noopStorage : AsyncStorage),
   partialize: (state) => ({ chatOnboardingStep: state.chatOnboardingStep }),
 }));

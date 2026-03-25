@@ -4,16 +4,18 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  Pressable,
   Animated,
   ScrollView,
   TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useStudentStore } from '@/src/stores/studentStore';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
-import { useChatStore } from '@/src/stores/chatStore';
+import { useChatStore, AI_TUTOR_ID } from '@/src/stores/chatStore';
 import { mockClassStudents, StudentListItem } from '@/src/data/mockData';
 import Avatar from '@/src/components/ui/Avatar';
 
@@ -24,6 +26,7 @@ export default function OnboardingScreen() {
   const student = useStudentStore((s) => s.student);
   const selectStudent = useStudentStore((s) => s.selectStudent);
   const completeOnboarding = useOnboardingStore((s) => s.complete);
+  const resetChatOnboarding = useChatStore((s) => s.resetChatOnboarding);
   const initChatOnboarding = useChatStore((s) => s.initChatOnboarding);
 
   const [step, setStep] = useState(0);
@@ -85,8 +88,10 @@ export default function OnboardingScreen() {
     if (step < TOTAL_STEPS - 1) {
       animateTransition(step + 1);
     } else {
+      resetChatOnboarding();
       initChatOnboarding();
       completeOnboarding();
+      router.replace(`/chat/${AI_TUTOR_ID}` as any);
     }
   };
 
@@ -300,6 +305,7 @@ export default function OnboardingScreen() {
           style={styles.scrollArea}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           <Animated.View style={{ opacity: fadeAnim }}>
             {showManualForm ? renderManualForm() : renderStep()}
@@ -308,60 +314,70 @@ export default function OnboardingScreen() {
 
         {/* Bottom buttons */}
         <View style={styles.bottomBar}>
-          {step > 0 || showManualForm ? (
-            <TouchableOpacity
-              style={[
-                styles.backBtn,
-                {
-                  borderColor: theme.colors.border,
-                },
-              ]}
-              onPress={handleBack}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.backBtnText, { color: theme.colors.textSecondary }]}>
-                Назад
-              </Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.backBtn} />
-          )}
+        {step > 0 || showManualForm ? (
+          <Pressable
+            style={({ pressed }) => [
+              styles.backBtn,
+              {
+                borderColor: theme.colors.border,
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
+            onPress={handleBack}
+            pressRetentionOffset={50}
+            hitSlop={8}
+          >
+            <Text style={[styles.backBtnText, { color: theme.colors.textSecondary }]}>
+              Назад
+            </Text>
+          </Pressable>
+        ) : (
+          <View style={styles.backBtn} />
+        )}
 
-          {showManualForm ? (
-            <TouchableOpacity
-              onPress={handleManualRegister}
-              activeOpacity={canProceed ? 0.8 : 1}
-              disabled={!canProceed}
+        {showManualForm ? (
+          <Pressable
+            onPress={handleManualRegister}
+            disabled={!canProceed}
+            pressRetentionOffset={50}
+            hitSlop={8}
+            style={({ pressed }) => ({
+              opacity: pressed && canProceed ? 0.8 : 1,
+            })}
+          >
+            <LinearGradient
+              colors={canProceed ? theme.colors.gradient : ['#CCCCCC', '#AAAAAA']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.nextBtn}
             >
-              <LinearGradient
-                colors={canProceed ? theme.colors.gradient : ['#CCCCCC', '#AAAAAA']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.nextBtn}
-              >
-                <Text style={styles.nextBtnText}>
-                  Завершить регистрацию
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              onPress={handleNext}
-              activeOpacity={canProceed ? 0.8 : 1}
-              disabled={!canProceed}
+              <Text style={styles.nextBtnText}>
+                Завершить регистрацию
+              </Text>
+            </LinearGradient>
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={handleNext}
+            disabled={!canProceed}
+            pressRetentionOffset={50}
+            hitSlop={8}
+            style={({ pressed }) => ({
+              opacity: pressed && canProceed ? 0.8 : 1,
+            })}
+          >
+            <LinearGradient
+              colors={canProceed ? theme.colors.gradient : ['#CCCCCC', '#AAAAAA']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.nextBtn}
             >
-              <LinearGradient
-                colors={canProceed ? theme.colors.gradient : ['#CCCCCC', '#AAAAAA']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.nextBtn}
-              >
-                <Text style={styles.nextBtnText}>
-                  {step === TOTAL_STEPS - 1 ? 'Начать' : 'Далее'}
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          )}
+              <Text style={styles.nextBtnText}>
+                {step === TOTAL_STEPS - 1 ? 'Начать' : 'Далее'}
+              </Text>
+            </LinearGradient>
+          </Pressable>
+        )}
         </View>
       </View>
     </SafeAreaView>

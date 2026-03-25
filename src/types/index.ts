@@ -325,24 +325,3 @@ export interface Appeal {
   errorLabel?: string;
 }
 
-// ─── Notifications ──────────────────────────────────────────────
-export type NotificationType =
-  | 'homework_new'
-  | 'homework_graded'
-  | 'homework_mark'
-  | 'chat_reply'
-  | 'duel_challenge'
-  | 'duel_result'
-  | 'achievement';
-
-export interface AppNotification {
-  id: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  icon: string;
-  isRead: boolean;
-  createdAt: Date;
-  /** Navigation target */
-  route?: string;
-}

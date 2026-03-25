@@ -18,7 +18,14 @@ import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import { Audio } from 'expo-av';
+import {
+  useAudioRecorder,
+  useAudioRecorderState,
+  createAudioPlayer,
+  requestRecordingPermissionsAsync,
+  setAudioModeAsync,
+  RecordingPresets,
+} from 'expo-audio';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAgeStyles } from '@/src/hooks/useAgeStyles';
@@ -299,7 +306,8 @@ export default function ChatScreen() {
   // ─── Voice recording ───
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
-  const recordingRef = useRef<Audio.Recording | null>(null);
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recorderState = useAudioRecorderState(recorder, 500);
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
@@ -320,19 +328,17 @@ export default function ChatScreen() {
 
   const startRecording = useCallback(async () => {
     try {
-      const permission = await Audio.requestPermissionsAsync();
+      const permission = await requestRecordingPermissionsAsync();
       if (!permission.granted) {
         Alert.alert('Микрофон', 'Для голосового ввода необходим доступ к микрофону.');
         return;
       }
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
+      await setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true,
       });
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY,
-      );
-      recordingRef.current = recording;
+      await recorder.prepareToRecordAsync();
+      recorder.record();
       setIsRecording(true);
       setRecordingDuration(0);
       recordingTimerRef.current = setInterval(() => {
@@ -342,21 +348,20 @@ export default function ChatScreen() {
       console.error('Failed to start recording', err);
       Alert.alert('Ошибка', 'Не удалось начать запись.');
     }
-  }, []);
+  }, [recorder]);
 
   const stopRecording = useCallback(async (send: boolean) => {
-    if (!recordingRef.current) return;
+    if (!recorderState.isRecording) return;
     if (recordingTimerRef.current) {
       clearInterval(recordingTimerRef.current);
       recordingTimerRef.current = null;
     }
     try {
-      await recordingRef.current.stopAndUnloadAsync();
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: false });
+      await recorder.stop();
+      await setAudioModeAsync({ allowsRecording: false });
       if (send) {
-        const uri = recordingRef.current.getURI();
-        const status = await recordingRef.current.getStatusAsync();
-        const durationSec = Math.round((status.durationMillis ?? 0) / 1000);
+        const uri = recorder.uri;
+        const durationSec = Math.round(recorder.currentTime);
         if (uri) {
           const voiceAttachment: ChatAttachment = {
             uri,
@@ -370,50 +375,48 @@ export default function ChatScreen() {
     } catch (err) {
       console.error('Failed to stop recording', err);
     }
-    recordingRef.current = null;
     setIsRecording(false);
     setRecordingDuration(0);
-  }, [teacherId, sendMessage]);
+  }, [recorder, recorderState.isRecording, teacherId, sendMessage]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (recordingRef.current) {
-        recordingRef.current.stopAndUnloadAsync().catch(() => {});
+      if (recorder.isRecording) {
+        recorder.stop().catch(() => {});
       }
       if (recordingTimerRef.current) {
         clearInterval(recordingTimerRef.current);
       }
     };
-  }, []);
+  }, [recorder]);
 
   // ─── Audio playback ───
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
-  const soundRef = useRef<Audio.Sound | null>(null);
+  const playerRef = useRef<ReturnType<typeof createAudioPlayer> | null>(null);
 
   const playAudio = useCallback(async (uri: string, messageId: string) => {
     try {
       // Stop current
-      if (soundRef.current) {
-        await soundRef.current.stopAsync();
-        await soundRef.current.unloadAsync();
-        soundRef.current = null;
+      if (playerRef.current) {
+        playerRef.current.remove();
+        playerRef.current = null;
         if (playingAudioId === messageId) {
           setPlayingAudioId(null);
           return;
         }
       }
-      const { sound } = await Audio.Sound.createAsync({ uri });
-      soundRef.current = sound;
+      const player = createAudioPlayer(uri);
+      playerRef.current = player;
       setPlayingAudioId(messageId);
-      sound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) {
+      player.addListener('playbackStatusUpdate', (status) => {
+        if (!status.playing && status.currentTime >= status.duration && status.duration > 0) {
           setPlayingAudioId(null);
-          sound.unloadAsync();
-          soundRef.current = null;
+          player.remove();
+          playerRef.current = null;
         }
       });
-      await sound.playAsync();
+      player.play();
     } catch (err) {
       console.error('Failed to play audio', err);
       setPlayingAudioId(null);
@@ -422,8 +425,8 @@ export default function ChatScreen() {
 
   useEffect(() => {
     return () => {
-      if (soundRef.current) {
-        soundRef.current.unloadAsync().catch(() => {});
+      if (playerRef.current) {
+        playerRef.current.remove();
       }
     };
   }, []);

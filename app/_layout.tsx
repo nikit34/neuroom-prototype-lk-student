@@ -1,20 +1,15 @@
 import { useFonts } from 'expo-font';
 import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, useRef } from 'react';
-import { View } from 'react-native';
+import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
-import { useChatStore, AI_TUTOR_ID } from '@/src/stores/chatStore';
-import OnboardingScreen from './onboarding';
+import { useChatStore } from '@/src/stores/chatStore';
 import DevModeOverlay from '@/src/components/dev/DevModeOverlay';
 import CelebrationOverlay from '@/src/components/CelebrationOverlay';
 import LootChestOverlay from '@/src/components/rewards/LootChestOverlay';
-import { setupNotificationHandler, addNotificationResponseListener } from '@/src/services/notificationService';
-
-setupNotificationHandler();
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -51,43 +46,22 @@ function RootLayoutNav() {
   const theme = useAppTheme();
   const isOnboardingCompleted = useOnboardingStore((s) => s.isCompleted);
   const chatOnboardingStep = useChatStore((s) => s.chatOnboardingStep);
-  const responseListener = useRef<{ remove: () => void } | null>(null);
-  const wasOnboardingCompleted = useRef(isOnboardingCompleted);
-
-  // If onboarding was already completed on app start (not a fresh completion),
-  // skip chat onboarding (gender/theme/character selection)
+  // If onboarding was already completed on app start AND chat onboarding
+  // was somehow left incomplete, skip it (stale state from crash/force-quit)
   useEffect(() => {
-    if (wasOnboardingCompleted.current && chatOnboardingStep !== 'done') {
+    const onboarding = useOnboardingStore.getState().isCompleted;
+    const chat = useChatStore.getState().chatOnboardingStep;
+    if (onboarding && chat !== 'done' && chat !== 'gender') {
       useChatStore.setState({ chatOnboardingStep: 'done' });
     }
   }, []);
 
+  // Redirect to onboarding if not completed (also handles dev-mode reset)
   useEffect(() => {
-    if (!wasOnboardingCompleted.current && isOnboardingCompleted && chatOnboardingStep !== 'done') {
-      router.replace(`/chat/${AI_TUTOR_ID}` as any);
+    if (!isOnboardingCompleted) {
+      router.replace('/onboarding' as any);
     }
-    wasOnboardingCompleted.current = isOnboardingCompleted;
-  }, [isOnboardingCompleted, chatOnboardingStep]);
-
-  useEffect(() => {
-    responseListener.current = addNotificationResponseListener((data) => {
-      if (data?.screen === 'ai-tutor-chat') {
-        router.push('/chat/ai-tutor' as any);
-      }
-    });
-
-    return () => {
-      responseListener.current?.remove();
-    };
-  }, []);
-
-  if (!isOnboardingCompleted) {
-    return (
-      <GestureHandlerRootView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-        <OnboardingScreen />
-      </GestureHandlerRootView>
-    );
-  }
+  }, [isOnboardingCompleted]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: theme.colors.background }}>

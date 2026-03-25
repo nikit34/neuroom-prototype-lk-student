@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, LayoutChangeEvent } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { sendTestPush } from '@/src/services/notificationService';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -13,13 +12,12 @@ import { useStudentStore } from '@/src/stores/studentStore';
 import { useThemeStore } from '@/src/stores/themeStore';
 import { useOnboardingStore } from '@/src/stores/onboardingStore';
 import { useArenaStore } from '@/src/stores/arenaStore';
-import { useNotificationStore } from '@/src/stores/notificationStore';
 import { useChatStore, AI_TUTOR_ID } from '@/src/stores/chatStore';
 import { useHomeworkStore } from '@/src/stores/homeworkStore';
 import { useAppealStore } from '@/src/stores/appealStore';
 import { getMascotState, getMascotStateLabel } from '@/src/utils/gradeHelpers';
 import { useAppVersionStore, AppVersion } from '@/src/config/appVersion';
-import { AchievementRarity, AppNotification, ChatMessage } from '@/src/types';
+import { AchievementRarity } from '@/src/types';
 
 const HEALTH_PRESETS = [0, 10, 25, 50, 75, 100];
 
@@ -504,131 +502,6 @@ function RestartOnboardingButton({ onClose }: { onClose?: () => void }) {
   );
 }
 
-const MINUTE = 60_000;
-
-function makeNotif(id: string, type: AppNotification['type'], title: string, message: string, icon: string, route: string, minutesAgo: number): AppNotification {
-  return { id, type, title, message, icon, isRead: false, createdAt: new Date(Date.now() - MINUTE * minutesAgo), route };
-}
-
-function makeChatMsg(senderId: string, senderName: string, text: string, isStudent: boolean, minutesAgo: number): ChatMessage {
-  return {
-    id: `dev-msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    senderId,
-    senderName,
-    text,
-    timestamp: new Date(Date.now() - MINUTE * minutesAgo),
-    isStudent,
-  };
-}
-
-type NotifPreset = { label: string; emoji: string; description: string };
-
-const NOTIF_PRESETS: NotifPreset[] = [
-  { label: 'Чисто', emoji: '🧹', description: 'Нет уведомлений и сообщений' },
-  { label: 'Полный', emoji: '🔔', description: '3 сообщения + 2 дуэли + 2 оценки' },
-];
-
-function NotificationPresets() {
-  const theme = useAppTheme();
-  const setNotifications = useNotificationStore((s) => s.setNotifications);
-  const setChatMessages = useChatStore((s) => s.setMessages);
-
-  const applyPreset = useCallback((index: number) => {
-    if (index === 0) {
-      setNotifications([]);
-      setChatMessages({});
-    } else {
-      setNotifications([
-        // 3 сообщения
-        makeNotif('dev-n1', 'chat_reply', 'Ольга Смирнова', 'Проверила вашу работу, есть замечания', '💬', '/chat/teacher-1', 2),
-        makeNotif('dev-n2', 'chat_reply', 'Наталья Козлова', 'Напоминаю про сочинение', '💬', '/chat/teacher-2', 5),
-        makeNotif('dev-n3', 'chat_reply', 'Игорь Волков', 'Ответил на ваш вопрос', '💬', '/chat/teacher-3', 12),
-        // 2 дуэли
-        makeNotif('dev-n4', 'duel_challenge', 'Вызов на дуэль!', 'Артём Федоров — История', '⚔️', '/arena/duel/arena-duel-6', 8),
-        makeNotif('dev-n5', 'duel_challenge', 'Вызов на дуэль!', 'Мария Иванова — Математика', '⚔️', '/arena/duel/arena-duel-1', 15),
-        // 4 оценки
-        makeNotif('dev-n6', 'homework_graded', 'Работа оценена', 'Физика — Законы Ньютона: 4/5', '📝', '/homework/hw-3', 20),
-        makeNotif('dev-n7', 'homework_graded', 'Работа оценена', 'Математика — Квадратные уравнения: 5/5', '📝', '/homework/hw-1', 35),
-        makeNotif('dev-n8', 'homework_graded', 'Работа оценена', 'Русский язык — Сочинение: 4/5', '📝', '/homework/hw-2', 50),
-        makeNotif('dev-n9', 'homework_new', 'Новое задание', 'Биология — Клеточное деление', '📚', '/homework/hw-4', 60),
-        // 2 ачивки
-        makeNotif('dev-n10', 'achievement', 'Новая ачивка!', 'Ты разблокировал "Первый шаг"', '🏆', '/arena', 25),
-        makeNotif('dev-n11', 'achievement', 'Прогресс ачивки', 'Ранняя пташка — 80% выполнено', '🏅', '/arena', 40),
-      ]);
-      setChatMessages({
-        'teacher-1': [
-          makeChatMsg('student-1', 'Алексей Петров', 'Проверьте, пожалуйста, мою работу.', true, 30),
-          makeChatMsg('teacher-1', 'Ольга Смирнова', 'Проверила вашу работу. Хорошо, но задача 5 решена неверно.', false, 2),
-        ],
-        'teacher-2': [
-          makeChatMsg('teacher-2', 'Наталья Козлова', 'Напоминаю, что сочинение нужно сдать до пятницы. Не забудьте!', false, 5),
-        ],
-        'teacher-3': [
-          makeChatMsg('student-1', 'Алексей Петров', 'Как решить задачу на силу тяжести?', true, 40),
-          makeChatMsg('teacher-3', 'Игорь Волков', 'Используйте формулу F = mg. g = 9.8 м/с². Подставьте массу.', false, 12),
-        ],
-      });
-    }
-  }, [setNotifications, setChatMessages]);
-
-  return (
-    <View style={styles.toggleSection}>
-      {NOTIF_PRESETS.map((preset, i) => (
-        <TouchableOpacity
-          key={preset.label}
-          style={[styles.toggleRow, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]}
-          onPress={() => applyPreset(i)}
-          activeOpacity={0.7}
-        >
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.toggleLabel, { color: theme.colors.text }]}>
-              {preset.emoji} {preset.label}
-            </Text>
-            <Text style={{ fontSize: 11, color: theme.colors.textSecondary, marginTop: 2 }}>
-              {preset.description}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      ))}
-    </View>
-  );
-}
-
-function SendTestPushButton() {
-  const theme = useAppTheme();
-  const [status, setStatus] = useState<'idle' | 'sent' | 'error'>('idle');
-
-  const handlePress = useCallback(async () => {
-    const ok = await sendTestPush();
-    setStatus(ok ? 'sent' : 'error');
-    setTimeout(() => setStatus('idle'), 2000);
-  }, []);
-
-  return (
-    <View style={styles.toggleSection}>
-      <TouchableOpacity
-        style={[styles.toggleRow, {
-          backgroundColor: status === 'sent' ? '#10B98120' : status === 'error' ? '#EF444420' : theme.colors.background,
-          borderColor: status === 'sent' ? '#10B981' : status === 'error' ? '#EF4444' : theme.colors.border,
-        }]}
-        onPress={handlePress}
-        activeOpacity={0.7}
-      >
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.toggleLabel, {
-            color: status === 'sent' ? '#10B981' : status === 'error' ? '#EF4444' : theme.colors.text,
-          }]}>
-            {status === 'sent' ? '✅ Push отправлен!' : status === 'error' ? '❌ Недоступно' : '🔔 Отправить Push'}
-          </Text>
-          <Text style={{ fontSize: 11, color: theme.colors.textSecondary, marginTop: 2 }}>
-            Откроет AI-репетитора при нажатии
-          </Text>
-        </View>
-      </TouchableOpacity>
-    </View>
-  );
-}
-
 function ScreenGroup({ title, emoji, children }: { title: string; emoji: string; children: React.ReactNode }) {
   const theme = useAppTheme();
   return (
@@ -687,10 +560,6 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
           <View style={{ height: 8 }} />
           <ResetHomeworkButton />
 
-          <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
-            УВЕДОМЛЕНИЯ И СООБЩЕНИЯ
-          </Text>
-          <NotificationPresets />
         </ScreenGroup>
       )}
 
@@ -707,10 +576,6 @@ export default function DevModePanel({ onAwardBadge, onAwardRandomBadge, onAward
           </Text>
           <AiTutorLimitReset />
 
-          <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary, marginTop: 16 }]}>
-            PUSH-УВЕДОМЛЕНИЯ
-          </Text>
-          <SendTestPushButton />
         </ScreenGroup>
       )}
 

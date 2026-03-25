@@ -161,9 +161,6 @@ export default function ProfileScreen() {
                 <View style={{ flex: 1, gap: 3 }}>
                   <View style={[styles.miniLine, { width: '70%', backgroundColor: theme.colors.text + '30' }]} />
                   <View style={[styles.miniLine, { width: '50%', backgroundColor: theme.colors.text + '18' }]} />
-                  {/* Inline notifications */}
-                  <View style={[styles.miniNotif, { backgroundColor: theme.colors.primary + '15', borderColor: theme.colors.primary + '30' }]} />
-                  <View style={[styles.miniNotif, { backgroundColor: theme.colors.primary + '10', borderColor: theme.colors.primary + '20' }]} />
                 </View>
                 <View style={styles.miniMascotArea}>
                   <View style={[styles.miniMascotCircle, { backgroundColor: theme.colors.primary + '25' }]}>
@@ -451,11 +448,6 @@ const styles = StyleSheet.create({
   miniLine: {
     height: 5,
     borderRadius: 2.5,
-  },
-  miniNotif: {
-    height: 10,
-    borderRadius: 4,
-    borderWidth: 0.5,
   },
   miniMascotArea: {
     alignItems: 'center',
