@@ -96,10 +96,10 @@
     display: none;
     flex-direction: column;
     gap: 20px;
-    animation: fadeUp .4s cubic-bezier(.2,.8,.3,1);
     flex: 1;
   }
   .screen.active { display: flex; }
+  .screen.animate { animation: fadeUp .4s cubic-bezier(.2,.8,.3,1); }
 
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(30px) scale(.97); }
@@ -110,6 +110,8 @@
   .q-icon {
     font-size: 48px;
     text-align: center;
+  }
+  .animate .q-icon {
     animation: bounceIn .5s cubic-bezier(.2,.8,.3,1.2);
   }
   @keyframes bounceIn {
@@ -822,6 +824,7 @@ const questions = [
 let current = 0;
 const answers = {};
 let halfwayShown = false;
+let shouldAnimate = true; // only true on screen transitions
 
 // ══════════════════════════════════════════
 // RENDER
@@ -845,7 +848,9 @@ function render() {
     setTimeout(() => toast.classList.remove('show'), 2600);
   }
 
-  let html = `<div class="screen active" id="screen-${q.id}">`;
+  const animClass = shouldAnimate ? ' animate' : '';
+  shouldAnimate = false; // reset after use
+  let html = `<div class="screen active${animClass}" id="screen-${q.id}">`;
 
   // ── Welcome ──
   if (q.type === 'welcome') {
@@ -1076,12 +1081,13 @@ function goNext() {
   if (!isAnswered(q) && !q.skip) return;
   if (current === questions.length - 2) { submitAnswers(); return; }
   current++;
+  shouldAnimate = true;
   render();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function goBack() {
-  if (current > 1) { current--; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  if (current > 1) { current--; shouldAnimate = true; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 }
 
 // ══════════════════════════════════════════
@@ -1122,6 +1128,7 @@ async function submitAnswers() {
 
   overlay.classList.remove('visible');
   current = questions.length - 1;
+  shouldAnimate = true;
   render();
 }
 
