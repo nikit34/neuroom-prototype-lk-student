@@ -34,15 +34,39 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* ── Floating particles background ── */
+  .particles {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0;
+    animation: floatUp linear infinite;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+  }
+
   /* ── Progress bar ── */
   .progress-wrap {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    height: 4px; background: var(--border);
+    height: 5px; background: var(--border);
   }
   .progress-bar {
     height: 100%; width: 0%;
-    background: linear-gradient(90deg, var(--accent), var(--accent-light));
-    transition: width .4s cubic-bezier(.4,0,.2,1);
+    background: linear-gradient(90deg, var(--accent), #ec4899, #f59e0b);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+    transition: width .5s cubic-bezier(.4,0,.2,1);
+    border-radius: 0 3px 3px 0;
+  }
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
   }
 
   /* ── Container ── */
@@ -60,14 +84,26 @@
     display: none;
     flex-direction: column;
     gap: 20px;
-    animation: fadeUp .35s ease-out;
+    animation: fadeUp .4s cubic-bezier(.2,.8,.3,1);
     flex: 1;
   }
   .screen.active { display: flex; }
 
   @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(30px) scale(.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* ── Question icon ── */
+  .q-icon {
+    font-size: 48px;
+    text-align: center;
+    animation: bounceIn .5s cubic-bezier(.2,.8,.3,1.2);
+  }
+  @keyframes bounceIn {
+    0%   { transform: scale(0) rotate(-15deg); opacity: 0; }
+    60%  { transform: scale(1.2) rotate(5deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); }
   }
 
   .q-number {
@@ -101,9 +137,12 @@
     padding: 16px;
     resize: vertical;
     outline: none;
-    transition: border-color .2s;
+    transition: border-color .2s, box-shadow .2s;
   }
-  textarea:focus { border-color: var(--accent); }
+  textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
   textarea::placeholder { color: var(--text-dim); }
 
   /* ── Short text ── */
@@ -113,22 +152,22 @@
     border: 2px solid var(--border);
     border-radius: var(--radius);
     color: var(--text);
-    font-size: 20px;
+    font-size: 22px;
     font-family: inherit;
-    padding: 16px;
+    padding: 18px;
     outline: none;
-    transition: border-color .2s;
+    transition: border-color .2s, box-shadow .2s;
     text-align: center;
+    letter-spacing: 2px;
   }
-  input[type="text"]:focus { border-color: var(--accent); }
-  input[type="text"]::placeholder { color: var(--text-dim); }
+  input[type="text"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  input[type="text"]::placeholder { color: var(--text-dim); letter-spacing: 0; }
 
   /* ── Single choice ── */
-  .choices {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+  .choices { display: flex; flex-direction: column; gap: 10px; }
   .choice-btn {
     background: var(--input-bg);
     border: 2px solid var(--border);
@@ -141,20 +180,31 @@
     cursor: pointer;
     transition: all .2s;
     line-height: 1.4;
+    position: relative;
+    overflow: hidden;
   }
-  .choice-btn:hover { border-color: var(--accent); background: rgba(124,92,252,.08); }
+  .choice-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(124,92,252,.15), transparent 60%);
+    opacity: 0; transition: opacity .3s;
+  }
+  .choice-btn:hover::before { opacity: 1; }
+  .choice-btn:hover { border-color: var(--accent); }
   .choice-btn.selected {
     border-color: var(--accent);
     background: rgba(124,92,252,.15);
     box-shadow: 0 0 0 1px var(--accent);
+    animation: selectPop .3s ease-out;
+  }
+  @keyframes selectPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
   }
 
   /* ── Multi-select chips ── */
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
   .chip {
     background: var(--input-bg);
     border: 2px solid var(--border);
@@ -164,120 +214,177 @@
     font-family: inherit;
     padding: 10px 16px;
     cursor: pointer;
-    transition: all .2s;
+    transition: all .25s cubic-bezier(.2,.8,.3,1);
     user-select: none;
     line-height: 1.3;
   }
-  .chip:hover { border-color: var(--accent); background: rgba(124,92,252,.06); }
+  .chip:hover { border-color: var(--accent); background: rgba(124,92,252,.06); transform: translateY(-1px); }
   .chip.selected {
     border-color: var(--accent);
     background: rgba(124,92,252,.18);
-    box-shadow: 0 0 0 1px var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 4px 12px var(--accent-glow);
+    transform: translateY(-2px);
+    animation: chipPop .3s ease-out;
   }
-  .chip .chip-icon { margin-right: 6px; }
+  @keyframes chipPop {
+    0% { transform: scale(1) translateY(0); }
+    40% { transform: scale(1.08) translateY(-4px); }
+    100% { transform: scale(1) translateY(-2px); }
+  }
 
-  /* ── Dual-tag cards (interesting / unnecessary) ── */
-  .tag-cards {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
+  /* ── Dual-tag cards ── */
+  .tag-cards { display: flex; flex-direction: column; gap: 8px; }
   .tag-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between;
     background: var(--input-bg);
     border: 2px solid var(--border);
     border-radius: 14px;
     padding: 10px 12px;
-    transition: all .2s;
+    transition: all .25s;
   }
-  .tag-card-label {
-    font-size: 15px;
-    flex: 1;
-    padding-right: 8px;
+  .tag-card.tagged-like {
+    border-color: rgba(52,211,153,.4);
+    background: rgba(52,211,153,.05);
   }
-  .tag-btns {
-    display: flex;
-    gap: 6px;
-    flex-shrink: 0;
+  .tag-card.tagged-meh {
+    border-color: rgba(248,113,113,.4);
+    background: rgba(248,113,113,.05);
   }
+  .tag-card-label { font-size: 15px; flex: 1; padding-right: 8px; }
+  .tag-btns { display: flex; gap: 6px; flex-shrink: 0; }
   .tag-btn {
-    width: 40px; height: 40px;
-    border-radius: 10px;
+    width: 44px; height: 44px;
+    border-radius: 12px;
     border: 2px solid var(--border);
     background: transparent;
-    font-size: 18px;
+    font-size: 20px;
     cursor: pointer;
-    transition: all .2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    transition: all .25s cubic-bezier(.2,.8,.3,1);
+    display: flex; align-items: center; justify-content: center;
   }
-  .tag-btn:hover { border-color: var(--text-dim); }
+  .tag-btn:hover { border-color: var(--text-dim); transform: scale(1.1); }
   .tag-btn.tag-like.selected {
     border-color: var(--chip-green-border);
     background: var(--chip-green);
+    animation: tagBounce .4s ease-out;
+    transform: scale(1.1);
   }
   .tag-btn.tag-meh.selected {
     border-color: var(--chip-red-border);
     background: var(--chip-red);
+    animation: tagBounce .4s ease-out;
+    transform: scale(1.1);
+  }
+  @keyframes tagBounce {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.3); }
+    60% { transform: scale(.95); }
+    100% { transform: scale(1.1); }
   }
 
   /* ── Conditional textarea ── */
-  .conditional-input {
-    display: none;
-    margin-top: 4px;
-  }
-  .conditional-input.visible { display: block; }
+  .conditional-input { display: none; margin-top: 4px; }
+  .conditional-input.visible { display: block; animation: fadeUp .3s ease-out; }
   .conditional-input textarea { min-height: 70px; }
 
   /* ── Nav buttons ── */
   .nav {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
+    position: fixed; bottom: 0; left: 0; right: 0;
     padding: 16px 20px;
     padding-bottom: max(16px, env(safe-area-inset-bottom));
     background: linear-gradient(transparent, var(--bg) 30%);
-    display: flex;
-    gap: 12px;
-    justify-content: center;
+    display: flex; gap: 12px; justify-content: center;
     z-index: 50;
   }
   .nav-btn {
-    flex: 1;
-    max-width: 220px;
-    padding: 14px 24px;
-    border-radius: 14px;
-    font-size: 16px;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    transition: all .2s;
-    border: none;
+    flex: 1; max-width: 220px;
+    padding: 14px 24px; border-radius: 14px;
+    font-size: 16px; font-weight: 600; font-family: inherit;
+    cursor: pointer; transition: all .2s; border: none;
   }
   .btn-back { background: var(--card); color: var(--text-dim); }
   .btn-back:hover { background: var(--border); color: var(--text); }
-  .btn-next { background: var(--accent); color: #fff; }
-  .btn-next:hover { background: var(--accent-light); }
-  .btn-next:disabled { opacity: .4; cursor: default; }
-  .btn-next:disabled:hover { background: var(--accent); }
-
-  /* ── Welcome / Finish ── */
-  .welcome-icon, .finish-icon { font-size: 64px; text-align: center; margin-top: 40px; }
-  .finish-icon { font-size: 80px; margin-top: 60px; }
-  .welcome-title, .finish-title {
-    font-size: 26px; font-weight: 800; text-align: center; line-height: 1.3;
+  .btn-next {
+    background: linear-gradient(135deg, var(--accent), #9333ea);
+    color: #fff;
+    box-shadow: 0 4px 15px var(--accent-glow);
   }
-  .welcome-sub, .finish-sub {
+  .btn-next:hover { transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); }
+  .btn-next:disabled { opacity: .4; cursor: default; transform: none; box-shadow: none; }
+  .btn-next:disabled:hover { transform: none; box-shadow: none; }
+
+  /* ── Welcome ── */
+  .welcome-icon {
+    font-size: 72px; text-align: center; margin-top: 30px;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-8px) rotate(2deg); }
+    75% { transform: translateY(4px) rotate(-1deg); }
+  }
+  .welcome-title {
+    font-size: 26px; font-weight: 800; text-align: center; line-height: 1.3;
+    background: linear-gradient(135deg, var(--text), var(--accent-light));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .welcome-sub {
     font-size: 15px; color: var(--text-dim); text-align: center; line-height: 1.6;
   }
-  .welcome-pills {
-    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
-  }
+  .welcome-pills { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
   .pill {
     background: var(--card); border: 1px solid var(--border);
-    border-radius: 20px; padding: 6px 14px; font-size: 13px; color: var(--text-dim);
+    border-radius: 20px; padding: 8px 16px; font-size: 13px; color: var(--text-dim);
+    animation: fadeUp .5s ease-out both;
+  }
+  .pill:nth-child(1) { animation-delay: .1s; }
+  .pill:nth-child(2) { animation-delay: .2s; }
+  .pill:nth-child(3) { animation-delay: .3s; }
+
+  /* ── Finish ── */
+  .finish-icon {
+    font-size: 80px; text-align: center; margin-top: 50px;
+    animation: finishPop .6s cubic-bezier(.2,.8,.3,1.3);
+  }
+  @keyframes finishPop {
+    0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+    60% { transform: scale(1.3) rotate(10deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); }
+  }
+  .finish-title {
+    font-size: 28px; font-weight: 800; text-align: center;
+    background: linear-gradient(135deg, var(--success), #60a5fa, var(--accent-light));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .finish-sub {
+    font-size: 15px; color: var(--text-dim); text-align: center; line-height: 1.6;
+  }
+
+  /* ── Halfway celebration ── */
+  .halfway-toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+    background: linear-gradient(135deg, #7c5cfc, #ec4899);
+    color: #fff; font-size: 15px; font-weight: 700;
+    padding: 12px 24px; border-radius: 30px;
+    z-index: 150; pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 8px 30px rgba(124,92,252,.4);
+  }
+  .halfway-toast.show {
+    animation: toastSlide 2.5s cubic-bezier(.2,.8,.3,1) forwards;
+  }
+  @keyframes toastSlide {
+    0% { transform: translateX(-50%) translateY(-100px); opacity: 0; }
+    15% { transform: translateX(-50%) translateY(0); opacity: 1; }
+    80% { transform: translateX(-50%) translateY(0); opacity: 1; }
+    100% { transform: translateX(-50%) translateY(-100px); opacity: 0; }
+  }
+
+  /* ── Confetti canvas ── */
+  #confetti {
+    position: fixed; inset: 0; z-index: 100; pointer-events: none;
   }
 
   /* ── Sending overlay ── */
@@ -299,12 +406,17 @@
 
   @media (max-width: 380px) {
     .q-text { font-size: 19px; }
+    .q-icon { font-size: 40px; }
     .chip { font-size: 13px; padding: 8px 12px; }
-    .tag-btn { width: 36px; height: 36px; font-size: 16px; }
+    .tag-btn { width: 38px; height: 38px; font-size: 17px; }
+    .welcome-icon { font-size: 56px; }
   }
 </style>
 </head>
 <body>
+
+<!-- Floating particles -->
+<div class="particles" id="particles"></div>
 
 <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
 <div class="app" id="app"></div>
@@ -313,6 +425,10 @@
   <button class="nav-btn btn-back" id="btnBack" onclick="goBack()">Назад</button>
   <button class="nav-btn btn-next" id="btnNext" onclick="goNext()">Дальше</button>
 </div>
+
+<div class="halfway-toast" id="halfwayToast">&#128170; Половина позади!</div>
+
+<canvas id="confetti"></canvas>
 
 <div class="sending-overlay" id="sendingOverlay">
   <div class="spinner"></div>
@@ -326,15 +442,105 @@
 const GOOGLE_SCRIPT_URL = '';
 
 // ══════════════════════════════════════════
+// PARTICLES
+// ══════════════════════════════════════════
+(function initParticles() {
+  const container = document.getElementById('particles');
+  const colors = ['#7c5cfc', '#a78bfa', '#ec4899', '#34d399', '#f59e0b'];
+  for (let i = 0; i < 15; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = 3 + Math.random() * 5;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      background:${colors[i % colors.length]};
+      animation-duration:${8 + Math.random()*12}s;
+      animation-delay:${Math.random()*10}s;
+      opacity: 0.4;
+    `;
+    container.appendChild(p);
+  }
+})();
+
+// ══════════════════════════════════════════
+// CONFETTI
+// ══════════════════════════════════════════
+const confettiCanvas = document.getElementById('confetti');
+const ctx = confettiCanvas.getContext('2d');
+let confettiPieces = [];
+let confettiRunning = false;
+
+function resizeConfetti() {
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeConfetti);
+resizeConfetti();
+
+function launchConfetti() {
+  confettiPieces = [];
+  const colors = ['#7c5cfc','#a78bfa','#ec4899','#34d399','#f59e0b','#60a5fa','#f472b6'];
+  for (let i = 0; i < 80; i++) {
+    confettiPieces.push({
+      x: confettiCanvas.width / 2 + (Math.random() - .5) * 200,
+      y: confettiCanvas.height / 2,
+      vx: (Math.random() - .5) * 15,
+      vy: -8 - Math.random() * 10,
+      size: 4 + Math.random() * 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rotation: Math.random() * 360,
+      rotSpeed: (Math.random() - .5) * 10,
+      life: 1,
+    });
+  }
+  if (!confettiRunning) { confettiRunning = true; animateConfetti(); }
+}
+
+function animateConfetti() {
+  ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+  confettiPieces = confettiPieces.filter(p => p.life > 0);
+  if (confettiPieces.length === 0) { confettiRunning = false; return; }
+  confettiPieces.forEach(p => {
+    p.x += p.vx;
+    p.vy += 0.3;
+    p.y += p.vy;
+    p.rotation += p.rotSpeed;
+    p.life -= 0.008;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rotation * Math.PI / 180);
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+    ctx.restore();
+  });
+  requestAnimationFrame(animateConfetti);
+}
+
+// ══════════════════════════════════════════
 // QUESTIONS
 // ══════════════════════════════════════════
 const TOTAL = 11;
 
+// Emoji icons per question for visual variety
+const Q_ICONS = {
+  free_recall: '&#129504;',       // brain
+  sections_recall: '&#128269;',   // magnifying glass
+  mascot_purpose: '&#129418;',    // monster/creature
+  points_understanding: '&#11088;', // star
+  dead_end: '&#128679;',          // construction
+  homework_flow: '&#128221;',     // memo/paper
+  feature_reaction: '&#127775;',  // glowing star
+  confusing_elements: '&#129300;', // thinking face
+  would_use: '&#128242;',         // phone
+  explain_friend: '&#128172;',    // speech bubble
+  one_word: '&#127919;',          // direct hit
+};
+
 const questions = [
-  // ── Welcome ──
   { id: 'welcome', type: 'welcome', skip: true },
 
-  // ── 1. Свободное воспоминание (единственный «чистый» текст в начале) ──
   {
     id: 'free_recall',
     number: 1, total: TOTAL,
@@ -345,12 +551,11 @@ const questions = [
     required: true,
   },
 
-  // ── 2. Разделы с обманками (multiselect) ──
   {
     id: 'sections_recall',
     number: 2, total: TOTAL,
     text: 'Какие из этих разделов были в приложении?',
-    hint: 'Выбери все, которые помнишь. Осторожно — тут есть лишние.',
+    hint: 'Выбери все, которые помнишь. Осторожно — тут есть лишние!',
     type: 'multiselect',
     options: [
       { label: 'Главная',             real: true },
@@ -370,7 +575,6 @@ const questions = [
     minSelect: 1,
   },
 
-  // ── 3. Что делает маскот? (multiselect с обманками) ──
   {
     id: 'mascot_purpose',
     number: 3, total: TOTAL,
@@ -390,7 +594,6 @@ const questions = [
     minSelect: 1,
   },
 
-  // ── 4. За что дают очки? (multiselect с обманками) ──
   {
     id: 'points_understanding',
     number: 4, total: TOTAL,
@@ -412,7 +615,6 @@ const questions = [
     minSelect: 1,
   },
 
-  // ── 5. Барьеры — тупик (choice + conditional text) ──
   {
     id: 'dead_end',
     number: 5, total: TOTAL,
@@ -432,7 +634,6 @@ const questions = [
     required: true,
   },
 
-  // ── 6. Домашка — ключевой flow (textarea, важно для UX) ──
   {
     id: 'homework_flow',
     number: 6, total: TOTAL,
@@ -443,12 +644,11 @@ const questions = [
     required: true,
   },
 
-  // ── 7. Фичи: интересно / лишнее (dual-tag cards) ──
   {
     id: 'feature_reaction',
     number: 7, total: TOTAL,
     text: 'Отметь, что зацепило, а что показалось лишним.',
-    hint: 'Можно не отмечать то, к чему равнодушен.',
+    hint: '&#128293; = круто, &#128078; = лишнее. Можно пропускать.',
     type: 'tags',
     items: [
       'Домашние задания',
@@ -462,16 +662,15 @@ const questions = [
       'Чат с ИИ-тьютором',
       'Темы оформления',
     ],
-    tagLabels: ['&#128293;', '&#128078;'], // fire = cool, thumbsdown = unnecessary
+    tagLabels: ['&#128293;', '&#128078;'],
     required: false,
   },
 
-  // ── 8. Непонятное (multiselect + свой вариант) ──
   {
     id: 'confusing_elements',
     number: 8, total: TOTAL,
     text: 'Что из этого было непонятно?',
-    hint: 'Выбери всё, что вызвало вопросы. Если всё ок — выбери последний пункт.',
+    hint: 'Выбери всё, что вызвало вопросы.',
     type: 'multiselect',
     options: [
       { label: 'Как сдать домашку' },
@@ -487,7 +686,6 @@ const questions = [
     minSelect: 1,
   },
 
-  // ── 9. Ожидания (choice + follow-up) ──
   {
     id: 'would_use',
     number: 9, total: TOTAL,
@@ -507,7 +705,6 @@ const questions = [
     required: true,
   },
 
-  // ── 10. Объяснение другу (проективная, textarea) ──
   {
     id: 'explain_friend',
     number: 10, total: TOTAL,
@@ -518,7 +715,6 @@ const questions = [
     required: true,
   },
 
-  // ── 11. Одно слово ──
   {
     id: 'one_word',
     number: 11, total: TOTAL,
@@ -528,7 +724,6 @@ const questions = [
     required: true,
   },
 
-  // ── Finish ──
   { id: 'finish', type: 'finish', skip: true },
 ];
 
@@ -537,6 +732,7 @@ const questions = [
 // ══════════════════════════════════════════
 let current = 0;
 const answers = {};
+let halfwayShown = false;
 
 // ══════════════════════════════════════════
 // RENDER
@@ -546,12 +742,19 @@ function render() {
   const q = questions[current];
   const nav = document.getElementById('nav');
 
-  // Progress
   const realQuestions = questions.filter(q => !q.skip);
   const currentReal = realQuestions.indexOf(q);
   const pct = q.type === 'finish' ? 100 : q.type === 'welcome' ? 0 :
     (currentReal / realQuestions.length * 100);
   document.getElementById('progressBar').style.width = pct + '%';
+
+  // Halfway celebration
+  if (currentReal === Math.floor(realQuestions.length / 2) && !halfwayShown) {
+    halfwayShown = true;
+    const toast = document.getElementById('halfwayToast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2600);
+  }
 
   let html = `<div class="screen active" id="screen-${q.id}">`;
 
@@ -562,7 +765,8 @@ function render() {
       <div class="welcome-title">Ты потестил(а) Neuroom&nbsp;— расскажи, как это было</div>
       <div class="welcome-sub">
         Это не тест и не проверка знаний. Правильных ответов нет.<br>
-        Мы проверяем приложение, а не тебя. Если что-то было непонятно&nbsp;— это наша проблема, не твоя.
+        Мы проверяем приложение, а не тебя.<br>
+        Если что-то было непонятно&nbsp;— это наша проблема, не твоя.
       </div>
       <div class="welcome-pills">
         <div class="pill">&#9201; 3-4 минуты</div>
@@ -582,13 +786,17 @@ function render() {
   // ── Finish ──
   if (q.type === 'finish') {
     html += `
-      <div class="finish-icon">&#10024;</div>
+      <div class="finish-icon">&#127881;</div>
       <div class="finish-title">Готово!</div>
-      <div class="finish-sub">Спасибо, что поделился(лась) своим опытом.<br>Это реально поможет сделать Neuroom лучше.</div>
+      <div class="finish-sub">
+        Спасибо, что поделился(лась) своим опытом.<br>
+        Это реально поможет сделать Neuroom лучше.
+      </div>
     `;
     nav.style.display = 'none';
     html += '</div>';
     app.innerHTML = html;
+    launchConfetti();
     return;
   }
 
@@ -598,25 +806,27 @@ function render() {
   document.getElementById('btnNext').textContent =
     current === questions.length - 2 ? 'Отправить' : 'Дальше';
 
+  // Question icon
+  if (Q_ICONS[q.id]) {
+    html += `<div class="q-icon">${Q_ICONS[q.id]}</div>`;
+  }
+
   html += `<div class="q-number">Вопрос ${q.number} из ${q.total}</div>`;
   html += `<div class="q-text">${q.text}</div>`;
   if (q.hint) html += `<div class="q-hint">${q.hint}</div>`;
 
   const saved = answers[q.id] || {};
 
-  // ── Textarea ──
   if (q.type === 'textarea') {
     html += `<textarea id="input-${q.id}" placeholder="${q.placeholder || ''}"
       oninput="onInput('${q.id}')">${saved.value || ''}</textarea>`;
   }
 
-  // ── Short text ──
   if (q.type === 'short_text') {
     html += `<input type="text" id="input-${q.id}" placeholder="${q.placeholder || ''}"
       value="${saved.value || ''}" oninput="onInput('${q.id}')" maxlength="60">`;
   }
 
-  // ── Single choice ──
   if (q.type === 'choice') {
     html += '<div class="choices">';
     q.choices.forEach((c, i) => {
@@ -634,7 +844,6 @@ function render() {
     }
   }
 
-  // ── Multi-select chips ──
   if (q.type === 'multiselect') {
     const selected = saved.selected || [];
     html += '<div class="chips">';
@@ -645,14 +854,14 @@ function render() {
     html += '</div>';
   }
 
-  // ── Dual-tag cards ──
   if (q.type === 'tags') {
     const tags = saved.tags || {};
     html += '<div class="tag-cards">';
     q.items.forEach((item, i) => {
       const likeClass = tags[i] === 'like' ? 'selected' : '';
       const mehClass = tags[i] === 'meh' ? 'selected' : '';
-      html += `<div class="tag-card">
+      const cardClass = tags[i] === 'like' ? 'tagged-like' : tags[i] === 'meh' ? 'tagged-meh' : '';
+      html += `<div class="tag-card ${cardClass}">
         <div class="tag-card-label">${item}</div>
         <div class="tag-btns">
           <button class="tag-btn tag-like ${likeClass}" onclick="onTag('${q.id}', ${i}, 'like')">${q.tagLabels[0]}</button>
@@ -711,35 +920,23 @@ function onMulti(id, index) {
   if (!answers[id].selected) answers[id].selected = [];
 
   const opt = q.options[index];
-  const sel = answers[id].selected;
 
-  // Handle exclusive option (e.g. "Всё было понятно")
   if (opt.exclusive) {
-    if (sel.includes(index)) {
+    if (answers[id].selected.includes(index)) {
       answers[id].selected = [];
     } else {
       answers[id].selected = [index];
     }
   } else {
-    // Remove any exclusive option when selecting non-exclusive
     const exclusiveIndices = q.options
-      .map((o, i) => o.exclusive ? i : -1)
-      .filter(i => i >= 0);
-    answers[id].selected = sel.filter(i => !exclusiveIndices.includes(i));
-
+      .map((o, i) => o.exclusive ? i : -1).filter(i => i >= 0);
+    answers[id].selected = answers[id].selected.filter(i => !exclusiveIndices.includes(i));
     const pos = answers[id].selected.indexOf(index);
-    if (pos >= 0) {
-      answers[id].selected.splice(pos, 1);
-    } else {
-      answers[id].selected.push(index);
-    }
+    if (pos >= 0) { answers[id].selected.splice(pos, 1); }
+    else { answers[id].selected.push(index); }
   }
 
-  // Build value string
-  answers[id].value = answers[id].selected
-    .map(i => q.options[i].label)
-    .join(', ');
-
+  answers[id].value = answers[id].selected.map(i => q.options[i].label).join(', ');
   render();
 }
 
@@ -748,14 +945,9 @@ function onTag(id, index, tag) {
   if (!answers[id]) answers[id] = { tags: {} };
   if (!answers[id].tags) answers[id].tags = {};
 
-  // Toggle
-  if (answers[id].tags[index] === tag) {
-    delete answers[id].tags[index];
-  } else {
-    answers[id].tags[index] = tag;
-  }
+  if (answers[id].tags[index] === tag) { delete answers[id].tags[index]; }
+  else { answers[id].tags[index] = tag; }
 
-  // Build value: liked=...; unnecessary=...
   const liked = [], meh = [];
   Object.entries(answers[id].tags).forEach(([i, t]) => {
     if (t === 'like') liked.push(q.items[i]);
@@ -778,7 +970,7 @@ function isAnswered(q) {
   if (q.type === 'textarea' || q.type === 'short_text') return (a.value || '').trim().length > 0;
   if (q.type === 'choice') return a.choiceIndex !== undefined;
   if (q.type === 'multiselect') return (a.selected || []).length >= (q.minSelect || 1);
-  if (q.type === 'tags') return true; // optional tagging
+  if (q.type === 'tags') return true;
   return true;
 }
 
@@ -817,14 +1009,10 @@ async function submitAnswers() {
     const a = answers[q.id] || {};
     data[q.id] = a.value || '';
     if (a.followUp) data[q.id + '_detail'] = a.followUp;
-
-    // For multiselect with decoys, also save accuracy
     if (q.type === 'multiselect' && q.options[0] && q.options[0].real !== undefined) {
       const sel = a.selected || [];
-      const correct = sel.filter(i => q.options[i].real).map(i => q.options[i].label);
-      const wrong = sel.filter(i => !q.options[i].real && !q.options[i].special).map(i => q.options[i].label);
-      data[q.id + '_correct'] = correct.join(', ');
-      data[q.id + '_wrong'] = wrong.join(', ');
+      data[q.id + '_correct'] = sel.filter(i => q.options[i].real).map(i => q.options[i].label).join(', ');
+      data[q.id + '_wrong'] = sel.filter(i => !q.options[i].real && !q.options[i].special).map(i => q.options[i].label).join(', ');
     }
   });
 
@@ -857,10 +1045,20 @@ function saveLocal(data) {
 }
 
 // ══════════════════════════════════════════
-// KEYBOARD
+// KEYBOARD + HOVER EFFECT
 // ══════════════════════════════════════════
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) goNext();
+});
+
+// Radial hover glow on choice buttons
+document.addEventListener('mousemove', (e) => {
+  const btn = e.target.closest('.choice-btn');
+  if (btn) {
+    const rect = btn.getBoundingClientRect();
+    btn.style.setProperty('--x', ((e.clientX - rect.left) / rect.width * 100) + '%');
+    btn.style.setProperty('--y', ((e.clientY - rect.top) / rect.height * 100) + '%');
+  }
 });
 
 // ══════════════════════════════════════════
