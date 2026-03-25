@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Neuroom — Бета-опрос</title>
+<style>
+  :root {
+    --bg: #0f0f1a;
+    --card: #1a1a2e;
+    --accent: #7c5cfc;
+    --accent-light: #a78bfa;
+    --accent-glow: rgba(124, 92, 252, 0.3);
+    --text: #e8e8f0;
+    --text-dim: #8888a0;
+    --success: #34d399;
+    --border: #2a2a40;
+    --input-bg: #12121f;
+    --radius: 16px;
+    --chip-green: rgba(52,211,153,.15);
+    --chip-green-border: #34d399;
+    --chip-red: rgba(248,113,113,.12);
+    --chip-red-border: #f87171;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Progress bar ── */
+  .progress-wrap {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 4px; background: var(--border);
+  }
+  .progress-bar {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-light));
+    transition: width .4s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ── Container ── */
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 24px 20px 120px;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Screen ── */
+  .screen {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+    animation: fadeUp .35s ease-out;
+    flex: 1;
+  }
+  .screen.active { display: flex; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .q-number {
+    font-size: 13px;
+    color: var(--accent-light);
+    font-weight: 600;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+  }
+  .q-text {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+  .q-hint {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* ── Textarea ── */
+  textarea {
+    width: 100%;
+    min-height: 100px;
+    background: var(--input-bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 16px;
+    font-family: inherit;
+    padding: 16px;
+    resize: vertical;
+    outline: none;
+    transition: border-color .2s;
+  }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--text-dim); }
+
+  /* ── Short text ── */
+  input[type="text"] {
+    width: 100%;
+    background: var(--input-bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 20px;
+    font-family: inherit;
+    padding: 16px;
+    outline: none;
+    transition: border-color .2s;
+    text-align: center;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+  input[type="text"]::placeholder { color: var(--text-dim); }
+
+  /* ── Single choice ── */
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .choice-btn {
+    background: var(--input-bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    padding: 14px 18px;
+    text-align: left;
+    cursor: pointer;
+    transition: all .2s;
+    line-height: 1.4;
+  }
+  .choice-btn:hover { border-color: var(--accent); background: rgba(124,92,252,.08); }
+  .choice-btn.selected {
+    border-color: var(--accent);
+    background: rgba(124,92,252,.15);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  /* ── Multi-select chips ── */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .chip {
+    background: var(--input-bg);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: all .2s;
+    user-select: none;
+    line-height: 1.3;
+  }
+  .chip:hover { border-color: var(--accent); background: rgba(124,92,252,.06); }
+  .chip.selected {
+    border-color: var(--accent);
+    background: rgba(124,92,252,.18);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .chip .chip-icon { margin-right: 6px; }
+
+  /* ── Dual-tag cards (interesting / unnecessary) ── */
+  .tag-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .tag-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--input-bg);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 12px;
+    transition: all .2s;
+  }
+  .tag-card-label {
+    font-size: 15px;
+    flex: 1;
+    padding-right: 8px;
+  }
+  .tag-btns {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .tag-btn {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: transparent;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tag-btn:hover { border-color: var(--text-dim); }
+  .tag-btn.tag-like.selected {
+    border-color: var(--chip-green-border);
+    background: var(--chip-green);
+  }
+  .tag-btn.tag-meh.selected {
+    border-color: var(--chip-red-border);
+    background: var(--chip-red);
+  }
+
+  /* ── Conditional textarea ── */
+  .conditional-input {
+    display: none;
+    margin-top: 4px;
+  }
+  .conditional-input.visible { display: block; }
+  .conditional-input textarea { min-height: 70px; }
+
+  /* ── Nav buttons ── */
+  .nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    padding: 16px 20px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    background: linear-gradient(transparent, var(--bg) 30%);
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    z-index: 50;
+  }
+  .nav-btn {
+    flex: 1;
+    max-width: 220px;
+    padding: 14px 24px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all .2s;
+    border: none;
+  }
+  .btn-back { background: var(--card); color: var(--text-dim); }
+  .btn-back:hover { background: var(--border); color: var(--text); }
+  .btn-next { background: var(--accent); color: #fff; }
+  .btn-next:hover { background: var(--accent-light); }
+  .btn-next:disabled { opacity: .4; cursor: default; }
+  .btn-next:disabled:hover { background: var(--accent); }
+
+  /* ── Welcome / Finish ── */
+  .welcome-icon, .finish-icon { font-size: 64px; text-align: center; margin-top: 40px; }
+  .finish-icon { font-size: 80px; margin-top: 60px; }
+  .welcome-title, .finish-title {
+    font-size: 26px; font-weight: 800; text-align: center; line-height: 1.3;
+  }
+  .welcome-sub, .finish-sub {
+    font-size: 15px; color: var(--text-dim); text-align: center; line-height: 1.6;
+  }
+  .welcome-pills {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  }
+  .pill {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 6px 14px; font-size: 13px; color: var(--text-dim);
+  }
+
+  /* ── Sending overlay ── */
+  .sending-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15,15,26,.85); z-index: 200;
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+  }
+  .sending-overlay.visible { display: flex; }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 380px) {
+    .q-text { font-size: 19px; }
+    .chip { font-size: 13px; padding: 8px 12px; }
+    .tag-btn { width: 36px; height: 36px; font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+<div class="app" id="app"></div>
+
+<div class="nav" id="nav" style="display:none">
+  <button class="nav-btn btn-back" id="btnBack" onclick="goBack()">Назад</button>
+  <button class="nav-btn btn-next" id="btnNext" onclick="goNext()">Дальше</button>
+</div>
+
+<div class="sending-overlay" id="sendingOverlay">
+  <div class="spinner"></div>
+  <div style="color:var(--text-dim);font-size:15px">Отправляем ответы...</div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════
+const GOOGLE_SCRIPT_URL = '';
+
+// ══════════════════════════════════════════
+// QUESTIONS
+// ══════════════════════════════════════════
+const TOTAL = 11;
+
+const questions = [
+  // ── Welcome ──
+  { id: 'welcome', type: 'welcome', skip: true },
+
+  // ── 1. Свободное воспоминание (единственный «чистый» текст в начале) ──
+  {
+    id: 'free_recall',
+    number: 1, total: TOTAL,
+    text: 'Вспомни приложение. Какая картинка первой всплывает в голове?',
+    hint: 'Экран, элемент, цвет, персонаж — что угодно.',
+    type: 'textarea',
+    placeholder: 'Первое, что вспоминается...',
+    required: true,
+  },
+
+  // ── 2. Разделы с обманками (multiselect) ──
+  {
+    id: 'sections_recall',
+    number: 2, total: TOTAL,
+    text: 'Какие из этих разделов были в приложении?',
+    hint: 'Выбери все, которые помнишь. Осторожно — тут есть лишние.',
+    type: 'multiselect',
+    options: [
+      { label: 'Главная',             real: true },
+      { label: 'Домашние задания',     real: true },
+      { label: 'Расписание уроков',    real: false },
+      { label: 'Чат',                  real: true },
+      { label: 'Магазин',              real: false },
+      { label: 'Рейтинг',             real: true },
+      { label: 'Дневник',              real: false },
+      { label: 'Арена',                real: true },
+      { label: 'Видеоуроки',           real: false },
+      { label: 'Профиль',              real: true },
+      { label: 'Новости школы',        real: false },
+      { label: 'Достижения',           real: true },
+    ],
+    required: true,
+    minSelect: 1,
+  },
+
+  // ── 3. Что делает маскот? (multiselect с обманками) ──
+  {
+    id: 'mascot_purpose',
+    number: 3, total: TOTAL,
+    text: 'На главном экране есть персонаж. Как думаешь, зачем он нужен?',
+    hint: 'Выбери всё, что кажется правильным.',
+    type: 'multiselect',
+    options: [
+      { label: 'Показывает, как идут дела с учёбой',     real: true },
+      { label: 'Реагирует, если пропускаешь домашки',    real: true },
+      { label: 'Помогает решать задачи',                  real: false },
+      { label: 'Даёт подсказки по предметам',             real: false },
+      { label: 'Просто украшение',                        real: false },
+      { label: 'Можно с ним играть в мини-игры',          real: false },
+      { label: 'Не понял(а) зачем он',                    real: false, special: true },
+    ],
+    required: true,
+    minSelect: 1,
+  },
+
+  // ── 4. За что дают очки? (multiselect с обманками) ──
+  {
+    id: 'points_understanding',
+    number: 4, total: TOTAL,
+    text: 'Как думаешь, за что в приложении дают очки?',
+    hint: 'Выбери все варианты, которые кажутся правильными.',
+    type: 'multiselect',
+    options: [
+      { label: 'Сдачу домашки',                     real: true },
+      { label: 'Раннюю сдачу до дедлайна',          real: true },
+      { label: 'Победу в дуэлях',                    real: true },
+      { label: 'Вход в приложение каждый день',       real: false },
+      { label: 'Выполнение квестов',                  real: true },
+      { label: 'Приглашение друзей',                  real: false },
+      { label: 'Прохождение челленджей',              real: true },
+      { label: 'Лайки одноклассникам',                real: false },
+      { label: 'Просмотр видеоуроков',                real: false },
+    ],
+    required: true,
+    minSelect: 1,
+  },
+
+  // ── 5. Барьеры — тупик (choice + conditional text) ──
+  {
+    id: 'dead_end',
+    number: 5, total: TOTAL,
+    text: 'Было такое, что нажал(а) куда-то и не понял(а) что делать дальше?',
+    type: 'choice',
+    choices: [
+      'Да, несколько раз',
+      'Один раз было',
+      'Нет, везде было понятно',
+      'Не помню',
+    ],
+    followUp: {
+      triggers: [0, 1],
+      text: 'Где именно застрял(а)?',
+      placeholder: 'Нажал(а) на... и не понял(а)...',
+    },
+    required: true,
+  },
+
+  // ── 6. Домашка — ключевой flow (textarea, важно для UX) ──
+  {
+    id: 'homework_flow',
+    number: 6, total: TOTAL,
+    text: 'Как в этом приложении сдать домашку?',
+    hint: 'Опиши по шагам — что нажать, куда зайти. Если не понял(а) как — так и напиши.',
+    type: 'textarea',
+    placeholder: 'Чтобы сдать домашку, надо...',
+    required: true,
+  },
+
+  // ── 7. Фичи: интересно / лишнее (dual-tag cards) ──
+  {
+    id: 'feature_reaction',
+    number: 7, total: TOTAL,
+    text: 'Отметь, что зацепило, а что показалось лишним.',
+    hint: 'Можно не отмечать то, к чему равнодушен.',
+    type: 'tags',
+    items: [
+      'Домашние задания',
+      'Персонаж на главной',
+      'Очки и уровни',
+      'Рейтинг класса',
+      'Дуэли с одноклассниками',
+      'Командные квесты',
+      'Челленджи',
+      'Достижения / бейджи',
+      'Чат с ИИ-тьютором',
+      'Темы оформления',
+    ],
+    tagLabels: ['&#128293;', '&#128078;'], // fire = cool, thumbsdown = unnecessary
+    required: false,
+  },
+
+  // ── 8. Непонятное (multiselect + свой вариант) ──
+  {
+    id: 'confusing_elements',
+    number: 8, total: TOTAL,
+    text: 'Что из этого было непонятно?',
+    hint: 'Выбери всё, что вызвало вопросы. Если всё ок — выбери последний пункт.',
+    type: 'multiselect',
+    options: [
+      { label: 'Как сдать домашку' },
+      { label: 'Зачем нужен персонаж' },
+      { label: 'Что такое стрик / серия' },
+      { label: 'Как работают очки и уровни' },
+      { label: 'Что такое арена / дуэли' },
+      { label: 'Как пользоваться чатом' },
+      { label: 'Куда нажимать на главном экране' },
+      { label: 'Всё было понятно', exclusive: true },
+    ],
+    required: true,
+    minSelect: 1,
+  },
+
+  // ── 9. Ожидания (choice + follow-up) ──
+  {
+    id: 'would_use',
+    number: 9, total: TOTAL,
+    text: 'Представь, что всё это работает по-настоящему. Ты бы этим пользовался(лась)?',
+    type: 'choice',
+    choices: [
+      'Да, каждый день заходил(а) бы',
+      'Иногда — когда домашка или что-то интересное',
+      'Вряд ли',
+      'Точно нет',
+    ],
+    followUp: {
+      triggers: [0, 1, 2, 3],
+      text: 'Почему?',
+      placeholder: 'Потому что...',
+    },
+    required: true,
+  },
+
+  // ── 10. Объяснение другу (проективная, textarea) ──
+  {
+    id: 'explain_friend',
+    number: 10, total: TOTAL,
+    text: 'Друг спрашивает: «Что за приложение тебе давали потестить?»',
+    hint: 'Напиши одно сообщение — как бы ты реально ответил(а) в чате.',
+    type: 'textarea',
+    placeholder: 'Напиши сообщение другу...',
+    required: true,
+  },
+
+  // ── 11. Одно слово ──
+  {
+    id: 'one_word',
+    number: 11, total: TOTAL,
+    text: 'Опиши приложение одним словом.',
+    type: 'short_text',
+    placeholder: 'одно слово',
+    required: true,
+  },
+
+  // ── Finish ──
+  { id: 'finish', type: 'finish', skip: true },
+];
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let current = 0;
+const answers = {};
+
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+function render() {
+  const app = document.getElementById('app');
+  const q = questions[current];
+  const nav = document.getElementById('nav');
+
+  // Progress
+  const realQuestions = questions.filter(q => !q.skip);
+  const currentReal = realQuestions.indexOf(q);
+  const pct = q.type === 'finish' ? 100 : q.type === 'welcome' ? 0 :
+    (currentReal / realQuestions.length * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+
+  let html = `<div class="screen active" id="screen-${q.id}">`;
+
+  // ── Welcome ──
+  if (q.type === 'welcome') {
+    html += `
+      <div class="welcome-icon">&#128270;</div>
+      <div class="welcome-title">Ты потестил(а) Neuroom&nbsp;— расскажи, как это было</div>
+      <div class="welcome-sub">
+        Это не тест и не проверка знаний. Правильных ответов нет.<br>
+        Мы проверяем приложение, а не тебя. Если что-то было непонятно&nbsp;— это наша проблема, не твоя.
+      </div>
+      <div class="welcome-pills">
+        <div class="pill">&#9201; 3-4 минуты</div>
+        <div class="pill">11 вопросов</div>
+        <div class="pill">&#128274; анонимно</div>
+      </div>
+    `;
+    nav.style.display = 'flex';
+    document.getElementById('btnBack').style.display = 'none';
+    document.getElementById('btnNext').textContent = 'Начать';
+    document.getElementById('btnNext').disabled = false;
+    html += '</div>';
+    app.innerHTML = html;
+    return;
+  }
+
+  // ── Finish ──
+  if (q.type === 'finish') {
+    html += `
+      <div class="finish-icon">&#10024;</div>
+      <div class="finish-title">Готово!</div>
+      <div class="finish-sub">Спасибо, что поделился(лась) своим опытом.<br>Это реально поможет сделать Neuroom лучше.</div>
+    `;
+    nav.style.display = 'none';
+    html += '</div>';
+    app.innerHTML = html;
+    return;
+  }
+
+  // ── Regular question ──
+  nav.style.display = 'flex';
+  document.getElementById('btnBack').style.display = current > 1 ? '' : 'none';
+  document.getElementById('btnNext').textContent =
+    current === questions.length - 2 ? 'Отправить' : 'Дальше';
+
+  html += `<div class="q-number">Вопрос ${q.number} из ${q.total}</div>`;
+  html += `<div class="q-text">${q.text}</div>`;
+  if (q.hint) html += `<div class="q-hint">${q.hint}</div>`;
+
+  const saved = answers[q.id] || {};
+
+  // ── Textarea ──
+  if (q.type === 'textarea') {
+    html += `<textarea id="input-${q.id}" placeholder="${q.placeholder || ''}"
+      oninput="onInput('${q.id}')">${saved.value || ''}</textarea>`;
+  }
+
+  // ── Short text ──
+  if (q.type === 'short_text') {
+    html += `<input type="text" id="input-${q.id}" placeholder="${q.placeholder || ''}"
+      value="${saved.value || ''}" oninput="onInput('${q.id}')" maxlength="60">`;
+  }
+
+  // ── Single choice ──
+  if (q.type === 'choice') {
+    html += '<div class="choices">';
+    q.choices.forEach((c, i) => {
+      const sel = saved.choiceIndex === i ? 'selected' : '';
+      html += `<button class="choice-btn ${sel}" onclick="onChoice('${q.id}', ${i})">${c}</button>`;
+    });
+    html += '</div>';
+    if (q.followUp) {
+      const visible = q.followUp.triggers.includes(saved.choiceIndex) ? 'visible' : '';
+      html += `<div class="conditional-input ${visible}" id="followup-${q.id}">
+        <div class="q-hint" style="margin-bottom:8px">${q.followUp.text}</div>
+        <textarea id="followup-input-${q.id}" placeholder="${q.followUp.placeholder || ''}"
+          oninput="onFollowUp('${q.id}')">${saved.followUp || ''}</textarea>
+      </div>`;
+    }
+  }
+
+  // ── Multi-select chips ──
+  if (q.type === 'multiselect') {
+    const selected = saved.selected || [];
+    html += '<div class="chips">';
+    q.options.forEach((opt, i) => {
+      const sel = selected.includes(i) ? 'selected' : '';
+      html += `<button class="chip ${sel}" onclick="onMulti('${q.id}', ${i})">${opt.label}</button>`;
+    });
+    html += '</div>';
+  }
+
+  // ── Dual-tag cards ──
+  if (q.type === 'tags') {
+    const tags = saved.tags || {};
+    html += '<div class="tag-cards">';
+    q.items.forEach((item, i) => {
+      const likeClass = tags[i] === 'like' ? 'selected' : '';
+      const mehClass = tags[i] === 'meh' ? 'selected' : '';
+      html += `<div class="tag-card">
+        <div class="tag-card-label">${item}</div>
+        <div class="tag-btns">
+          <button class="tag-btn tag-like ${likeClass}" onclick="onTag('${q.id}', ${i}, 'like')">${q.tagLabels[0]}</button>
+          <button class="tag-btn tag-meh ${mehClass}" onclick="onTag('${q.id}', ${i}, 'meh')">${q.tagLabels[1]}</button>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+  app.innerHTML = html;
+  updateNextBtn();
+}
+
+// ══════════════════════════════════════════
+// HANDLERS
+// ══════════════════════════════════════════
+function onInput(id) {
+  const el = document.getElementById('input-' + id);
+  if (!answers[id]) answers[id] = {};
+  answers[id].value = el.value;
+  updateNextBtn();
+}
+
+function onChoice(id, index) {
+  const q = questions.find(q => q.id === id);
+  if (!answers[id]) answers[id] = {};
+  answers[id].choiceIndex = index;
+  answers[id].value = q.choices[index];
+  if (q.followUp) {
+    const fu = document.getElementById('followup-' + id);
+    if (q.followUp.triggers.includes(index)) {
+      fu.classList.add('visible');
+      setTimeout(() => {
+        const inp = document.getElementById('followup-input-' + id);
+        if (inp) inp.focus();
+      }, 100);
+    } else {
+      fu.classList.remove('visible');
+      answers[id].followUp = '';
+    }
+  }
+  render();
+}
+
+function onFollowUp(id) {
+  const el = document.getElementById('followup-input-' + id);
+  if (!answers[id]) answers[id] = {};
+  answers[id].followUp = el.value;
+}
+
+function onMulti(id, index) {
+  const q = questions.find(q => q.id === id);
+  if (!answers[id]) answers[id] = { selected: [] };
+  if (!answers[id].selected) answers[id].selected = [];
+
+  const opt = q.options[index];
+  const sel = answers[id].selected;
+
+  // Handle exclusive option (e.g. "Всё было понятно")
+  if (opt.exclusive) {
+    if (sel.includes(index)) {
+      answers[id].selected = [];
+    } else {
+      answers[id].selected = [index];
+    }
+  } else {
+    // Remove any exclusive option when selecting non-exclusive
+    const exclusiveIndices = q.options
+      .map((o, i) => o.exclusive ? i : -1)
+      .filter(i => i >= 0);
+    answers[id].selected = sel.filter(i => !exclusiveIndices.includes(i));
+
+    const pos = answers[id].selected.indexOf(index);
+    if (pos >= 0) {
+      answers[id].selected.splice(pos, 1);
+    } else {
+      answers[id].selected.push(index);
+    }
+  }
+
+  // Build value string
+  answers[id].value = answers[id].selected
+    .map(i => q.options[i].label)
+    .join(', ');
+
+  render();
+}
+
+function onTag(id, index, tag) {
+  const q = questions.find(q => q.id === id);
+  if (!answers[id]) answers[id] = { tags: {} };
+  if (!answers[id].tags) answers[id].tags = {};
+
+  // Toggle
+  if (answers[id].tags[index] === tag) {
+    delete answers[id].tags[index];
+  } else {
+    answers[id].tags[index] = tag;
+  }
+
+  // Build value: liked=...; unnecessary=...
+  const liked = [], meh = [];
+  Object.entries(answers[id].tags).forEach(([i, t]) => {
+    if (t === 'like') liked.push(q.items[i]);
+    if (t === 'meh') meh.push(q.items[i]);
+  });
+  answers[id].value = '';
+  if (liked.length) answers[id].value += 'fire: ' + liked.join(', ');
+  if (meh.length) answers[id].value += (answers[id].value ? '; ' : '') + 'meh: ' + meh.join(', ');
+
+  render();
+}
+
+// ══════════════════════════════════════════
+// VALIDATION
+// ══════════════════════════════════════════
+function isAnswered(q) {
+  if (q.skip || !q.required) return true;
+  const a = answers[q.id];
+  if (!a) return false;
+  if (q.type === 'textarea' || q.type === 'short_text') return (a.value || '').trim().length > 0;
+  if (q.type === 'choice') return a.choiceIndex !== undefined;
+  if (q.type === 'multiselect') return (a.selected || []).length >= (q.minSelect || 1);
+  if (q.type === 'tags') return true; // optional tagging
+  return true;
+}
+
+function updateNextBtn() {
+  const q = questions[current];
+  document.getElementById('btnNext').disabled = !isAnswered(q);
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function goNext() {
+  const q = questions[current];
+  if (!isAnswered(q) && !q.skip) return;
+  if (current === questions.length - 2) { submitAnswers(); return; }
+  current++;
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goBack() {
+  if (current > 1) { current--; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+}
+
+// ══════════════════════════════════════════
+// SUBMIT
+// ══════════════════════════════════════════
+async function submitAnswers() {
+  const overlay = document.getElementById('sendingOverlay');
+  overlay.classList.add('visible');
+
+  const data = { timestamp: new Date().toISOString() };
+
+  questions.forEach(q => {
+    if (q.skip) return;
+    const a = answers[q.id] || {};
+    data[q.id] = a.value || '';
+    if (a.followUp) data[q.id + '_detail'] = a.followUp;
+
+    // For multiselect with decoys, also save accuracy
+    if (q.type === 'multiselect' && q.options[0] && q.options[0].real !== undefined) {
+      const sel = a.selected || [];
+      const correct = sel.filter(i => q.options[i].real).map(i => q.options[i].label);
+      const wrong = sel.filter(i => !q.options[i].real && !q.options[i].special).map(i => q.options[i].label);
+      data[q.id + '_correct'] = correct.join(', ');
+      data[q.id + '_wrong'] = wrong.join(', ');
+    }
+  });
+
+  if (GOOGLE_SCRIPT_URL) {
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+    } catch (e) {
+      console.error('Submit error:', e);
+      saveLocal(data);
+    }
+  } else {
+    saveLocal(data);
+  }
+
+  overlay.classList.remove('visible');
+  current = questions.length - 1;
+  render();
+}
+
+function saveLocal(data) {
+  const key = 'neuroom_survey_responses';
+  const existing = JSON.parse(localStorage.getItem(key) || '[]');
+  existing.push(data);
+  localStorage.setItem(key, JSON.stringify(existing));
+  console.log('Response saved locally:', data);
+}
+
+// ══════════════════════════════════════════
+// KEYBOARD
+// ══════════════════════════════════════════
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) goNext();
+});
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+render();
+</script>
+</body>
+</html>
