@@ -2,7 +2,10 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f0f1a">
 <title>Neuroom — Бета-опрос</title>
 <style>
   :root {
@@ -23,15 +26,22 @@
     --chip-red-border: #f87171;
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    height: -webkit-fill-available;
+  }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100dvh;
+    min-height: -webkit-fill-available;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
   }
 
   /* ── Floating particles background ── */
@@ -55,6 +65,7 @@
   .progress-wrap {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     height: 5px; background: var(--border);
+    top: env(safe-area-inset-top, 0);
   }
   .progress-bar {
     height: 100%; width: 0%;
@@ -73,7 +84,8 @@
   .app {
     max-width: 480px;
     margin: 0 auto;
-    padding: 24px 20px 120px;
+    padding: 24px 20px 140px;
+    padding-top: calc(env(safe-area-inset-top, 0) + 20px);
     min-height: 100dvh;
     display: flex;
     flex-direction: column;
@@ -176,6 +188,7 @@
     font-size: 15px;
     font-family: inherit;
     padding: 14px 18px;
+    min-height: 48px;
     text-align: left;
     cursor: pointer;
     transition: all .2s;
@@ -212,7 +225,10 @@
     color: var(--text);
     font-size: 14px;
     font-family: inherit;
-    padding: 10px 16px;
+    padding: 12px 16px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
     cursor: pointer;
     transition: all .25s cubic-bezier(.2,.8,.3,1);
     user-select: none;
@@ -290,17 +306,18 @@
   /* ── Nav buttons ── */
   .nav {
     position: fixed; bottom: 0; left: 0; right: 0;
-    padding: 16px 20px;
-    padding-bottom: max(16px, env(safe-area-inset-bottom));
-    background: linear-gradient(transparent, var(--bg) 30%);
-    display: flex; gap: 12px; justify-content: center;
+    padding: 14px 20px;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0) + 14px);
+    background: linear-gradient(transparent, var(--bg) 25%);
+    display: flex; gap: 10px; justify-content: center;
     z-index: 50;
   }
   .nav-btn {
     flex: 1; max-width: 220px;
-    padding: 14px 24px; border-radius: 14px;
+    padding: 16px 24px; border-radius: 14px;
     font-size: 16px; font-weight: 600; font-family: inherit;
-    cursor: pointer; transition: all .2s; border: none;
+    cursor: pointer; transition: all .15s; border: none;
+    min-height: 50px;
   }
   .btn-back { background: var(--card); color: var(--text-dim); }
   .btn-back:hover { background: var(--border); color: var(--text); }
@@ -404,12 +421,79 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* ── Touch devices: replace hover with active ── */
+  @media (hover: none) and (pointer: coarse) {
+    .choice-btn:hover { border-color: var(--border); background: var(--input-bg); }
+    .choice-btn:hover::before { opacity: 0; }
+    .choice-btn:active { border-color: var(--accent); background: rgba(124,92,252,.12); }
+
+    .chip:hover { border-color: var(--border); background: var(--input-bg); transform: none; }
+    .chip:active { border-color: var(--accent); background: rgba(124,92,252,.12); transform: scale(.97); }
+
+    .tag-btn:hover { border-color: var(--border); transform: none; }
+    .tag-btn:active { transform: scale(.9); }
+
+    .btn-next:hover { transform: none; }
+    .btn-next:active:not(:disabled) { transform: scale(.97); }
+    .btn-back:hover { background: var(--card); color: var(--text-dim); }
+    .btn-back:active { background: var(--border); }
+  }
+
+  /* ── Mobile (iPhone 11 = 414px, most phones) ── */
+  @media (max-width: 480px) {
+    .app {
+      padding: 16px 16px 150px;
+      padding-top: calc(env(safe-area-inset-top, 0) + 14px);
+    }
+    .screen { gap: 16px; }
+    .q-icon { font-size: 42px; }
+    .q-text { font-size: 20px; }
+    .q-hint { font-size: 13px; }
+    .q-number { font-size: 12px; }
+
+    .welcome-icon { font-size: 60px; margin-top: 20px; }
+    .welcome-title { font-size: 22px; padding: 0 8px; }
+    .welcome-sub { font-size: 14px; }
+
+    .finish-icon { font-size: 64px; margin-top: 40px; }
+    .finish-title { font-size: 24px; }
+
+    textarea { min-height: 90px; font-size: 16px; padding: 14px; }
+    input[type="text"] { font-size: 18px; padding: 16px; }
+
+    .chips { gap: 8px; }
+    .chip { font-size: 14px; padding: 10px 14px; min-height: 44px; }
+
+    .tag-card { padding: 8px 10px; }
+    .tag-card-label { font-size: 14px; }
+    .tag-btn { width: 44px; height: 44px; font-size: 20px; }
+    .tag-btns { gap: 8px; }
+
+    .choice-btn { font-size: 15px; padding: 14px 16px; }
+
+    .nav { padding: 12px 16px; padding-bottom: calc(env(safe-area-inset-bottom, 0) + 12px); }
+    .nav-btn { padding: 16px 20px; font-size: 16px; border-radius: 12px; }
+
+    .halfway-toast { font-size: 14px; padding: 10px 20px; }
+  }
+
+  /* ── Small phones (iPhone SE = 375px) ── */
   @media (max-width: 380px) {
-    .q-text { font-size: 19px; }
-    .q-icon { font-size: 40px; }
-    .chip { font-size: 13px; padding: 8px 12px; }
-    .tag-btn { width: 38px; height: 38px; font-size: 17px; }
-    .welcome-icon { font-size: 56px; }
+    .q-text { font-size: 18px; }
+    .q-icon { font-size: 36px; }
+    .welcome-icon { font-size: 50px; }
+    .welcome-title { font-size: 20px; }
+    .chip { font-size: 13px; padding: 9px 12px; }
+    .tag-btn { width: 40px; height: 40px; font-size: 18px; }
+    .tag-card-label { font-size: 13px; }
+  }
+
+  /* ── iOS keyboard: scroll input into view ── */
+  @supports (-webkit-touch-callout: none) {
+    body { height: -webkit-fill-available; }
+    textarea:focus, input[type="text"]:focus {
+      scroll-margin-bottom: 160px;
+    }
   }
 </style>
 </head>
@@ -447,10 +531,12 @@ const GOOGLE_SCRIPT_URL = '';
 (function initParticles() {
   const container = document.getElementById('particles');
   const colors = ['#7c5cfc', '#a78bfa', '#ec4899', '#34d399', '#f59e0b'];
-  for (let i = 0; i < 15; i++) {
+  const isMobile = window.innerWidth <= 480;
+  const count = isMobile ? 8 : 15; // fewer particles on mobile for performance
+  for (let i = 0; i < count; i++) {
     const p = document.createElement('div');
     p.className = 'particle';
-    const size = 3 + Math.random() * 5;
+    const size = isMobile ? (2 + Math.random() * 3) : (3 + Math.random() * 5);
     p.style.cssText = `
       width:${size}px; height:${size}px;
       left:${Math.random()*100}%;
@@ -481,11 +567,14 @@ resizeConfetti();
 function launchConfetti() {
   confettiPieces = [];
   const colors = ['#7c5cfc','#a78bfa','#ec4899','#34d399','#f59e0b','#60a5fa','#f472b6'];
-  for (let i = 0; i < 80; i++) {
+  const isMobile = window.innerWidth <= 480;
+  const count = isMobile ? 50 : 80;
+  const spread = isMobile ? 120 : 200;
+  for (let i = 0; i < count; i++) {
     confettiPieces.push({
-      x: confettiCanvas.width / 2 + (Math.random() - .5) * 200,
-      y: confettiCanvas.height / 2,
-      vx: (Math.random() - .5) * 15,
+      x: confettiCanvas.width / 2 + (Math.random() - .5) * spread,
+      y: confettiCanvas.height * 0.4,
+      vx: (Math.random() - .5) * (isMobile ? 10 : 15),
       vy: -8 - Math.random() * 10,
       size: 4 + Math.random() * 6,
       color: colors[Math.floor(Math.random() * colors.length)],
@@ -1051,13 +1140,24 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) goNext();
 });
 
-// Radial hover glow on choice buttons
-document.addEventListener('mousemove', (e) => {
-  const btn = e.target.closest('.choice-btn');
-  if (btn) {
-    const rect = btn.getBoundingClientRect();
-    btn.style.setProperty('--x', ((e.clientX - rect.left) / rect.width * 100) + '%');
-    btn.style.setProperty('--y', ((e.clientY - rect.top) / rect.height * 100) + '%');
+// Radial hover glow on choice buttons (desktop only)
+if (window.matchMedia('(hover: hover)').matches) {
+  document.addEventListener('mousemove', (e) => {
+    const btn = e.target.closest('.choice-btn');
+    if (btn) {
+      const rect = btn.getBoundingClientRect();
+      btn.style.setProperty('--x', ((e.clientX - rect.left) / rect.width * 100) + '%');
+      btn.style.setProperty('--y', ((e.clientY - rect.top) / rect.height * 100) + '%');
+    }
+  });
+}
+
+// iOS: scroll focused input into view above keyboard
+document.addEventListener('focusin', (e) => {
+  if (e.target.matches('textarea, input[type="text"]')) {
+    setTimeout(() => {
+      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300); // wait for iOS keyboard animation
   }
 });
 
