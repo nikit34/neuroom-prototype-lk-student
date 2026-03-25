@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0f0f1a">
 <title>Neuroom — Бета-опрос</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
 <style>
   :root {
     --bg: #0f0f1a;
@@ -44,10 +45,28 @@
     overscroll-behavior-y: none;
   }
 
-  /* ── Floating particles background ── */
-  .particles {
+  /* ── Background decorations ── */
+  .bg-layer {
     position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
   }
+
+  /* Gradient blobs */
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: .12;
+    animation: blobDrift 20s ease-in-out infinite alternate;
+  }
+  .blob-1 { width: 300px; height: 300px; background: var(--accent); top: -80px; left: -60px; animation-delay: 0s; }
+  .blob-2 { width: 250px; height: 250px; background: var(--accent-light); bottom: 10%; right: -50px; animation-delay: -7s; }
+  .blob-3 { width: 200px; height: 200px; background: var(--accent); top: 50%; left: 30%; animation-delay: -14s; }
+  @keyframes blobDrift {
+    0%   { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(40px, -30px) scale(1.15); }
+  }
+
+  /* Dot particles */
   .particle {
     position: absolute;
     border-radius: 50%;
@@ -59,6 +78,39 @@
     10%  { opacity: 1; }
     90%  { opacity: 1; }
     100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+  }
+
+  /* Floating emoji */
+  .float-emoji {
+    position: absolute;
+    font-size: 24px;
+    opacity: 0;
+    animation: emojiFloat linear infinite;
+    filter: saturate(.7);
+  }
+  @keyframes emojiFloat {
+    0%   { transform: translateY(105vh) rotate(0deg) scale(.7); opacity: 0; }
+    5%   { opacity: .3; }
+    50%  { opacity: .25; }
+    95%  { opacity: .3; }
+    100% { transform: translateY(-10vh) rotate(360deg) scale(1); opacity: 0; }
+  }
+
+  /* Geometric shapes */
+  .geo {
+    position: absolute;
+    opacity: .06;
+    border: 2px solid var(--accent);
+    animation: geoDrift linear infinite;
+  }
+  .geo-circle { border-radius: 50%; }
+  .geo-square { border-radius: 4px; }
+  .geo-diamond { border-radius: 2px; transform: rotate(45deg); }
+  @keyframes geoDrift {
+    0%   { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10%  { opacity: .06; }
+    90%  { opacity: .06; }
+    100% { transform: translateY(-10vh) rotate(180deg); opacity: 0; }
   }
 
   /* ── Progress bar ── */
@@ -548,8 +600,12 @@
 </head>
 <body>
 
-<!-- Floating particles -->
-<div class="particles" id="particles"></div>
+<!-- Background decorations -->
+<div class="bg-layer" id="bgLayer">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
 
 <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
 <div class="app" id="app"></div>
@@ -614,11 +670,9 @@ function applyTheme(t) {
   // Update meta theme-color for mobile browser chrome
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.content = t.bg;
-  // Update particles color
-  document.querySelectorAll('.particle').forEach((p, i) => {
-    const colors = [t.accent, t.accentLight, t.textDim];
-    p.style.background = colors[i % colors.length];
-  });
+  // Blobs follow theme accent
+  document.querySelectorAll('.blob-1, .blob-3').forEach(b => b.style.background = t.accent);
+  document.querySelector('.blob-2').style.background = t.accentLight;
 }
 
 function cycleTheme() {
@@ -635,26 +689,60 @@ function cycleTheme() {
 }
 
 // ══════════════════════════════════════════
-// PARTICLES
+// BACKGROUND DECORATIONS
 // ══════════════════════════════════════════
-(function initParticles() {
-  const container = document.getElementById('particles');
-  const colors = ['#7c5cfc', '#a78bfa', '#ec4899', '#34d399', '#f59e0b'];
+(function initBackground() {
+  const container = document.getElementById('bgLayer');
   const isMobile = window.innerWidth <= 480;
-  const count = isMobile ? 8 : 15; // fewer particles on mobile for performance
-  for (let i = 0; i < count; i++) {
+
+  // Floating emoji
+  const emojis = ['📚','🎮','⭐','🏆','🎯','🚀','💎','🎲','🔥','💡','🎵','⚡','🧩','🎪','✏️','🌟'];
+  const emojiCount = isMobile ? 8 : 14;
+  for (let i = 0; i < emojiCount; i++) {
+    const el = document.createElement('div');
+    el.className = 'float-emoji';
+    el.textContent = emojis[i % emojis.length];
+    el.style.cssText = `
+      left: ${Math.random() * 92}%;
+      font-size: ${isMobile ? 18 + Math.random()*10 : 22 + Math.random()*14}px;
+      animation-duration: ${18 + Math.random() * 22}s;
+      animation-delay: ${-Math.random() * 30}s;
+    `;
+    container.appendChild(el);
+  }
+
+  // Small dot particles
+  const dotCount = isMobile ? 6 : 12;
+  for (let i = 0; i < dotCount; i++) {
     const p = document.createElement('div');
     p.className = 'particle';
-    const size = isMobile ? (2 + Math.random() * 3) : (3 + Math.random() * 5);
+    const size = isMobile ? (2 + Math.random()*3) : (3 + Math.random()*5);
     p.style.cssText = `
       width:${size}px; height:${size}px;
       left:${Math.random()*100}%;
-      background:${colors[i % colors.length]};
+      background: var(--accent);
       animation-duration:${8 + Math.random()*12}s;
-      animation-delay:${Math.random()*10}s;
-      opacity: 0.4;
+      animation-delay:${-Math.random()*10}s;
+      opacity: 0.35;
     `;
     container.appendChild(p);
+  }
+
+  // Geometric shapes (desktop only — subtle decoration)
+  if (!isMobile) {
+    const geoTypes = ['geo-circle', 'geo-square', 'geo-diamond'];
+    for (let i = 0; i < 6; i++) {
+      const g = document.createElement('div');
+      const size = 20 + Math.random() * 40;
+      g.className = 'geo ' + geoTypes[i % geoTypes.length];
+      g.style.cssText = `
+        width:${size}px; height:${size}px;
+        left:${Math.random()*95}%;
+        animation-duration:${15 + Math.random()*20}s;
+        animation-delay:${-Math.random()*20}s;
+      `;
+      container.appendChild(g);
+    }
   }
 })();
 
