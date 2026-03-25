@@ -490,6 +490,53 @@
     .tag-card-label { font-size: 13px; }
   }
 
+  /* ── Theme toggle button ── */
+  .theme-btn {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0) + 14px);
+    right: 16px;
+    z-index: 110;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--card);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .2s, border-color .2s, background .3s;
+    box-shadow: 0 2px 12px rgba(0,0,0,.3);
+  }
+  .theme-btn:active { transform: scale(.88) rotate(-20deg); }
+  @media (hover: hover) {
+    .theme-btn:hover { border-color: var(--accent); transform: scale(1.1); }
+  }
+
+  .theme-toast {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0) + 64px);
+    right: 16px;
+    z-index: 110;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-8px) scale(.95);
+    transition: opacity .2s, transform .2s;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0,0,0,.25);
+  }
+  .theme-toast.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
   /* ── iOS keyboard: scroll input into view ── */
   @supports (-webkit-touch-callout: none) {
     body { height: -webkit-fill-available; }
@@ -512,6 +559,9 @@
   <button class="nav-btn btn-next" id="btnNext" onclick="goNext()">Дальше</button>
 </div>
 
+<button class="theme-btn" id="themeBtn" onclick="cycleTheme()" aria-label="Сменить тему">&#127912;</button>
+<div class="theme-toast" id="themeToast"></div>
+
 <div class="halfway-toast" id="halfwayToast">&#128170; Половина позади!</div>
 
 <canvas id="confetti"></canvas>
@@ -526,6 +576,63 @@
 // CONFIG
 // ══════════════════════════════════════════
 const GOOGLE_SCRIPT_URL = '';
+
+// ══════════════════════════════════════════
+// THEMES (from Neuroom prototype)
+// ══════════════════════════════════════════
+const THEMES = [
+  // ── Dark ──
+  { name: 'Neuroom',         emoji: '🟣', bg: '#0f0f1a', card: '#1a1a2e', accent: '#7c5cfc', accentLight: '#a78bfa', text: '#e8e8f0', textDim: '#8888a0', border: '#2a2a40', inputBg: '#12121f' },
+  { name: 'Valorant',        emoji: '🎯', bg: '#0E0E1A', card: '#1A1A2E', accent: '#FF4655', accentLight: '#FF8090', text: '#ECE8E1', textDim: '#8A88A0', border: '#2E2E42', inputBg: '#141420' },
+  { name: 'Gagarin',         emoji: '🚀', bg: '#0A0A1E', card: '#161640', accent: '#6C5CE7', accentLight: '#A29BFE', text: '#E8E0FF', textDim: '#8A82B0', border: '#2A2A60', inputBg: '#0E0E2A' },
+  { name: 'CS:GO',           emoji: '🔫', bg: '#1A1A1A', card: '#2A2A2A', accent: '#E87B35', accentLight: '#F5A623', text: '#F0E6D8', textDim: '#9A9080', border: '#3D3830', inputBg: '#1E1E1E' },
+  { name: 'Fortnite',        emoji: '🪂', bg: '#100A20', card: '#1C1438', accent: '#9D4DFF', accentLight: '#C080FF', text: '#E8E0FF', textDim: '#9080B8', border: '#302850', inputBg: '#140E28' },
+  { name: 'Stranger Things', emoji: '🔦', bg: '#0A0508', card: '#1A0E14', accent: '#C41E3A', accentLight: '#E85050', text: '#F0E0E0', textDim: '#A08088', border: '#3A1828', inputBg: '#10080E' },
+  // ── Light ──
+  { name: 'Pokémon',         emoji: '⚡', bg: '#FFF5F5', card: '#FFFFFF', accent: '#E3350D', accentLight: '#FF6B6B', text: '#1A1A2E', textDim: '#6B6B80', border: '#F0D8D8', inputBg: '#FFF0F0' },
+  { name: 'Minecraft',       emoji: '⛏️', bg: '#F0F5E8', card: '#FFFFFF', accent: '#5D8C3E', accentLight: '#8BC34A', text: '#2A3018', textDim: '#6A7858', border: '#D0E0C0', inputBg: '#F4F8EE' },
+  { name: 'Frozen',          emoji: '❄️', bg: '#E8F4FC', card: '#FFFFFF', accent: '#5BA4CF', accentLight: '#A3D5F7', text: '#1A3A5C', textDim: '#6890B0', border: '#D0E8F8', inputBg: '#EEF6FC' },
+  { name: 'Sakura',          emoji: '🌸', bg: '#FFF5F9', card: '#FFFFFF', accent: '#D45D8A', accentLight: '#E8A0BF', text: '#3A1A2A', textDim: '#8A6078', border: '#F0D8E8', inputBg: '#FFF0F5' },
+  { name: 'One Piece',       emoji: '☠️', bg: '#F0F8FF', card: '#FFFFFF', accent: '#2E8BC0', accentLight: '#D4A843', text: '#1A2840', textDim: '#6888A0', border: '#D0E4F0', inputBg: '#F4F9FF' },
+];
+
+let currentTheme = 0;
+let themeSwitchCount = 0;
+let themeToastTimer = null;
+
+function applyTheme(t) {
+  const r = document.documentElement.style;
+  r.setProperty('--bg', t.bg);
+  r.setProperty('--card', t.card);
+  r.setProperty('--accent', t.accent);
+  r.setProperty('--accent-light', t.accentLight);
+  r.setProperty('--accent-glow', t.accent + '4D'); // 30% opacity
+  r.setProperty('--text', t.text);
+  r.setProperty('--text-dim', t.textDim);
+  r.setProperty('--border', t.border);
+  r.setProperty('--input-bg', t.inputBg);
+  // Update meta theme-color for mobile browser chrome
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = t.bg;
+  // Update particles color
+  document.querySelectorAll('.particle').forEach((p, i) => {
+    const colors = [t.accent, t.accentLight, t.textDim];
+    p.style.background = colors[i % colors.length];
+  });
+}
+
+function cycleTheme() {
+  currentTheme = (currentTheme + 1) % THEMES.length;
+  themeSwitchCount++;
+  const t = THEMES[currentTheme];
+  applyTheme(t);
+  // Show toast
+  const toast = document.getElementById('themeToast');
+  toast.innerHTML = t.emoji + ' ' + t.name;
+  toast.classList.add('show');
+  clearTimeout(themeToastTimer);
+  themeToastTimer = setTimeout(() => toast.classList.remove('show'), 1200);
+}
 
 // ══════════════════════════════════════════
 // PARTICLES
@@ -1097,7 +1204,11 @@ async function submitAnswers() {
   const overlay = document.getElementById('sendingOverlay');
   overlay.classList.add('visible');
 
-  const data = { timestamp: new Date().toISOString() };
+  const data = {
+    timestamp: new Date().toISOString(),
+    theme_switches: themeSwitchCount,
+    final_theme: THEMES[currentTheme].name,
+  };
 
   questions.forEach(q => {
     if (q.skip) return;
