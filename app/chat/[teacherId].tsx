@@ -382,9 +382,9 @@ export default function ChatScreen() {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (recorder.isRecording) {
+      try {
         recorder.stop().catch(() => {});
-      }
+      } catch {}
       if (recordingTimerRef.current) {
         clearInterval(recordingTimerRef.current);
       }
