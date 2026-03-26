@@ -20,7 +20,6 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import {
   useAudioRecorder,
-  useAudioRecorderState,
   createAudioPlayer,
   requestRecordingPermissionsAsync,
   setAudioModeAsync,
@@ -307,7 +306,8 @@ export default function ChatScreen() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
-  const recorderState = useAudioRecorderState(recorder, 500);
+  const recorderRef = useRef(recorder);
+  recorderRef.current = recorder;
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
@@ -351,17 +351,17 @@ export default function ChatScreen() {
   }, [recorder]);
 
   const stopRecording = useCallback(async (send: boolean) => {
-    if (!recorderState.isRecording) return;
     if (recordingTimerRef.current) {
       clearInterval(recordingTimerRef.current);
       recordingTimerRef.current = null;
     }
     try {
-      await recorder.stop();
+      const rec = recorderRef.current;
+      await rec.stop();
       await setAudioModeAsync({ allowsRecording: false });
       if (send) {
-        const uri = recorder.uri;
-        const durationSec = Math.round(recorder.currentTime);
+        const uri = rec.uri;
+        const durationSec = Math.round(rec.currentTime);
         if (uri) {
           const voiceAttachment: ChatAttachment = {
             uri,
@@ -377,19 +377,16 @@ export default function ChatScreen() {
     }
     setIsRecording(false);
     setRecordingDuration(0);
-  }, [recorder, recorderState.isRecording, teacherId, sendMessage]);
+  }, [teacherId, sendMessage]);
 
-  // Cleanup on unmount
+  // Cleanup timer on unmount (recorder lifecycle is managed by useAudioRecorder)
   useEffect(() => {
     return () => {
-      try {
-        recorder.stop().catch(() => {});
-      } catch {}
       if (recordingTimerRef.current) {
         clearInterval(recordingTimerRef.current);
       }
     };
-  }, [recorder]);
+  }, []);
 
   // ─── Audio playback ───
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
