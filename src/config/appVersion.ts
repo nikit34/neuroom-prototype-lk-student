@@ -20,7 +20,7 @@ interface AppVersionState {
 export const useAppVersionStore = create<AppVersionState>()(
   persist(
     (set) => ({
-      appVersion: 1,
+      appVersion: 2,
       setAppVersion: (v) => set({ appVersion: v }),
     }),
     {
