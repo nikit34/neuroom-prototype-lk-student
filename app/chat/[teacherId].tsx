@@ -24,7 +24,7 @@ import {
   requestRecordingPermissionsAsync,
   setAudioModeAsync,
   RecordingPresets,
-} from 'expo-audio';
+} from '@/src/utils/audio';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAgeStyles } from '@/src/hooks/useAgeStyles';
